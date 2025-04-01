@@ -1,0 +1,75 @@
+/* Chatbot.css */
+.chat-container {
+    position: fixed;
+    /* Esto mantendrá el chat fijo */
+    left: 0;
+    /* Lo coloca en el extremo izquierdo */
+    bottom: 0;
+    /* Lo coloca en la parte inferior */
+    width: 400px;
+    /* Aumenta el ancho según necesites */
+    height: 600px;
+    /* Aumenta la altura según necesites */
+    background-color: white;
+    border-right: 1px solid #ccc;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    z-index: 1000;
+    /* Asegura que esté por encima de otros elementos */
+}
+
+.chat-box {
+    flex: 1;
+    padding: 10px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.message {
+    margin-bottom: 15px;
+    padding: 10px;
+    border-radius: 8px;
+    max-width: 80%;
+}
+
+.message.bot {
+    align-self: flex-start;
+    background-color: #e0e0e0;
+}
+
+.message.user {
+    align-self: flex-end;
+    background-color: #4caf50;
+    color: white;
+}
+
+.input-box {
+    display: flex;
+    padding: 10px;
+    background-color: white;
+    border-top: 1px solid #eee;
+}
+
+.input-box input {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    margin-right: 10px;
+}
+
+.input-box button {
+    padding: 10px 15px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.input-box button:hover {
+    background-color: #45a049;
+}
