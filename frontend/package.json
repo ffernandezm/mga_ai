@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "bootstrap": "^5.3.3"
+  },
+  "packageManager": "yarn@4.8.0"
+}
