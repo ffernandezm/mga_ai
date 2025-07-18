@@ -12,6 +12,7 @@
   "dependencies": {
     "@shadcn/ui": "^0.0.4",
     "axios": "^1.8.4",
+    "bootstrap": "^5.3.7",
     "framer-motion": "^12.6.2",
     "lucide-react": "^0.485.0",
     "react": "^19.0.0",
@@ -35,6 +36,6 @@
     "tailwindcss": "^4.0.17",
     "typescript": "~5.7.2",
     "typescript-eslint": "^8.24.1",
-    "vite": "^6.2.0"
+    "vite": "^6.3.5"
   }
 }
