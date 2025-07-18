@@ -1,7 +1,0 @@
-langchain==0.1.17
-langchain-google-genai
-pymupdf==1.24.1
-faiss-cpu
-tqdm
-python-dotenv
-openai
