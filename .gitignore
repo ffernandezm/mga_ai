@@ -1,0 +1,56 @@
+# Entornos virtuales
+venv/
+env/
+.venv/
+
+# Compilación y caché de Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.sqlite3
+*.log
+
+# Archivos de configuración de entorno
+*.env
+.env
+.env.*
+
+# Alembic
+alembic/versions/*.pyc
+
+# Archivos de VSCode
+.vscode/
+
+# Node.js (React o frontend)
+node_modules/
+react/node_modules/
+react/build/
+
+# Archivos del sistema
+.DS_Store
+Thumbs.db
+
+# Zone Identifier (Windows metadata)
+*.Zone.Identifier
+
+# Archivos de base de datos y logs
+*.db
+*.sqlite
+*.log
+
+# Archivos de pruebas
+htmlcov/
+.coverage
+.tox/
+nosetests.xml
+coverage.xml
+*.cover
+.pytest_cache/
+
+# Archivos de lock y paquetes
+*.lock
+*.bak
+*.swp
+*.tmp
