@@ -8,11 +8,11 @@ function ProblemsTree({ projectId, projectName, ProjectDescription }) {
     const [problem, setProblem] = useState("");
     const [causes, setCauses] = useState([]);
     const [effects, setEffects] = useState([]);
-    const [isConsulting, setIsConsulting] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
-    const [aiResponse, setAiResponse] = useState("");
     const [isProblemEmpty, setIsProblemEmpty] = useState(false);
     const [showErrorPopup, setShowErrorPopup] = useState(false);
+    const [currentDescription, setCurrentDescription] = useState("");
+    const [magnitudeProblem, setMagnitudeProblem] = useState("");
 
     // Cargar el árbol de problemas al montar el componente o cuando cambie el projectId
     useEffect(() => {
@@ -113,6 +113,8 @@ function ProblemsTree({ projectId, projectName, ProjectDescription }) {
     const generateJson = () => {
         return {
             central_problem: problem,
+            current_description: currentDescription,
+            magnitude_problem: magnitudeProblem,
             direct_effects: effects.map(effect => ({
                 id: effect.id || undefined,  // Usar undefined en lugar de null
                 description: effect.text,
@@ -131,33 +133,6 @@ function ProblemsTree({ projectId, projectName, ProjectDescription }) {
             }))
         };
     };
-
-    const consultAI = async () => {
-        setIsConsulting(true);
-        const jsonData = generateJson();
-        console.log(jsonData);
-
-        const message = "Hola, estoy aprendiendo";
-
-        try {
-            const response = await api.post(
-                `/problems/response_ai/${projectId}?message=${encodeURIComponent(message)}`, // Enviar message como query param
-                jsonData // Enviar jsonData en el body
-            );
-
-            if (response.data && response.data.response) {
-                const formattedResponse = response.data.response.replace(/\n/g, "<br>");
-                setAiResponse(response.data || "No se obtuvo respuesta de la IA");
-                console.log("Respuesta de la IA:", formattedResponse);
-            }
-        } catch (error) {
-            console.error("Error consultando IA:", error);
-            setAiResponse("Error al obtener respuesta de la IA");
-        } finally {
-            setIsConsulting(false);
-        }
-    };
-
 
     const ErrorPopup = ({ message, onClose }) => {
         return (
@@ -416,15 +391,17 @@ function ProblemsTree({ projectId, projectName, ProjectDescription }) {
                 <input
                     type="text"
                     placeholder="Descripción de la situación existente con respecto al problema"
-                    value={problem}
+                    value={currentDescription}
+                    onChange={(e) => setCurrentDescription(e.target.value)}
                     className={isProblemEmpty ? "error-input" : ""}
                 />
             </div>
             <div className="trunk">
                 <input
                     type="text"
-                    placeholder="Magnitud actual del problema e indicadores de referencia "
-                    value={problem}
+                    placeholder="Magnitud actual del problema e indicadores de referencia"
+                    value={magnitudeProblem}
+                    onChange={(e) => setMagnitudeProblem(e.target.value)}
                     className={isProblemEmpty ? "error-input" : ""}
                 />
             </div>
