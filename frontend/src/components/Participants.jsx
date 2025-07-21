@@ -2,22 +2,22 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import api from "../services/api";
 
-function ParticipantsGeneral({ projectId }) {
-    const [participants_general, setParticipantsGeneral] = useState([]);
+function Participants({ projectId }) {
+    const [participants, setParticipants] = useState([]);
     const navigate = useNavigate();
     const [analysis, setAnalysis] = useState("");
     const [existingId, setExistingId] = useState(null);
 
-    const fetchParticipantsGeneral = async () => {
+    const fetchParticipants = async () => {
         try {
-            const response = await api.get(`/participants_general/${projectId}`);
+            const response = await api.get(`/participants/${projectId}`);
             const data = response.data;
 
             if (data.length > 0) {
-                const general = data[0]; // suponemos 1 por proyecto
-                setParticipantsGeneral(data);
-                setAnalysis(general.participants_analisis);
-                setExistingId(general.id);
+                const participant = data[0]; // suponemos 1 por proyecto
+                setParticipants(data);
+                setAnalysis(participant.participants_analisis);
+                setExistingId(participant.id);
             }
         } catch (error) {
             console.error("Error al obtener participantes:", error);
@@ -27,7 +27,7 @@ function ParticipantsGeneral({ projectId }) {
 
     useEffect(() => {
         if (projectId) {
-            fetchParticipantsGeneral();
+            fetchParticipants();
         }
     }, [projectId]);
 
@@ -40,9 +40,9 @@ function ParticipantsGeneral({ projectId }) {
 
         try {
             if (existingId) {
-                await api.put(`/participants_general/${existingId}`, payload);
+                await api.put(`/participants/${existingId}`, payload);
             } else {
-                const response = await api.post(`/participants_general`, payload);
+                const response = await api.post(`/participants`, payload);
                 setExistingId(response.data.id);
             }
             alert("Participantes actualizados correctamente.");
@@ -56,8 +56,8 @@ function ParticipantsGeneral({ projectId }) {
     const handleDelete = async (id) => {
         if (window.confirm("¿Estás seguro de eliminar este participante?")) {
             try {
-                await api.delete(`/participants_general/${id}`);
-                setParticipantsGeneral(participants_general.filter((p) => p.id !== id));
+                await api.delete(`/participants/${id}`);
+                setParticipants(participants.filter((p) => p.id !== id));
             } catch (error) {
                 console.error("Error al eliminar participante:", error);
                 alert("Error al eliminar el participante.");
@@ -84,8 +84,8 @@ function ParticipantsGeneral({ projectId }) {
                         </tr>
                     </thead>
                     <tbody>
-                        {participants_general.length > 0 ? (
-                            participants_general.map((participant) => (
+                        {participants.length > 0 ? (
+                            participants.map((participant) => (
                                 <tr key={participant.id}>
                                     <td>{participant.participant_analysis}</td>
                                     <td>{participant.interest_expectative}</td>
@@ -144,4 +144,4 @@ function ParticipantsGeneral({ projectId }) {
     );
 }
 
-export default ParticipantsGeneral;
+export default Participants;
