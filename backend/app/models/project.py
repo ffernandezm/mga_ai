@@ -21,17 +21,13 @@ class Project(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, index=True)
     description = Column(String)
+    
+    #CAMPOS MODULO ARBOL DE PROBLEMAS
     problem_id = Column(Integer, ForeignKey("problems.id"), nullable=True)
-    participants_general_id = Column(Integer, ForeignKey("participants_general.id"), nullable=True)
-
-
     problem = relationship("Problem", back_populates="projects")
 
-    # Relación opcional con ParticipantsGeneral
-    participants_general = relationship(
-        "ParticipantsGeneral",
-        foreign_keys=[participants_general_id]
-    )
+    #CAMPOS PARA MODULO DE PARTICIPANTES
+    participants = relationship("Participants", back_populates="projects")
 
 
 # Esquema Pydantic
@@ -39,13 +35,11 @@ class ProjectBase(BaseModel):
     name: str
     description: str
     problem_id: Optional[int] = None  # Campo opcional
-    participants_general_id: Optional[int] = None  # Campo opcional
 
 class ProjectCreate(BaseModel):
     name: str
     description: Optional[str] = None
     problem_id: Optional[int] = None
-    participants_general_id: Optional[int] = None
 
 class ProjectResponse(ProjectBase):
     id: int

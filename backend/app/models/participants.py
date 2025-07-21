@@ -26,11 +26,8 @@ class Participants(Base):
     rol = Column(Text)
     contribution_conflicts = Column(Text)
     project_id = Column(Integer, ForeignKey("projects.id"))
-    participants_general_id = Column(Integer, ForeignKey("participants_general.id"))
+    projects = relationship("Project", back_populates="participants")
 
-    # Esta relación es lo que causa el problema si no se maneja bien:
-    participants_general = relationship("ParticipantsGeneral", back_populates="participants")
-    
     
 # Esquema Pydantic
 class ParticipantsBase(BaseModel):

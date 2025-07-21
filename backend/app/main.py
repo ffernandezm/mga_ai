@@ -3,7 +3,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.models.project import router as project_router
 from app.models.problem import router as problem_router
 from app.models.participants import router as participants_router
-from app.models.participants_general import router as participants_general_router
 from app.models.objectives import router as objectives_router
 from app.models.alternatives import router as alternatives_router
 from app.models.population import router as population_router
@@ -41,7 +40,6 @@ def read_root():
 # Incluir Rutas
 app.include_router(project_router, prefix="/projects", tags=["Projects"])
 app.include_router(problem_router, prefix="/problems", tags=["Problems"])
-app.include_router(participants_general_router, prefix="/participants_general", tags=["ParticipantsGeneral"])
 app.include_router(participants_router, prefix="/participants", tags=["Participants"])
 app.include_router(objectives_router, prefix="/objectives", tags=["Objectives"])
 app.include_router(alternatives_router, prefix="/alternatives", tags=["Alternatives"])
