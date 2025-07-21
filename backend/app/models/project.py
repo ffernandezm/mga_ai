@@ -22,18 +22,30 @@ class Project(Base):
     name = Column(String, index=True)
     description = Column(String)
     problem_id = Column(Integer, ForeignKey("problems.id"), nullable=True)
+    participants_general_id = Column(Integer, ForeignKey("participants_general.id"), nullable=True)
+
 
     problem = relationship("Problem", back_populates="projects")
-    participants = relationship("Participants", back_populates="projects")
+
+    # Relación opcional con ParticipantsGeneral
+    participants_general = relationship(
+        "ParticipantsGeneral",
+        foreign_keys=[participants_general_id]
+    )
+
 
 # Esquema Pydantic
 class ProjectBase(BaseModel):
     name: str
     description: str
     problem_id: Optional[int] = None  # Campo opcional
+    participants_general_id: Optional[int] = None  # Campo opcional
 
-class ProjectCreate(ProjectBase):
-    pass
+class ProjectCreate(BaseModel):
+    name: str
+    description: Optional[str] = None
+    problem_id: Optional[int] = None
+    participants_general_id: Optional[int] = None
 
 class ProjectResponse(ProjectBase):
     id: int
@@ -91,3 +103,5 @@ def delete_project(project_id: int, db: Session = Depends(get_db)):
     db.delete(project)
     db.commit()
     return {"message": "Project deleted successfully"}
+
+

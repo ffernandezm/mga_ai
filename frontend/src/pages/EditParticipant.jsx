@@ -1,10 +1,10 @@
-import { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import api from "../services/api";
-import participantOptions from "../data/participantOptions"; // 👈 Importar archivo
+import participantOptions from "../data/participantOptions";
 
-function CreateParticipant() {
-    const { projectId } = useParams();
+function EditParticipant() {
+    const { projectId, participantId } = useParams();
     const navigate = useNavigate();
 
     const [formData, setFormData] = useState({
@@ -20,13 +20,22 @@ function CreateParticipant() {
     const [availableEntities, setAvailableEntities] = useState([]);
 
     useEffect(() => {
-        // Cuando se selecciona un actor, actualizar entidades
+        const fetchParticipant = async () => {
+            try {
+                const response = await api.get(`/participants/${projectId}`);
+                const participant = response.data.find(p => p.id === parseInt(participantId));
+                if (participant) setFormData(participant);
+            } catch (error) {
+                console.error("Error al obtener participante:", error);
+            }
+        };
+
+        fetchParticipant();
+    }, [projectId, participantId]);
+
+    useEffect(() => {
         if (formData.participant_actor) {
-            setAvailableEntities(
-                participantOptions.entidad[formData.participant_actor] || []
-            );
-        } else {
-            setAvailableEntities([]);
+            setAvailableEntities(participantOptions.entidad[formData.participant_actor] || []);
         }
     }, [formData.participant_actor]);
 
@@ -40,22 +49,21 @@ function CreateParticipant() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const payload = {
+            await api.put(`/participants/${participantId}`, {
                 ...formData,
                 project_id: parseInt(projectId),
-            };
-
-            await api.post("/participants/", payload);
-            navigate(`/projects/${projectId}/participants`);
+            });
+            // Redirigir al formulario de edición del proyecto
+            navigate(`/edit-project/${projectId}`);
         } catch (error) {
-            console.error("Error al crear participante:", error);
-            alert("Hubo un error al crear el participante.");
+            console.error("Error al actualizar participante:", error);
+            alert("Hubo un error al actualizar el participante.");
         }
     };
 
     return (
         <div className="container mt-4">
-            <h2>Crear Participante</h2>
+            <h2>Editar Participante</h2>
             <form onSubmit={handleSubmit}>
                 {/* Actor */}
                 <div className="mb-3">
@@ -134,16 +142,13 @@ function CreateParticipant() {
                         required
                     ></textarea>
                 </div>
-
                 <button type="submit" className="btn btn-primary">
-                    Guardar Participante
+                    Guardar Cambios
                 </button>
-
                 <button
                     type="button"
                     className="btn btn-secondary ms-2"
                     onClick={() => navigate(`/edit-project/${projectId}`)}
-
                 >
                     Cancelar
                 </button>
@@ -152,4 +157,4 @@ function CreateParticipant() {
     );
 }
 
-export default CreateParticipant;
+export default EditParticipant;
