@@ -4,6 +4,9 @@ from sqlalchemy import Column, Integer, String, ForeignKey
 from pydantic import BaseModel
 from typing import List, Optional
 
+from app.models.participants_general import ParticipantsGeneral
+from app.models.population import Population
+
 # Conexión a la DB
 from app.core.database import Base, SessionLocal
 def get_db():
@@ -22,18 +25,39 @@ class Project(Base):
     name = Column(String, index=True)
     description = Column(String)
     problem_id = Column(Integer, ForeignKey("problems.id"), nullable=True)
+    
+
 
     problem = relationship("Problem", back_populates="projects")
-    participants = relationship("Participants", back_populates="projects")
+
+    # Relación opcional con ParticipantsGeneral
+    participants_general = relationship(
+    "ParticipantsGeneral",
+    uselist=False,
+    back_populates="project",
+    cascade="all, delete-orphan"
+    )
+    population = relationship(
+    "Population",
+    uselist=False,
+    back_populates="project",
+    cascade="all, delete-orphan"
+    )
+    #participants_general_id = Column(Integer, ForeignKey("participants_general.id"), nullable=True)
+
 
 # Esquema Pydantic
 class ProjectBase(BaseModel):
     name: str
     description: str
     problem_id: Optional[int] = None  # Campo opcional
+    #participants_general_id: Optional[int] = None  # Campo opcional
 
-class ProjectCreate(ProjectBase):
-    pass
+class ProjectCreate(BaseModel):
+    name: str
+    description: Optional[str] = None
+    problem_id: Optional[int] = None
+    #participants_general_id: Optional[int] = None
 
 class ProjectResponse(ProjectBase):
     id: int
@@ -61,10 +85,21 @@ def get_project(project_id: int, db: Session = Depends(get_db)):
 # Crear un nuevo proyecto
 @router.post("/", response_model=ProjectResponse)
 def create_project(project: ProjectCreate, db: Session = Depends(get_db)):
+    # 1. Crear el proyecto
     new_project = Project(**project.model_dump())
-    db.add(new_project)  
+    db.add(new_project)
+    db.flush()  # Obtenemos el ID antes de hacer commit
+
+    # 2. Crear automáticamente un registro en ParticipantsGeneral asociado
+    participants_general = ParticipantsGeneral(
+        participants_analisis="",
+        project_id=new_project.id
+    )
+    db.add(participants_general)
+
     db.commit()
     db.refresh(new_project)
+
     return new_project
 
 # Actualizar un proyecto por ID
@@ -91,3 +126,5 @@ def delete_project(project_id: int, db: Session = Depends(get_db)):
     db.delete(project)
     db.commit()
     return {"message": "Project deleted successfully"}
+
+

@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
-import { FaPlus, FaTrash, FaBrain } from "react-icons/fa";
+import { FaPlus, FaTrash } from "react-icons/fa";
 import "../styles/problemsTree.css";
 import api from "../services/api";
-import AIResponse from "./AIResponse";
 
 function ProblemsTree({ projectId, projectName, ProjectDescription }) {
     const [problem, setProblem] = useState("");

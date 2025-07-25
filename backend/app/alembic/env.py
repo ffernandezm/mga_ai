@@ -6,6 +6,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..",
 
 from core.database import Base  # Importación absoluta
 from app.models.participants import Participants
+from app.models.participants_general import ParticipantsGeneral
 from app.models.project import Project
 from app.models.population import Population
 from app.models.problem import Problem

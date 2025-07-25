@@ -66,9 +66,6 @@ function CreateProject() {
             <button type="button" className="btn-secondary" onClick={() => navigate("/projects")}>
                 Regresar a Proyectos
             </button>
-            <button type="button" className="btn-secondary" onClick={() => navigate("/projects")}>
-                Continuar
-            </button>
         </div>
     );
 }
