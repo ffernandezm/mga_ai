@@ -46,3 +46,4 @@ app.include_router(participants_router, prefix="/participants", tags=["Participa
 app.include_router(objectives_router, prefix="/objectives", tags=["Objectives"])
 app.include_router(alternatives_router, prefix="/alternatives", tags=["Alternatives"])
 app.include_router(population_router, prefix="/population", tags=["Population"])
+app.include_router(population_router, prefix="/population", tags=["Population"])

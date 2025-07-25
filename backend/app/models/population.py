@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, relationship
 from app.core.database import Base, SessionLocal
-from sqlalchemy import Column, Integer, Text
+from sqlalchemy import Column, Integer, Text, ForeignKey, JSON
 from pydantic import BaseModel
-from typing import List
+from typing import List, Optional
 
 # Conexión a la DB
 def get_db():
@@ -18,15 +18,18 @@ class Population(Base):
     __tablename__ = "population"
 
     id = Column(Integer, primary_key=True, index=True)
-    affected_population = Column(Text)
-    target_population = Column(Text)
-    demographic_characteristics = Column(Text)
+    project_id = Column(Integer, ForeignKey("projects.id"), nullable=False, unique=True)
+    
+    project = relationship("Project", back_populates="population")
+    # affected_population = relationship("affected_population", back_populates="population")
+    # target_population = relationship("target_population", back_populates="population")
+    # affected_popdemographic_characteristicsulation = relationship("demographic_characteristics", back_populates="population")
+    
+    population_json = Column(JSON, nullable=True)
 
 # Esquema Pydantic
 class PopulationBase(BaseModel):
-    affected_population: str
-    target_population: str
-    demographic_characteristics: str
+    participants_json: Optional[dict] = None
 
 class PopulationCreate(PopulationBase):
     pass

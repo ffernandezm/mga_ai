@@ -1,17 +1,15 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import api from "../services/api";
-import participantOptions from "../data/participantOptions"; // 👈 Importar archivo
+import participantOptions from "../data/participantOptions";
 
 function CreateParticipant() {
-    const { projectId } = useParams();
+    const { projectId, generalId } = useParams(); // ✅ generalId viene de ParticipantsGeneral
     const navigate = useNavigate();
 
     const [formData, setFormData] = useState({
         participant_actor: "",
         participant_entity: "",
-        participant_position: "",
-        participant_analysis: "",
         interest_expectative: "",
         rol: "",
         contribution_conflicts: "",
@@ -20,7 +18,6 @@ function CreateParticipant() {
     const [availableEntities, setAvailableEntities] = useState([]);
 
     useEffect(() => {
-        // Cuando se selecciona un actor, actualizar entidades
         if (formData.participant_actor) {
             setAvailableEntities(
                 participantOptions.entidad[formData.participant_actor] || []
@@ -42,9 +39,8 @@ function CreateParticipant() {
         try {
             const payload = {
                 ...formData,
-                project_id: parseInt(projectId),
+                participants_general_id: parseInt(generalId), // ✅ solo este ID importa
             };
-
             await api.post("/participants/", payload);
             navigate(`/projects/${projectId}/participants`);
         } catch (error) {
@@ -114,6 +110,7 @@ function CreateParticipant() {
                     </select>
                 </div>
 
+                {/* Intereses */}
                 <div className="mb-3">
                     <label className="form-label">Intereses / Expectativas</label>
                     <textarea
@@ -124,6 +121,8 @@ function CreateParticipant() {
                         required
                     ></textarea>
                 </div>
+
+                {/* Contribuciones */}
                 <div className="mb-3">
                     <label className="form-label">Contribuciones / Conflictos</label>
                     <textarea
@@ -138,12 +137,10 @@ function CreateParticipant() {
                 <button type="submit" className="btn btn-primary">
                     Guardar Participante
                 </button>
-
                 <button
                     type="button"
                     className="btn btn-secondary ms-2"
                     onClick={() => navigate(`/edit-project/${projectId}`)}
-
                 >
                     Cancelar
                 </button>

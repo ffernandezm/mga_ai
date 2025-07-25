@@ -3,10 +3,10 @@ import { Link, useNavigate } from "react-router-dom";
 import api from "../services/api";
 
 function ParticipantsGeneral({ projectId }) {
-    const [participants_general, setParticipantsGeneral] = useState([]);
+    const [participantsGeneral, setParticipantsGeneral] = useState([]);
     const navigate = useNavigate();
     const [analysis, setAnalysis] = useState("");
-    const [existingId, setExistingId] = useState(null);
+    const [generalId, setGeneralId] = useState(null);
 
     const fetchParticipantsGeneral = async () => {
         try {
@@ -14,50 +14,51 @@ function ParticipantsGeneral({ projectId }) {
             const data = response.data;
 
             if (data.length > 0) {
-                const general = data[0]; // suponemos 1 por proyecto
-                setParticipantsGeneral(data);
+                const general = data[0];
+                setParticipantsGeneral(general.participants || []);
                 setAnalysis(general.participants_analisis);
-                setExistingId(general.id);
+                setGeneralId(general.id);
             }
         } catch (error) {
             console.error("Error al obtener participantes:", error);
         }
     };
 
-
     useEffect(() => {
-        if (projectId) {
-            fetchParticipantsGeneral();
-        }
+        if (projectId) fetchParticipantsGeneral();
     }, [projectId]);
 
     const handleSubmit = async () => {
+        if (!projectId) return alert("No hay proyecto seleccionado.");
         const payload = {
             project_id: projectId,
             participants_analisis: analysis,
-            participants: [] // opcional, vacío si no se usa
+            participants: [],
         };
 
         try {
-            if (existingId) {
-                await api.put(`/participants_general/${existingId}`, payload);
+            if (generalId) {
+                await api.put(`/participants_general/${generalId}`, payload);
             } else {
-                const response = await api.post(`/participants_general`, payload);
-                setExistingId(response.data.id);
+                const res = await api.post(`/participants_general`, payload);
+                setGeneralId(res.data.id);
             }
             alert("Participantes actualizados correctamente.");
-        } catch (error) {
-            console.error("Error al guardar:", error);
+            fetchParticipantsGeneral();
+        } catch (err) {
+            console.error("Error:", err);
             alert("Error al guardar la información.");
         }
     };
 
-
-    const handleDelete = async (id) => {
+    const handleDeleteParticipant = async (participantId) => {
+        if (!participantId) return;
         if (window.confirm("¿Estás seguro de eliminar este participante?")) {
             try {
-                await api.delete(`/participants_general/${id}`);
-                setParticipantsGeneral(participants_general.filter((p) => p.id !== id));
+                await api.delete(`/participants/${participantId}`);
+                setParticipantsGeneral((prev) =>
+                    prev.filter((p) => p.id !== participantId)
+                );
             } catch (error) {
                 console.error("Error al eliminar participante:", error);
                 alert("Error al eliminar el participante.");
@@ -68,7 +69,11 @@ function ParticipantsGeneral({ projectId }) {
     return (
         <div className="container mt-4">
             <h2 className="mb-3">Participantes</h2>
-            <Link to={`/projects/${projectId}/create-participant`} className="btn btn-success mb-3">
+
+            <Link
+                to={`/projects/${projectId}/create-participant/${generalId}`}
+                className="btn btn-success mb-3"
+            >
                 Crear participante
             </Link>
 
@@ -76,7 +81,6 @@ function ParticipantsGeneral({ projectId }) {
                 <table className="table table-striped table-bordered">
                     <thead className="table-dark">
                         <tr>
-                            <th>Análisis</th>
                             <th>Intereses / Expectativas</th>
                             <th>Rol</th>
                             <th>Contribuciones / Conflictos</th>
@@ -84,10 +88,9 @@ function ParticipantsGeneral({ projectId }) {
                         </tr>
                     </thead>
                     <tbody>
-                        {participants_general.length > 0 ? (
-                            participants_general.map((participant) => (
+                        {participantsGeneral.length > 0 ? (
+                            participantsGeneral.map((participant) => (
                                 <tr key={participant.id}>
-                                    <td>{participant.participant_analysis}</td>
                                     <td>{participant.interest_expectative}</td>
                                     <td>{participant.rol}</td>
                                     <td>{participant.contribution_conflicts}</td>
@@ -95,14 +98,16 @@ function ParticipantsGeneral({ projectId }) {
                                         <button
                                             className="btn btn-sm btn-primary me-2"
                                             onClick={() =>
-                                                navigate(`/projects/${projectId}/edit-participant/${participant.id}`)
+                                                navigate(
+                                                    `/projects/${projectId}/edit-participant/${participant.id}`
+                                                )
                                             }
                                         >
                                             Editar
                                         </button>
                                         <button
                                             className="btn btn-sm btn-danger"
-                                            onClick={() => handleDelete(participant.id)}
+                                            onClick={() => handleDeleteParticipant(participant.id)}
                                         >
                                             Eliminar
                                         </button>
@@ -111,7 +116,7 @@ function ParticipantsGeneral({ projectId }) {
                             ))
                         ) : (
                             <tr>
-                                <td colSpan="5" className="text-center">
+                                <td colSpan="4" className="text-center">
                                     No hay participantes para este proyecto.
                                 </td>
                             </tr>
@@ -130,7 +135,7 @@ function ParticipantsGeneral({ projectId }) {
             </div>
 
             <button type="submit" className="btn btn-primary me-2" onClick={handleSubmit}>
-                {existingId ? "Actualizar Participantes" : "Crear Participantes"}
+                {generalId ? "Actualizar Participantes" : "Crear Participantes"}
             </button>
 
             <button
