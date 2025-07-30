@@ -113,8 +113,9 @@ def update_participant_general(participant_id: int, updated_data: ParticipantsGe
     if not participant:
         raise HTTPException(status_code=404, detail="Participant not found")
 
-    for key, value in updated_data.dict(exclude_unset=True).items():
+    for key, value in updated_data.dict(exclude={"participants"}, exclude_unset=True).items():
         setattr(participant, key, value)
+
     db.commit()
     db.refresh(participant)
     return participant

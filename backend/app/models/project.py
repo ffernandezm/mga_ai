@@ -83,20 +83,28 @@ def get_project(project_id: int, db: Session = Depends(get_db)):
     return project
 
 # Crear un nuevo proyecto
-@router.post("/", response_model=ProjectResponse)
+@router.post("/", response_model=ProjectResponse, status_code=201)
 def create_project(project: ProjectCreate, db: Session = Depends(get_db)):
     # 1. Crear el proyecto
     new_project = Project(**project.model_dump())
     db.add(new_project)
-    db.flush()  # Obtenemos el ID antes de hacer commit
+    db.flush()  # obtiene new_project.id sin hacer commit
 
     # 2. Crear automáticamente un registro en ParticipantsGeneral asociado
     participants_general = ParticipantsGeneral(
         participants_analisis="",
         project_id=new_project.id
     )
-    db.add(participants_general)
 
+    # 3. Crear automáticamente un registro en Population asociado
+    population = Population(
+        project_id=new_project.id
+    )
+
+    # 4. Añadir ambas instancias a la sesión
+    db.add_all([participants_general, population])
+
+    # 5. Commit y refrescar el proyecto padre para incluir relaciones en la respuesta
     db.commit()
     db.refresh(new_project)
 
