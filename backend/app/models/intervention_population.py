@@ -14,8 +14,8 @@ def get_db():
         db.close()
 
 # ──────────────────────── MODELO SQLALCHEMY ────────────────────────
-class AffectedPopulation(Base):
-    __tablename__ = "affected_population"
+class InterventionPopulation(Base):
+    __tablename__ = "intervention_population"
 
     id = Column(Integer, primary_key=True, index=True)
     region = Column(Text, nullable=False)
@@ -25,11 +25,11 @@ class AffectedPopulation(Base):
     location_entity = Column(Text, nullable=True)
 
     population_id = Column(Integer, ForeignKey("population.id"), nullable=False)
-    population = relationship("Population", back_populates="affected_population")
+    population = relationship("Population", back_populates="intervention_population")
 
 # ──────────────────────── ESQUEMAS PYDANTIC ────────────────────────
 
-class AffectedPopulationBase(BaseModel):
+class InterventionPopulationBase(BaseModel):
     region: str
     department: str
     city: Optional[str] = None
@@ -38,10 +38,10 @@ class AffectedPopulationBase(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)  # pydantic v2+
 
-class AffectedPopulationCreate(AffectedPopulationBase):
+class InterventionPopulationCreate(InterventionPopulationBase):
     population_id: int
 
-class AffectedPopulationResponse(AffectedPopulationBase):
+class InterventionPopulationResponse(InterventionPopulationBase):
     id: int
     population_id: int
 
@@ -49,50 +49,50 @@ class AffectedPopulationResponse(AffectedPopulationBase):
 
 router = APIRouter()
 
-@router.post("/", response_model=AffectedPopulationResponse)
-def create_affected_population(affected_population: AffectedPopulationCreate, db: Session = Depends(get_db)):
+@router.post("/", response_model=InterventionPopulationResponse)
+def create_intervention_population(intervention_population: InterventionPopulationCreate, db: Session = Depends(get_db)):
     from app.models.population import Population
 
-    parent = db.query(Population).filter(Population.id == affected_population.population_id).first()
+    parent = db.query(Population).filter(Population.id == intervention_population.population_id).first()
     if not parent:
         raise HTTPException(status_code=400, detail="Population with given ID does not exist")
 
-    db_affected_population = AffectedPopulation(**affected_population.dict())
-    db.add(db_affected_population)
+    db_intervention_population = InterventionPopulation(**intervention_population.dict())
+    db.add(db_intervention_population)
     db.commit()
-    db.refresh(db_affected_population)
-    return db_affected_population
+    db.refresh(db_intervention_population)
+    return db_intervention_population
 
-@router.get("/", response_model=List[AffectedPopulationResponse])
-def get_affected_populations(db: Session = Depends(get_db)):
-    return db.query(AffectedPopulation).all()
+@router.get("/", response_model=List[InterventionPopulationResponse])
+def get_intervention_populations(db: Session = Depends(get_db)):
+    return db.query(InterventionPopulation).all()
 
-@router.get("/{affected_population_id}", response_model=AffectedPopulationResponse)
-def get_affected_population(affected_population_id: int, db: Session = Depends(get_db)):
-    result = db.query(AffectedPopulation).filter(AffectedPopulation.id == affected_population_id).first()
+@router.get("/{intervention_population_id}", response_model=InterventionPopulationResponse)
+def get_intervention_population(intervention_population_id: int, db: Session = Depends(get_db)):
+    result = db.query(InterventionPopulation).filter(InterventionPopulation.id == intervention_population_id).first()
     if not result:
         raise HTTPException(status_code=404, detail="Affected population not found")
     return result
 
-@router.delete("/{affected_population_id}", response_model=dict)
-def delete_affected_population(affected_population_id: int, db: Session = Depends(get_db)):
-    affected_population = db.query(AffectedPopulation).filter(AffectedPopulation.id == affected_population_id).first()
-    if not affected_population:
+@router.delete("/{intervention_population_id}", response_model=dict)
+def delete_intervention_population(intervention_population_id: int, db: Session = Depends(get_db)):
+    intervention_population = db.query(InterventionPopulation).filter(InterventionPopulation.id == intervention_population_id).first()
+    if not intervention_population:
         raise HTTPException(status_code=404, detail="Affected Population not found")
     
-    db.delete(affected_population)
+    db.delete(intervention_population)
     db.commit()
     return {"message": "Affected Population deleted"}
 
-@router.put("/{affected_population_id}", response_model=AffectedPopulationResponse)
-def update_affected_population(affected_population_id: int, updated_data: AffectedPopulationCreate, db: Session = Depends(get_db)):
-    affected_population = db.query(AffectedPopulation).filter(AffectedPopulation.id == affected_population_id).first()
-    if not affected_population:
+@router.put("/{intervention_population_id}", response_model=InterventionPopulationResponse)
+def update_intervention_population(intervention_population_id: int, updated_data: InterventionPopulationCreate, db: Session = Depends(get_db)):
+    intervention_population = db.query(InterventionPopulation).filter(InterventionPopulation.id == intervention_population_id).first()
+    if not intervention_population:
         raise HTTPException(status_code=404, detail="Affected Population not found")
 
     for key, value in updated_data.dict().items():
-        setattr(affected_population, key, value)
+        setattr(intervention_population, key, value)
 
     db.commit()
-    db.refresh(affected_population)
-    return affected_population
+    db.refresh(intervention_population)
+    return intervention_population

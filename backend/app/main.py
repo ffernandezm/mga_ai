@@ -7,6 +7,8 @@ from app.models.participants_general import router as participants_general_route
 from app.models.objectives import router as objectives_router
 from app.models.alternatives import router as alternatives_router
 from app.models.population import router as population_router
+from app.models.affected_population import router as affected_population_router
+from app.models.intervention_population import router as intervention_population_router
 from app.core.database import Base, engine
 
 import asyncio
@@ -46,4 +48,5 @@ app.include_router(participants_router, prefix="/participants", tags=["Participa
 app.include_router(objectives_router, prefix="/objectives", tags=["Objectives"])
 app.include_router(alternatives_router, prefix="/alternatives", tags=["Alternatives"])
 app.include_router(population_router, prefix="/population", tags=["Population"])
-app.include_router(population_router, prefix="/population", tags=["Population"])
+app.include_router(affected_population_router, prefix="/affected_population", tags=["AffectedPopulation"])
+app.include_router(intervention_population_router, prefix="/intervention_population", tags=["InterventionPopulation"])

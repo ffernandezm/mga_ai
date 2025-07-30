@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 
 import ProblemsTree from "../components/ProblemsTree";
 import Participants from "../components/Participants";
+import Population from "../components/Population";
 import Chatbot from "../components/Chatbot";
 import ProjectHeader from "../components/ProjectHeader";
 
@@ -49,6 +50,13 @@ function Formulation() {
                     />
                 );
 
+            case "population":
+                return (
+                    <Population
+                        projectId={id}
+                    />
+                );
+
             default:
                 return <div>Componente no disponible</div>;
         }
@@ -79,7 +87,7 @@ function Formulation() {
                         </button>
                         <button
                             className={`btn btn-sm ${activeTab === "participants" ? "btn-primary" : "btn-outline-primary"}`}
-                            onClick={() => setActiveTab("participants")}
+                            onClick={() => setActiveTab("population")}
                         >
                             Población
                         </button>

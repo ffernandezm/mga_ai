@@ -3,8 +3,16 @@ import Navbar from "./components/Navbar";
 import { ProjectProvider } from "./context/ProjectContext";
 import Home from "./pages/Home";
 import CreateProject from "./pages/CreateProject";
+
 import CreateParticipant from "./pages/CreateParticipant";
 import EditParticipant from "./pages/EditParticipant";
+
+import CreateAffectedPopulation from "./pages/CreateAffectedPopulation";
+import EditAffectedPopulation from "./pages/EditAffectedPopulation";
+
+import CreateInterventionPopulation from "./pages/CreateInterventionPopulation";
+import EditInterventionPopulation from "./pages/EditInterventionPopulation";
+
 import "bootstrap/dist/css/bootstrap.min.css";
 import ProjectList from "./components/ProjectList";
 import Formulation from "./pages/Formulation";
@@ -21,6 +29,10 @@ function App() {
             <Route path="/edit-project/:id" element={<Formulation />} />
             <Route path="/projects/:projectId/create-participant/:generalId" element={<CreateParticipant />} />
             <Route path="/projects/:projectId/edit-participant/:participantId" element={<EditParticipant />} />
+            <Route path="/projects/:projectId/create-affected-population/:AffectedPopulationId" element={<CreateAffectedPopulation />} />
+            <Route path="/projects/:projectId/edit-affected-population/:AffectedPopulationId" element={<EditAffectedPopulation />} />
+            <Route path="/projects/:projectId/create-intervention-population/:InterventionPopulationId" element={<CreateInterventionPopulation />} />
+            <Route path="/projects/:projectId/edit-intervention-population/:InterventionPopulationId" element={<EditInterventionPopulation />} />
             <Route path="/" element={<Home />} />
           </Routes>
         </div>

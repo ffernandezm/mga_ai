@@ -124,6 +124,7 @@ function ParticipantsGeneral({ projectId }) {
                     </tbody>
                 </table>
             </div>
+            
 
             <div className="mb-3">
                 <label className="form-label">Análisis de los participantes</label>
