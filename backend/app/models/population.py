@@ -20,6 +20,12 @@ from app.models.intervention_population import (
     InterventionPopulationResponse,
 )
 
+from app.models.characteristics_population import (
+    CharacteristicsPopulation,
+    CharacteristicsPopulationCreate,
+    CharacteristicsPopulationResponse,
+)
+
 # —————————————————————————————————————————
 #  Conexión a la DB
 # —————————————————————————————————————————
@@ -51,11 +57,17 @@ class Population(Base):
         cascade="all, delete-orphan",
     )
     
-    population_type_intervention = Column(Text, nullable=False)
-    number_intervention = Column(Integer, nullable=False)
+    population_type_intervention = Column(Text, nullable=False, default="No especificado")
+    number_intervention = Column(Integer, nullable=False, default=0)
     source_information_intervention = Column(Text, nullable=True)
     intervention_population = relationship(
         "InterventionPopulation",
+        back_populates="population",
+        cascade="all, delete-orphan",
+    )
+    
+    characteristics_population = relationship(
+        "CharacteristicsPopulation",
         back_populates="population",
         cascade="all, delete-orphan",
     )
@@ -85,11 +97,13 @@ class PopulationCreate(PopulationBase):
     project_id: int
     affected_population: List[AffectedPopulationCreate] = []
     intervention_population: List[InterventionPopulationCreate] = []
+    characteristics_population: List[CharacteristicsPopulationCreate] = []
 
 class PopulationResponse(PopulationBase):
     id: int
     affected_population: List[AffectedPopulationResponse] = []
     intervention_population: List[InterventionPopulationResponse] = []
+    characteristics_population: List[CharacteristicsPopulationResponse] = []
 
     class Config:
         from_attributes = True

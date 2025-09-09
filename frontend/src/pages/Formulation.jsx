@@ -86,19 +86,19 @@ function Formulation() {
                             Participantes
                         </button>
                         <button
-                            className={`btn btn-sm ${activeTab === "participants" ? "btn-primary" : "btn-outline-primary"}`}
+                            className={`btn btn-sm ${activeTab === "population" ? "btn-primary" : "btn-outline-primary"}`}
                             onClick={() => setActiveTab("population")}
                         >
                             Población
                         </button>
                         <button
-                            className={`btn btn-sm ${activeTab === "participants" ? "btn-primary" : "btn-outline-primary"}`}
-                            onClick={() => setActiveTab("participants")}
+                            className={`btn btn-sm ${activeTab === "objetives" ? "btn-primary" : "btn-outline-primary"}`}
+                            onClick={() => setActiveTab("objetives")}
                         >
                             Objetivos
                         </button>
                         <button
-                            className={`btn btn-sm ${activeTab === "participants" ? "btn-primary" : "btn-outline-primary"}`}
+                            className={`btn btn-sm ${activeTab === "" ? "btn-primary" : "btn-outline-primary"}`}
                             onClick={() => setActiveTab("participants")}
                         >
                             Alternativas

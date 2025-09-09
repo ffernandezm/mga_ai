@@ -1,4 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
+import csv
+import os
 from sqlalchemy.orm import Session, relationship
 from sqlalchemy import Column, Integer, String, ForeignKey
 from pydantic import BaseModel
@@ -6,6 +8,7 @@ from typing import List, Optional
 
 from app.models.participants_general import ParticipantsGeneral
 from app.models.population import Population
+from app.models.characteristics_population import CharacteristicsPopulation
 
 # Conexión a la DB
 from app.core.database import Base, SessionLocal
@@ -88,7 +91,7 @@ def create_project(project: ProjectCreate, db: Session = Depends(get_db)):
     # 1. Crear el proyecto
     new_project = Project(**project.model_dump())
     db.add(new_project)
-    db.flush()  # obtiene new_project.id sin hacer commit
+    db.flush()
 
     # 2. Crear automáticamente un registro en ParticipantsGeneral asociado
     participants_general = ParticipantsGeneral(
@@ -100,14 +103,29 @@ def create_project(project: ProjectCreate, db: Session = Depends(get_db)):
     population = Population(
         project_id=new_project.id
     )
-
-    # 4. Añadir ambas instancias a la sesión
     db.add_all([participants_general, population])
+    db.flush()  # para obtener population.id antes de usarlo
 
-    # 5. Commit y refrescar el proyecto padre para incluir relaciones en la respuesta
+    # 4. Cargar los datos predeterminados desde el CSV
+    csv_path = os.path.join(os.path.dirname(__file__), "..", "data", "characteristics_population.csv")
+    with open(csv_path, newline="", encoding="utf-8") as csvfile:
+        reader = csv.DictReader(csvfile)
+        default_records = [
+            CharacteristicsPopulation(
+                classification=row["classification"],
+                detail=row["detail"],
+                people_number=int(row["people_number"]),
+                information=row["information"],
+                population_id=population.id
+            )
+            for row in reader
+        ]
+
+    db.add_all(default_records)
+
+    # 5. Commit y refrescar
     db.commit()
     db.refresh(new_project)
-
     return new_project
 
 # Actualizar un proyecto por ID

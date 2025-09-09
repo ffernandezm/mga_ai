@@ -9,6 +9,7 @@ from app.models.alternatives import router as alternatives_router
 from app.models.population import router as population_router
 from app.models.affected_population import router as affected_population_router
 from app.models.intervention_population import router as intervention_population_router
+from app.models.characteristics_population import router as characteristics_population_router
 from app.core.database import Base, engine
 
 import asyncio
@@ -27,10 +28,10 @@ origins = [
 ]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,             # permitir orígenes
+    allow_origins=["*"],           # permite cualquier origen
     allow_credentials=True,
-    allow_methods=["*"],               # permitir todos los métodos (GET, POST, etc.)
-    allow_headers=["*"],               # permitir todos los headers
+    allow_methods=["*"],           # permite todos los métodos
+    allow_headers=["*"],           # permite todos los headers
 )
 
 # Crear tablas en la base de datos
@@ -50,3 +51,4 @@ app.include_router(alternatives_router, prefix="/alternatives", tags=["Alternati
 app.include_router(population_router, prefix="/population", tags=["Population"])
 app.include_router(affected_population_router, prefix="/affected_population", tags=["AffectedPopulation"])
 app.include_router(intervention_population_router, prefix="/intervention_population", tags=["InterventionPopulation"])
+app.include_router(characteristics_population_router, prefix="/characteristics_population", tags=["CharacteristicsPopulation"])

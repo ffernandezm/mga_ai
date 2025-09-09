@@ -2,7 +2,7 @@ from .models.document import Document
 from .models.query_processor import QueryProcessor
 
 async def main(problem_tree_json,message):
-    pdf_path = "/home/ffernandez/fastapi/app/ai/data/Documento_conceptual_2023.pdf"
+    pdf_path = "/home/ffernandez/mga_ai/backend/app/data/Documento_conceptual_2023.pdf"
     doc = Document(pdf_path)
     query_processor = QueryProcessor(doc.get_text())
     
