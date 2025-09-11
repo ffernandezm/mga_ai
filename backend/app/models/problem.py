@@ -1,3 +1,4 @@
+from ..ai.config.config import GOOGLE_API_KEY
 from fastapi import APIRouter, Depends, HTTPException, Body, Query
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
@@ -14,6 +15,8 @@ from app.models.direct_effects import DirectEffect, DirectEffectCreate, DirectEf
 from app.models.direct_causes import DirectCause, DirectCauseCreate, DirectCauseResponse
 from app.models.indirect_effects import IndirectEffect
 from app.models.indirect_causes import IndirectCause
+
+from ..ai.llm_models.gemini_llm import ChatBotModel
 
 from app.ai.main import main
 # Conexión a la DB
@@ -38,6 +41,18 @@ class Problem(Base):
     
     current_description = Column(Text)
     magnitude_problem = Column(Text)
+
+    # 🔹 Atributo para usar el modelo LLM
+    chatbot = ChatBotModel(api_key=GOOGLE_API_KEY)
+    
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        # 🔹 Cada Problem tiene su propio chatbot con historial independiente
+        self.chatbot = ChatBotModel(api_key=GOOGLE_API_KEY)
+
+    def ask_chatbot(self, question: str, info_json:str) -> str:
+        """Interactuar con el chatbot propio de este problema"""
+        return self.chatbot.ask(question,info_json)
 
 # Esquema Pydantic
 class ProblemBase(BaseModel):
@@ -307,35 +322,42 @@ async def post_response_ai_problem(
     
     project = db.query(Project).filter(Project.id == project_id).first()
     problem_tree_json = project.problem.problem_tree_json
-    problem_tree_text = format_problem_tree(problem_tree_json)
+    # problem_tree_text = format_problem_tree(problem_tree_json)
     
-    ProblemTreeText = f"""
-    Árbol de Problemas:
+    # ProblemTreeText = f"""
+    # Árbol de Problemas:
     
-    Problema Central: {jsonData.get('central_problem', 'No especificado')}
+    # Problema Central: {jsonData.get('central_problem', 'No especificado')}
     
-    Efectos Directos:
-    """
+    # Efectos Directos:
+    # """
 
-    # Añadir efectos directos e indirectos
-    for effect in jsonData.get('direct_effects', []):
-        ProblemTreeText += f"\n- {effect.get('description', '')}"
-        if 'indirect_effects' in effect and effect['indirect_effects']:
-            ProblemTreeText += "\n  Efectos Indirectos:"
-            for indirect in effect['indirect_effects']:
-                ProblemTreeText += f"\n  - {indirect.get('description', '')}"
+    # # Añadir efectos directos e indirectos
+    # for effect in jsonData.get('direct_effects', []):
+    #     ProblemTreeText += f"\n- {effect.get('description', '')}"
+    #     if 'indirect_effects' in effect and effect['indirect_effects']:
+    #         ProblemTreeText += "\n  Efectos Indirectos:"
+    #         for indirect in effect['indirect_effects']:
+    #             ProblemTreeText += f"\n  - {indirect.get('description', '')}"
     
-    ProblemTreeText += "\n\nCausas Directas:"
+    # ProblemTreeText += "\n\nCausas Directas:"
     
-    # Añadir causas directas e indirectas
-    for cause in jsonData.get('direct_causes', []):
-        ProblemTreeText += f"\n- {cause.get('description', '')}"
-        if 'indirect_causes' in cause and cause['indirect_causes']:
-            ProblemTreeText += "\n  Causas Indirectas:"
-            for indirect in cause['indirect_causes']:
-                ProblemTreeText += f"\n  - {indirect.get('description', '')}"
+    # # Añadir causas directas e indirectas
+    # for cause in jsonData.get('direct_causes', []):
+    #     ProblemTreeText += f"\n- {cause.get('description', '')}"
+    #     if 'indirect_causes' in cause and cause['indirect_causes']:
+    #         ProblemTreeText += "\n  Causas Indirectas:"
+    #         for indirect in cause['indirect_causes']:
+    #             ProblemTreeText += f"\n  - {indirect.get('description', '')}"
 
-    response = await main(problem_tree_text, message)  
+    #response = await main(problem_tree_text, message)  
+    #return {"response": response}
+    ###Prueba de respuestas con llm
+    #response = project.problem.ask_chatbot(message, info_json=str(problem_tree_json))
+    response = project.problem.chatbot.ask(message,info_json=str(problem_tree_json))
+    #project.problem.chatbot.memory.clear()
+
+    
     return {"response": response}
 
 def format_problem_tree(problem_tree_json: dict) -> str:
