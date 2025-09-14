@@ -26,15 +26,16 @@ class ParticipantsGeneral(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     participants_analisis = Column(Text)
-    
-    # Relación obligatoria a un proyecto
+
     project_id = Column(Integer, ForeignKey("projects.id"), nullable=False, unique=True)
-    project = relationship("Project", back_populates="participants_general")
-    
-    # Relación con tabla Participants
+    project = relationship(
+        "Project",
+        back_populates="participants_general",
+        foreign_keys=[project_id]
+    )
+
     participants = relationship("Participants", back_populates="participants_general")
-    
-    # Campo Json que será usado para promt al LLM
+
     participants_json = Column(JSON, nullable=True)
 
 # Esquema Pydantic

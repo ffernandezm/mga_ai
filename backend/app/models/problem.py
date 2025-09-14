@@ -7,7 +7,7 @@ from app.core.database import Base, SessionLocal
 from sqlalchemy import Column, Integer, Text, JSON
 from sqlalchemy.orm import joinedload
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import List, Optional, Dict
 import json
 
 from app.models.project import Project
@@ -42,17 +42,16 @@ class Problem(Base):
     current_description = Column(Text)
     magnitude_problem = Column(Text)
 
-    # 🔹 Atributo para usar el modelo LLM
+    ## Atributos para Chatboot
     chatbot = ChatBotModel(api_key=GOOGLE_API_KEY)
+    # Historial de chat en formato JSON (lista de mensajes)
+    chat_history = Column(JSON, nullable=True, default=[])
     
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         # 🔹 Cada Problem tiene su propio chatbot con historial independiente
         self.chatbot = ChatBotModel(api_key=GOOGLE_API_KEY)
 
-    def ask_chatbot(self, question: str, info_json:str) -> str:
-        """Interactuar con el chatbot propio de este problema"""
-        return self.chatbot.ask(question,info_json)
 
 # Esquema Pydantic
 class ProblemBase(BaseModel):
@@ -60,6 +59,7 @@ class ProblemBase(BaseModel):
     current_description: str
     magnitude_problem: str
     problem_tree_json: Optional[dict] = None  # Acepta un diccionario como JSON
+    chat_history: Optional[dict] = None  # Acepta un diccionario como JSON
 
 class ProblemCreate(ProblemBase):
     direct_effects: List[DirectEffectCreate] = []
@@ -69,6 +69,7 @@ class ProblemResponse(ProblemBase):
     id: int
     direct_effects: List[DirectEffectResponse] = []
     direct_causes: List[DirectCauseResponse] = []
+    chat_history: List[Dict[str, str]] 
 
     class Config:
         from_attributes = True
@@ -92,7 +93,8 @@ def create_problem(problem: ProblemCreate, db: Session = Depends(get_db)):
         "current_description": db_problem.current_description,
         "magnitude_problem": db_problem.magnitude_problem,
         "direct_effects": [],
-        "direct_causes": []
+        "direct_causes": [],
+        
     }
 
     # Agregar efectos directos e indirectos
@@ -146,7 +148,8 @@ def create_problem(problem: ProblemCreate, db: Session = Depends(get_db)):
         "central_problem": db_problem.central_problem,
         "current_description": db_problem.current_description,
         "magnitude_problem": db_problem.magnitude_problem,
-        "problem_tree_json": problem_tree_dict
+        "problem_tree_json": problem_tree_dict,
+        "chat_history": db_problem.chat_history or []
     }
 
 @router.get("/", response_model=List[ProblemResponse])
@@ -353,12 +356,15 @@ async def post_response_ai_problem(
     #response = await main(problem_tree_text, message)  
     #return {"response": response}
     ###Prueba de respuestas con llm
-    #response = project.problem.ask_chatbot(message, info_json=str(problem_tree_json))
-    response = project.problem.chatbot.ask(message,info_json=str(problem_tree_json))
+    problem = db.query(Problem).first()
+    response = project.problem.chatbot.ask(message,
+            info_json=str(problem_tree_json),
+            instance=problem, db=db)
     #project.problem.chatbot.memory.clear()
 
     
-    return {"response": response}
+    return response
+
 
 def format_problem_tree(problem_tree_json: dict) -> str:
     formatted_text = []

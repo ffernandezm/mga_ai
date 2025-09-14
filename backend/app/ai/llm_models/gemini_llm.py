@@ -2,6 +2,7 @@ from langchain_core.prompts import PromptTemplate
 from langchain.chains import LLMChain
 from langchain.memory import ConversationBufferMemory
 from langchain_google_genai import ChatGoogleGenerativeAI
+from sqlalchemy.orm import Session
 
 class ChatBotModel:
     def __init__(self, api_key: str, model_name: str = "gemini-1.5-flash"):
@@ -38,12 +39,43 @@ class ChatBotModel:
             memory=memory
         )
 
-    def ask(self, question: str, info_json: str = "{}") -> str:
+    def ask(
+        self,
+        question: str,
+        info_json: str = "{}",
+        instance=None,
+        db: Session = None
+        ) -> dict:
+        """
+        Hace una pregunta al chatbot.
+        - Si se pasa un `instance` (cualquier modelo con atributo chat_history) y un `db`,
+          guarda el historial en la base de datos.
+        - Si no, solo devuelve la respuesta.
+        """
         response = self.conversation({
             "question": question,
             "info_json": info_json
         })
-        return response["text"]
+
+        result = {
+            "user": question,
+            "bot": response["text"]
+        }
+
+        # Guardar historial si se pasa un modelo con atributo chat_history
+        if instance is not None and db is not None:
+            if not hasattr(instance, "chat_history"):
+                raise AttributeError(
+                    f"El modelo {instance.__class__.__name__} no tiene campo 'chat_history'"
+                )
+            history = instance.chat_history or []
+            history.append(result)
+            instance.chat_history = history
+            db.add(instance)
+            db.commit()
+            db.refresh(instance)
+
+        return result['bot']
 
     def reset_memory(self):
         self.conversation.memory.clear()
