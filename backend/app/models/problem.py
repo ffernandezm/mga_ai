@@ -1,3 +1,4 @@
+from ..ai.config.config import GOOGLE_API_KEY
 from fastapi import APIRouter, Depends, HTTPException, Body, Query
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
@@ -6,7 +7,7 @@ from app.core.database import Base, SessionLocal
 from sqlalchemy import Column, Integer, Text, JSON
 from sqlalchemy.orm import joinedload
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import List, Optional, Dict
 import json
 
 from app.models.project import Project
@@ -14,6 +15,8 @@ from app.models.direct_effects import DirectEffect, DirectEffectCreate, DirectEf
 from app.models.direct_causes import DirectCause, DirectCauseCreate, DirectCauseResponse
 from app.models.indirect_effects import IndirectEffect
 from app.models.indirect_causes import IndirectCause
+
+from ..ai.llm_models.gemini_llm import ChatBotModel
 
 from app.ai.main import main
 # Conexión a la DB
@@ -39,12 +42,24 @@ class Problem(Base):
     current_description = Column(Text)
     magnitude_problem = Column(Text)
 
+    ## Atributos para Chatboot
+    chatbot = ChatBotModel(api_key=GOOGLE_API_KEY)
+    # Historial de chat en formato JSON (lista de mensajes)
+    chat_history = Column(JSON, nullable=True, default=[])
+    
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        # 🔹 Cada Problem tiene su propio chatbot con historial independiente
+        self.chatbot = ChatBotModel(api_key=GOOGLE_API_KEY)
+
+
 # Esquema Pydantic
 class ProblemBase(BaseModel):
     central_problem: str
     current_description: str
     magnitude_problem: str
     problem_tree_json: Optional[dict] = None  # Acepta un diccionario como JSON
+    chat_history: Optional[dict] = None  # Acepta un diccionario como JSON
 
 class ProblemCreate(ProblemBase):
     direct_effects: List[DirectEffectCreate] = []
@@ -54,6 +69,7 @@ class ProblemResponse(ProblemBase):
     id: int
     direct_effects: List[DirectEffectResponse] = []
     direct_causes: List[DirectCauseResponse] = []
+    chat_history: List[Dict[str, str]] 
 
     class Config:
         from_attributes = True
@@ -77,7 +93,8 @@ def create_problem(problem: ProblemCreate, db: Session = Depends(get_db)):
         "current_description": db_problem.current_description,
         "magnitude_problem": db_problem.magnitude_problem,
         "direct_effects": [],
-        "direct_causes": []
+        "direct_causes": [],
+        
     }
 
     # Agregar efectos directos e indirectos
@@ -131,7 +148,8 @@ def create_problem(problem: ProblemCreate, db: Session = Depends(get_db)):
         "central_problem": db_problem.central_problem,
         "current_description": db_problem.current_description,
         "magnitude_problem": db_problem.magnitude_problem,
-        "problem_tree_json": problem_tree_dict
+        "problem_tree_json": problem_tree_dict,
+        "chat_history": db_problem.chat_history or []
     }
 
 @router.get("/", response_model=List[ProblemResponse])
@@ -307,36 +325,46 @@ async def post_response_ai_problem(
     
     project = db.query(Project).filter(Project.id == project_id).first()
     problem_tree_json = project.problem.problem_tree_json
-    problem_tree_text = format_problem_tree(problem_tree_json)
+    # problem_tree_text = format_problem_tree(problem_tree_json)
     
-    ProblemTreeText = f"""
-    Árbol de Problemas:
+    # ProblemTreeText = f"""
+    # Árbol de Problemas:
     
-    Problema Central: {jsonData.get('central_problem', 'No especificado')}
+    # Problema Central: {jsonData.get('central_problem', 'No especificado')}
     
-    Efectos Directos:
-    """
+    # Efectos Directos:
+    # """
 
-    # Añadir efectos directos e indirectos
-    for effect in jsonData.get('direct_effects', []):
-        ProblemTreeText += f"\n- {effect.get('description', '')}"
-        if 'indirect_effects' in effect and effect['indirect_effects']:
-            ProblemTreeText += "\n  Efectos Indirectos:"
-            for indirect in effect['indirect_effects']:
-                ProblemTreeText += f"\n  - {indirect.get('description', '')}"
+    # # Añadir efectos directos e indirectos
+    # for effect in jsonData.get('direct_effects', []):
+    #     ProblemTreeText += f"\n- {effect.get('description', '')}"
+    #     if 'indirect_effects' in effect and effect['indirect_effects']:
+    #         ProblemTreeText += "\n  Efectos Indirectos:"
+    #         for indirect in effect['indirect_effects']:
+    #             ProblemTreeText += f"\n  - {indirect.get('description', '')}"
     
-    ProblemTreeText += "\n\nCausas Directas:"
+    # ProblemTreeText += "\n\nCausas Directas:"
     
-    # Añadir causas directas e indirectas
-    for cause in jsonData.get('direct_causes', []):
-        ProblemTreeText += f"\n- {cause.get('description', '')}"
-        if 'indirect_causes' in cause and cause['indirect_causes']:
-            ProblemTreeText += "\n  Causas Indirectas:"
-            for indirect in cause['indirect_causes']:
-                ProblemTreeText += f"\n  - {indirect.get('description', '')}"
+    # # Añadir causas directas e indirectas
+    # for cause in jsonData.get('direct_causes', []):
+    #     ProblemTreeText += f"\n- {cause.get('description', '')}"
+    #     if 'indirect_causes' in cause and cause['indirect_causes']:
+    #         ProblemTreeText += "\n  Causas Indirectas:"
+    #         for indirect in cause['indirect_causes']:
+    #             ProblemTreeText += f"\n  - {indirect.get('description', '')}"
 
-    response = await main(problem_tree_text, message)  
-    return {"response": response}
+    #response = await main(problem_tree_text, message)  
+    #return {"response": response}
+    ###Prueba de respuestas con llm
+    problem = db.query(Problem).first()
+    response = project.problem.chatbot.ask(message,
+            info_json=str(problem_tree_json),
+            instance=problem, db=db)
+    #project.problem.chatbot.memory.clear()
+
+    
+    return response
+
 
 def format_problem_tree(problem_tree_json: dict) -> str:
     formatted_text = []

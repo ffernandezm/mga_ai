@@ -27,40 +27,44 @@ class Project(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, index=True)
     description = Column(String)
+
+    # Relación con Problem
     problem_id = Column(Integer, ForeignKey("problems.id"), nullable=True)
-    
+    problem = relationship(
+        "Problem",
+        back_populates="projects",
+        foreign_keys=[problem_id]  # 👈 aclaramos cuál FK usar
+    )
 
-
-    problem = relationship("Problem", back_populates="projects")
-
-    # Relación opcional con ParticipantsGeneral
+    # Relación con ParticipantsGeneral
     participants_general = relationship(
-    "ParticipantsGeneral",
-    uselist=False,
-    back_populates="project",
-    cascade="all, delete-orphan"
+        "ParticipantsGeneral",
+        back_populates="project",
+        uselist=False,   # porque tienes unique=True en project_id
+        foreign_keys="ParticipantsGeneral.project_id"
     )
+
+    # Relación con Population
     population = relationship(
-    "Population",
-    uselist=False,
-    back_populates="project",
-    cascade="all, delete-orphan"
+        "Population",
+        uselist=False,
+        back_populates="project",
+        cascade="all, delete-orphan"
     )
-    #participants_general_id = Column(Integer, ForeignKey("participants_general.id"), nullable=True)
 
 
 # Esquema Pydantic
 class ProjectBase(BaseModel):
     name: str
     description: str
-    problem_id: Optional[int] = None  # Campo opcional
-    #participants_general_id: Optional[int] = None  # Campo opcional
+    problem_id: Optional[int] = None 
+    participants_general_id: Optional[int] = None
 
 class ProjectCreate(BaseModel):
     name: str
     description: Optional[str] = None
     problem_id: Optional[int] = None
-    #participants_general_id: Optional[int] = None
+    participants_general_id: Optional[int] = None
 
 class ProjectResponse(ProjectBase):
     id: int

@@ -3,21 +3,25 @@ import api from "../services/api";
 import "../styles/Chatbot.css";
 import MessageRenderer from "./MessageRender"; // Componente para renderizar mensajes
 
-const Chatbot = ({ projectId }) => {
+const Chatbot = ({ projectId, activeTab }) => {
+    console.log(activeTab)
     const [messages, setMessages] = useState([
-        { text: "¡Hola! ¿En qué puedo ayudarte?", sender: "bot" },
+        { text: "¡Hola! ¿En qué puedo ayudarte? ", sender: "bot" },
     ]);
     const [input, setInput] = useState("");
 
     const handleSend = async () => {
         if (input.trim() === "") return;
 
+        // Agregar mensaje del usuario al estado
         setMessages((prev) => [...prev, { text: input, sender: "user" }]);
+        const userMessage = input;
         setInput("");
 
         try {
+            // Enviar mensaje al backend incluyendo activeTab como parámetro extra
             const response = await api.post(
-                `/problems/response_ai/${projectId}?message=${encodeURIComponent(input)}`,
+                `/problems/response_ai/${projectId}?message=${encodeURIComponent(userMessage)}&tab=${activeTab}`,
                 {}
             );
 
@@ -25,13 +29,16 @@ const Chatbot = ({ projectId }) => {
             setMessages((prev) => [...prev, { text: botResponse, sender: "bot" }]);
         } catch (error) {
             console.error("Error consultando IA:", error);
-            setMessages((prev) => [...prev, { text: "Error al obtener respuesta.", sender: "bot" }]);
+            setMessages((prev) => [
+                ...prev,
+                { text: "Error al obtener respuesta.", sender: "bot" },
+            ]);
         }
     };
 
     return (
         <div className="chat-container">
-            <div className="chat-header">💬 Asistente Virtual</div>
+            <div className="chat-header">💬 Asistente Virtual </div>
             <div className="chat-box">
                 {messages.map((msg, index) => (
                     <div key={index} className={`message ${msg.sender}`}>

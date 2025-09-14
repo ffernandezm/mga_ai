@@ -43,7 +43,7 @@ function Formulation() {
                         ProjectDescription={project?.description}
                     />
                 );
-            case "participants":
+            case "participants_general":
                 return (
                     <Participants
                         projectId={id}
@@ -80,8 +80,8 @@ function Formulation() {
                             Árbol de Problemas
                         </button>
                         <button
-                            className={`btn btn-sm ${activeTab === "participants" ? "btn-primary" : "btn-outline-primary"}`}
-                            onClick={() => setActiveTab("participants")}
+                            className={`btn btn-sm ${activeTab === "participants_general" ? "btn-primary" : "btn-outline-primary"}`}
+                            onClick={() => setActiveTab("participants_general")}
                         >
                             Participantes
                         </button>
@@ -98,8 +98,8 @@ function Formulation() {
                             Objetivos
                         </button>
                         <button
-                            className={`btn btn-sm ${activeTab === "" ? "btn-primary" : "btn-outline-primary"}`}
-                            onClick={() => setActiveTab("participants")}
+                            className={`btn btn-sm ${activeTab === "alternatives" ? "btn-primary" : "btn-outline-primary"}`}
+                            onClick={() => setActiveTab("alternatives")}
                         >
                             Alternativas
                         </button>
@@ -113,7 +113,7 @@ function Formulation() {
 
             {/* Columna derecha con chatbot sticky */}
             <div style={{ width: "350px", height: "100vh", background: "#f9f9f9", borderLeft: "1px solid #ddd", padding: "1rem", boxSizing: "border-box" }}>
-                <Chatbot projectId={id} />
+                <Chatbot projectId={id} activeTab={activeTab} />
             </div>
 
         </div>
