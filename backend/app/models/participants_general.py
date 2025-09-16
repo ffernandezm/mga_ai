@@ -10,7 +10,7 @@ from typing import List, Optional
 
 from app.models.participants import ParticipantsResponse, ParticipantsCreate, Participants
 
-from app.ai.main import main
+
 # Conexión a la DB
 def get_db():
     db = SessionLocal()

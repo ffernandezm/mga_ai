@@ -1,5 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+
+
+#Rutas de modelos del sistema 
 from app.models.project import router as project_router
 from app.models.problem import router as problem_router
 from app.models.participants import router as participants_router
@@ -12,6 +15,9 @@ from app.models.intervention_population import router as intervention_population
 from app.models.characteristics_population import router as characteristics_population_router
 from app.models.chat_history import router as chat_history_router
 
+#ruta de modelo IA
+from .ai.main import router as ai_router
+
 from app.core.database import Base, engine
 
 import asyncio
@@ -21,7 +27,7 @@ try:
 except RuntimeError:
     asyncio.run(asyncio.sleep(0))
 
-app = FastAPI(title="FastAPI Project with PostgreSQL")
+app = FastAPI(title="MGA + AI")
 
 # Habilitar CORS para permitir peticiones desde el frontend
 
@@ -55,3 +61,6 @@ app.include_router(affected_population_router, prefix="/affected_population", ta
 app.include_router(intervention_population_router, prefix="/intervention_population", tags=["InterventionPopulation"])
 app.include_router(characteristics_population_router, prefix="/characteristics_population", tags=["CharacteristicsPopulation"])
 app.include_router(chat_history_router, prefix="/chat_history", tags=["ChatHistory"])
+
+#Ruta IA
+app.include_router(ai_router, prefix="/ai", tags=["AI"])

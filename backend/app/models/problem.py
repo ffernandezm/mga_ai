@@ -18,7 +18,7 @@ from app.models.indirect_effects import IndirectEffect
 from app.models.indirect_causes import IndirectCause
 
 from ..ai.llm_models.gemini_llm import ChatBotModel
-from app.ai.main import main
+
 
 # Conexión a la DB
 def get_db():
