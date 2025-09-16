@@ -4,12 +4,13 @@ from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
 from sqlalchemy.orm import Session, relationship
 from app.core.database import Base, SessionLocal
-from sqlalchemy import Column, Integer, Text, JSON
+from sqlalchemy import Column, Integer, Text, JSON, ForeignKey
 from sqlalchemy.orm import joinedload
 from pydantic import BaseModel
 from typing import List, Optional, Dict
 import json
 
+# Import local para evitar circular imports
 from app.models.project import Project
 from app.models.direct_effects import DirectEffect, DirectEffectCreate, DirectEffectResponse
 from app.models.direct_causes import DirectCause, DirectCauseCreate, DirectCauseResponse
@@ -17,8 +18,8 @@ from app.models.indirect_effects import IndirectEffect
 from app.models.indirect_causes import IndirectCause
 
 from ..ai.llm_models.gemini_llm import ChatBotModel
-
 from app.ai.main import main
+
 # Conexión a la DB
 def get_db():
     db = SessionLocal()
@@ -33,33 +34,37 @@ class Problem(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     central_problem = Column(Text)
-
-    direct_effects = relationship("DirectEffect", back_populates="problem", cascade="all, delete-orphan")
-    direct_causes = relationship("DirectCause", back_populates="problem", cascade="all, delete-orphan")
-    problem_tree_json = Column(JSON, nullable=True)
-    projects = relationship("Project", back_populates="problem")
-    
     current_description = Column(Text)
     magnitude_problem = Column(Text)
+    problem_tree_json = Column(JSON, nullable=True)
+    
+    # Relación con Project (CORREGIDO)
+    project_id = Column(Integer, ForeignKey("projects.id"), nullable=False, unique=True)
+    project = relationship(
+        "Project",
+        back_populates="problem",
+        foreign_keys=[project_id]   # 👈 aclaramos la FK
+    )
+    
+    direct_effects = relationship("DirectEffect", back_populates="problem", cascade="all, delete-orphan")
+    direct_causes = relationship("DirectCause", back_populates="problem", cascade="all, delete-orphan")
 
-    ## Atributos para Chatboot
-    chatbot = ChatBotModel(api_key=GOOGLE_API_KEY)
-    # Historial de chat en formato JSON (lista de mensajes)
+    # Atributos para Chatbot
     chat_history = Column(JSON, nullable=True, default=[])
     
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        # 🔹 Cada Problem tiene su propio chatbot con historial independiente
-        self.chatbot = ChatBotModel(api_key=GOOGLE_API_KEY)
-
+    @property
+    def chatbot(self):
+        """Siempre devuelve un ChatBotModel válido."""
+        return ChatBotModel(api_key=GOOGLE_API_KEY)
 
 # Esquema Pydantic
 class ProblemBase(BaseModel):
+    project_id: int  # Añade project_id como requerido
     central_problem: str
     current_description: str
     magnitude_problem: str
-    problem_tree_json: Optional[dict] = None  # Acepta un diccionario como JSON
-    chat_history: Optional[dict] = None  # Acepta un diccionario como JSON
+    problem_tree_json: Optional[dict] = None
+    chat_history: Optional[dict] = None
 
 class ProblemCreate(ProblemBase):
     direct_effects: List[DirectEffectCreate] = []
@@ -77,9 +82,20 @@ class ProblemResponse(ProblemBase):
 # Rutas de FastAPI
 router = APIRouter()
 
+
+
 @router.post("/", response_model=ProblemResponse)
 def create_problem(problem: ProblemCreate, db: Session = Depends(get_db)):
+    # Import local para evitar circular imports
+    from app.models.project import Project
+    
+    # Verificar que el proyecto exista
+    existing_problem = db.query(Problem).filter(Problem.project_id == problem.project_id).first()
+    if existing_problem:
+        raise HTTPException(status_code=400, detail="El proyecto ya tiene un problema asignado")
+    
     db_problem = Problem(
+        project_id=problem.project_id,  # Añade project_id
         central_problem=problem.central_problem,
         current_description=problem.current_description,
         magnitude_problem=problem.magnitude_problem
@@ -158,17 +174,20 @@ def get_problems(db: Session = Depends(get_db)):
 
 @router.get("/{project_id}", response_model=Optional[ProblemResponse])
 def get_problem(project_id: int, db: Session = Depends(get_db)):
+    # Import local para evitar circular imports
+    from app.models.project import Project
+    
     project = db.query(Project).filter(Project.id == project_id).first()
 
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
 
-    if not project.problem_id:
+    if not project.problem:
         return JSONResponse(content={"message": "No problem created yet"}, status_code=200)
 
     problem = (
         db.query(Problem)
-        .filter(Problem.id == project.problem_id)
+        .filter(Problem.id == project.problem.id)
         .options(
             joinedload(Problem.direct_effects).joinedload(DirectEffect.indirect_effects),
             joinedload(Problem.direct_causes).joinedload(DirectCause.indirect_causes),
@@ -197,13 +216,12 @@ def update_problem_tree(
     try:
         # Obtener el proyecto
         project = db.query(Project).filter(Project.id == project_id).first()
-        if not project:
-            raise HTTPException(status_code=404, detail="Proyecto no encontrado")
+        if not project.problem:
+            raise HTTPException(status_code=404, detail="Problema no encontrado")
 
-        # Obtener el problema asociado con todas las relaciones
         problem = (
             db.query(Problem)
-            .filter(Problem.id == project.problem_id)
+            .filter(Problem.id == project.problem.id)
             .options(
                 joinedload(Problem.direct_effects).joinedload(DirectEffect.indirect_effects),
                 joinedload(Problem.direct_causes).joinedload(DirectCause.indirect_causes),
@@ -359,7 +377,8 @@ async def post_response_ai_problem(
     problem = db.query(Problem).first()
     response = project.problem.chatbot.ask(message,
             info_json=str(problem_tree_json),
-            instance=problem, db=db)
+            project_id=project.id,
+            instance=problem)
     #project.problem.chatbot.memory.clear()
 
     

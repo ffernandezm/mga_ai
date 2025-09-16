@@ -19,13 +19,6 @@ class ChatHistory(Base):
     message = Column(Text, nullable=False)
     timestamp = Column(DateTime(timezone=True), server_default=func.now())
 
-    project = relationship("Project", back_populates="chat_history")
-
-
-# Relación inversa en Project
-from .project import Project
-Project.chat_history = relationship("ChatHistory", back_populates="project", cascade="all, delete-orphan")
-
 
 # ----------------- Esquemas Pydantic -----------------
 class ChatMessageBase(BaseModel):
@@ -63,25 +56,33 @@ def get_db():
     finally:
         db.close()
 
-@router.get("/{project_id}/{model_name}")
-def get_chat_history(project_id: int, model_name: str, db: Session = Depends(get_db)):
-    # Verificar si la tabla existe
-    if model_name not in Base.metadata.tables:
-        raise HTTPException(status_code=404, detail=f"Modelo {model_name} no encontrado")
+@router.get("/chat/{project_id}/{tab}", response_model=List[ChatMessageResponse])
+def get_chat_history(project_id: int, tab: str, db: Session = Depends(get_db)):
+    """
+    Devuelve el historial de chat como lista de mensajes individuales
+    """
+    messages = (
+        db.query(ChatHistory)
+        .filter(ChatHistory.project_id == project_id, ChatHistory.tab == tab)
+        .order_by(ChatHistory.timestamp.asc())
+        .all()
+    )
 
-    table = Base.metadata.tables[model_name]
+    return messages
 
-    # Buscar registro asociado al proyecto
-    stmt = select(table).where(table.c.project_id == project_id)
-    result = db.execute(stmt).first()
+@router.delete("/chat/{project_id}/{tab}")
+def clear_chat_history(project_id: int, tab: str, db: Session = Depends(get_db)):
+    """
+    Elimina todos los mensajes del historial de chat para un proyecto y tab específicos.
+    """
+    deleted = (
+        db.query(ChatHistory)
+        .filter(ChatHistory.project_id == project_id, ChatHistory.tab == tab)
+        .delete()
+    )
+    db.commit()
 
-    if not result:
-        raise HTTPException(status_code=404, detail=f"No hay registros en {model_name} para el proyecto {project_id}")
+    if deleted == 0:
+        raise HTTPException(status_code=404, detail="No se encontraron mensajes para eliminar")
 
-    row = result._mapping  # acceder como dict-like
-
-    # Verificar si existe el campo chat_history
-    if "chat_history" not in row:
-        raise HTTPException(status_code=400, detail=f"El modelo {model_name} no tiene campo chat_history")
-
-    return row["chat_history"]
+    return {"message": f"Se eliminaron {deleted} mensajes del chat"}

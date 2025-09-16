@@ -12,6 +12,7 @@ from app.models.characteristics_population import CharacteristicsPopulation
 
 # Conexión a la DB
 from app.core.database import Base, SessionLocal
+
 def get_db():
     db = SessionLocal()
     try:
@@ -22,25 +23,24 @@ def get_db():
 # Modelo en SQLAlchemy
 class Project(Base):
     __tablename__ = "projects"
-    __table_args__ = {"extend_existing": True}
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, index=True)
     description = Column(String)
 
-    # Relación con Problem
-    problem_id = Column(Integer, ForeignKey("problems.id"), nullable=True)
+    # Relación con Problem (CORREGIDO)
     problem = relationship(
         "Problem",
-        back_populates="projects",
-        foreign_keys=[problem_id]  # 👈 aclaramos cuál FK usar
+        back_populates="project",
+        uselist=False,
+        cascade="all, delete-orphan"
     )
 
     # Relación con ParticipantsGeneral
     participants_general = relationship(
         "ParticipantsGeneral",
         back_populates="project",
-        uselist=False,   # porque tienes unique=True en project_id
+        uselist=False,
         foreign_keys="ParticipantsGeneral.project_id"
     )
 
@@ -52,19 +52,14 @@ class Project(Base):
         cascade="all, delete-orphan"
     )
 
-
 # Esquema Pydantic
 class ProjectBase(BaseModel):
     name: str
-    description: str
-    problem_id: Optional[int] = None 
-    participants_general_id: Optional[int] = None
+    description: Optional[str] = None
 
 class ProjectCreate(BaseModel):
     name: str
     description: Optional[str] = None
-    problem_id: Optional[int] = None
-    participants_general_id: Optional[int] = None
 
 class ProjectResponse(ProjectBase):
     id: int
@@ -92,11 +87,17 @@ def get_project(project_id: int, db: Session = Depends(get_db)):
 # Crear un nuevo proyecto
 @router.post("/", response_model=ProjectResponse, status_code=201)
 def create_project(project: ProjectCreate, db: Session = Depends(get_db)):
+    from app.models.problem import Problem
     # 1. Crear el proyecto
     new_project = Project(**project.model_dump())
     db.add(new_project)
     db.flush()
 
+    # 2. Crear automáticamente un registro en Problem
+    problem = Problem(
+        project_id=new_project.id
+    )
+    
     # 2. Crear automáticamente un registro en ParticipantsGeneral asociado
     participants_general = ParticipantsGeneral(
         participants_analisis="",
@@ -107,7 +108,7 @@ def create_project(project: ProjectCreate, db: Session = Depends(get_db)):
     population = Population(
         project_id=new_project.id
     )
-    db.add_all([participants_general, population])
+    db.add_all([problem, participants_general, population])
     db.flush()  # para obtener population.id antes de usarlo
 
     # 4. Cargar los datos predeterminados desde el CSV

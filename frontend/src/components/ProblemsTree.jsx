@@ -157,6 +157,7 @@ function ProblemsTree({ projectId, projectName, ProjectDescription }) {
 
         try {
             const response = await api.post("/problems", jsonData);
+
             if (!response.data) throw new Error("Error al crear el problema");
 
             const { id: problemId } = response.data;
@@ -367,25 +368,6 @@ function ProblemsTree({ projectId, projectName, ProjectDescription }) {
                     onClose={() => setShowErrorPopup(false)}
                 />
             )}
-            <div className="buttons-container">
-                <div className="action-buttons">
-                    <button
-                        className="action-button submit-button"
-                        onClick={sendToFastAPI}
-                        disabled={isSaving}
-                    >
-                        {isSaving ? "Guardando..." : "Guardar"}
-                    </button>
-                    <button
-                        className="action-button update-button"
-                        onClick={updateProblemTree}
-                        disabled={isSaving}
-                    >
-                        {isSaving ? "Actualizando..." : "Actualizar"}
-                    </button>
-                </div>
-
-            </div>
             <div className="trunk">
                 <input
                     type="text"
@@ -403,6 +385,25 @@ function ProblemsTree({ projectId, projectName, ProjectDescription }) {
                     onChange={(e) => setMagnitudeProblem(e.target.value)}
                     className={isProblemEmpty ? "error-input" : ""}
                 />
+                <div className="buttons-container">
+                    <div className="action-buttons">
+                        {/* <button
+                        className="action-button submit-button"
+                        onClick={sendToFastAPI}
+                        disabled={isSaving}
+                    >
+                        {isSaving ? "Guardando..." : "Guardar"}
+                    </button> */}
+                        <button
+                            className="action-button update-button"
+                            onClick={updateProblemTree}
+                            disabled={isSaving}
+                        >
+                            {isSaving ? "Actualizando..." : "Actualizar"}
+                        </button>
+                    </div>
+
+                </div>
             </div>
         </div>
 
