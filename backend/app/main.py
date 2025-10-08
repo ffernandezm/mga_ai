@@ -5,11 +5,15 @@ from app.models.problem import router as problem_router
 from app.models.participants import router as participants_router
 from app.models.participants_general import router as participants_general_router
 from app.models.objectives import router as objectives_router
+from app.models.objectives_indicators import router as objectives_indicator_router
+from app.models.objectives_causes import router as objectives_causes_router
+from app.models.alternatives_general import router as alternatives_general_router
 from app.models.alternatives import router as alternatives_router
 from app.models.population import router as population_router
 from app.models.affected_population import router as affected_population_router
 from app.models.intervention_population import router as intervention_population_router
 from app.models.characteristics_population import router as characteristics_population_router
+from app.models.survey import router as survey_router
 from app.models.chat_history import router as chat_history_router
 
 from app.core.database import Base, engine
@@ -49,9 +53,13 @@ app.include_router(problem_router, prefix="/problems", tags=["Problems"])
 app.include_router(participants_general_router, prefix="/participants_general", tags=["ParticipantsGeneral"])
 app.include_router(participants_router, prefix="/participants", tags=["Participants"])
 app.include_router(objectives_router, prefix="/objectives", tags=["Objectives"])
+app.include_router(objectives_indicator_router, prefix="/objectives_indicator", tags=["ObjectivesIndicator"])
+app.include_router(objectives_causes_router, prefix="/objectives_causes", tags=["ObjectivesCauses"])
+app.include_router(alternatives_general_router, prefix="/alternatives_general", tags=["AlternativesGeneral"])
 app.include_router(alternatives_router, prefix="/alternatives", tags=["Alternatives"])
 app.include_router(population_router, prefix="/population", tags=["Population"])
 app.include_router(affected_population_router, prefix="/affected_population", tags=["AffectedPopulation"])
 app.include_router(intervention_population_router, prefix="/intervention_population", tags=["InterventionPopulation"])
 app.include_router(characteristics_population_router, prefix="/characteristics_population", tags=["CharacteristicsPopulation"])
+app.include_router(survey_router, prefix="/survey", tags=["Survey"])
 app.include_router(chat_history_router, prefix="/chat_history", tags=["ChatHistory"])

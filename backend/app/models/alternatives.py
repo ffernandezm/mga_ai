@@ -1,7 +1,7 @@
-from fastapi import APIRouter, Depends
-from sqlalchemy.orm import Session
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session, relationship
 from app.core.database import Base, SessionLocal
-from sqlalchemy import Column, Integer, Text
+from sqlalchemy import Column, Integer, Boolean, Text, ForeignKey
 from pydantic import BaseModel
 from typing import List
 
@@ -18,11 +18,18 @@ class Alternatives(Base):
     __tablename__ = "alternatives"
 
     id = Column(Integer, primary_key=True, index=True)
-    solution_alternatives = Column(Text)
+    name = Column(Text)
+    active = Column(Boolean, nullable=False, default=False)
+    state = Column(Text)
+    
+    alternative_id = Column(Integer, ForeignKey("alternatives_general.id"))
+    alternative = relationship("AlternativesGeneral", back_populates="alternatives")
 
-# Esquema Pydantic
+# Esquemas Pydantic
 class AlternativesBase(BaseModel):
-    solution_alternatives: str
+    name: str
+    active: bool
+    state: str
 
 class AlternativesCreate(AlternativesBase):
     pass
@@ -31,7 +38,7 @@ class AlternativesResponse(AlternativesBase):
     id: int
 
     class Config:
-        from_attributes  = True
+        from_attributes = True  # ✅ equivale a orm_mode
 
 # Rutas de FastAPI
 router = APIRouter()
@@ -47,3 +54,30 @@ def create_alternative(alternative: AlternativesCreate, db: Session = Depends(ge
 @router.get("/", response_model=List[AlternativesResponse])
 def get_alternatives(db: Session = Depends(get_db)):
     return db.query(Alternatives).all()
+
+@router.get("/{id}", response_model=AlternativesResponse)
+def get_alternative(id: int, db: Session = Depends(get_db)):
+    alternative = db.query(Alternatives).filter(Alternatives.id == id).first()
+    if not alternative:
+        raise HTTPException(status_code=404, detail="Alternative not found")
+    return alternative
+
+@router.put("/{id}", response_model=AlternativesResponse)
+def update_alternative(id: int, updated: AlternativesCreate, db: Session = Depends(get_db)):
+    alternative = db.query(Alternatives).filter(Alternatives.id == id).first()
+    if not alternative:
+        raise HTTPException(status_code=404, detail="Alternative not found")
+    for key, value in updated.dict().items():
+        setattr(alternative, key, value)
+    db.commit()
+    db.refresh(alternative)
+    return alternative
+
+@router.delete("/{id}")
+def delete_alternative(id: int, db: Session = Depends(get_db)):
+    alternative = db.query(Alternatives).filter(Alternatives.id == id).first()
+    if not alternative:
+        raise HTTPException(status_code=404, detail="Alternative not found")
+    db.delete(alternative)
+    db.commit()
+    return {"message": "Alternative deleted successfully"}

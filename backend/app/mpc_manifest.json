@@ -1,0 +1,26 @@
+{
+    "name": "MGA Projects MCP",
+    "description": "Provee gestión de proyectos MGA vía MCP",
+    "version": "1.0.0",
+    "endpoints": {
+        "list_projects": {
+            "url": "/projects/",
+            "method": "GET",
+            "description": "Obtiene todos los proyectos registrados"
+        },
+        "get_project": {
+            "url": "/projects/{project_id}",
+            "method": "GET",
+            "description": "Obtiene un proyecto por ID"
+        },
+        "create_project": {
+            "url": "/projects/",
+            "method": "POST",
+            "description": "Crea un nuevo proyecto",
+            "params": {
+                "name": "string",
+                "description": "string (opcional)"
+            }
+        }
+    }
+}
