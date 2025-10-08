@@ -10,10 +10,10 @@ from app.core.database import SessionLocal
 
 
 class ChatBotModel:
-    def __init__(self, api_key: str, model_name: str = "gemini-1.5-flash"):
+    def __init__(self, api_key: str, model_name: str = "gemini-1.5-flash-latest"):
         self.llm = ChatGoogleGenerativeAI(
             model=model_name,
-            google_api_key=api_key,
+            google_api_key='AIzaSyAze2dhiNBl59FKZPRdPtvfXomwOPxG6rw',
             convert_system_message_to_human=True
         )
         self.conversation: Optional[LLMChain] = None  # se inicializa más tarde

@@ -9,6 +9,7 @@ from typing import List, Optional
 from app.models.participants_general import ParticipantsGeneral
 from app.models.population import Population
 from app.models.characteristics_population import CharacteristicsPopulation
+from app.models.objectives import Objectives
 
 # Conexión a la DB
 from app.core.database import Base, SessionLocal
@@ -47,6 +48,20 @@ class Project(Base):
     # Relación con Population
     population = relationship(
         "Population",
+        uselist=False,
+        back_populates="project",
+        cascade="all, delete-orphan"
+    )
+    
+    objetives = relationship(
+        "Objectives",
+        uselist=False,
+        back_populates="project",
+        cascade="all, delete-orphan"
+    )
+    
+    survey = relationship(
+        "Survey",
         uselist=False,
         back_populates="project",
         cascade="all, delete-orphan"
@@ -108,7 +123,11 @@ def create_project(project: ProjectCreate, db: Session = Depends(get_db)):
     population = Population(
         project_id=new_project.id
     )
-    db.add_all([problem, participants_general, population])
+    
+    objectives = Objectives(
+        project_id=new_project.id
+    )
+    db.add_all([problem, participants_general, population, objectives])
     db.flush()  # para obtener population.id antes de usarlo
 
     # 4. Cargar los datos predeterminados desde el CSV
