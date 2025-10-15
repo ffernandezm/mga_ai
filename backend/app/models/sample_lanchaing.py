@@ -8,8 +8,8 @@ from langchain.schema import HumanMessage
 
 #llm = OpenAI(temperature=0)
 llmmodel = ChatGoogleGenerativeAI(
-            model="gemini-1.5-flash",
-            google_api_key='AIzaSyD27Kp4hi3B0M_Qhf-B6nsK7fR2tRq51bE',
+            model="gemini-2.5-flash",
+            google_api_key='AIzaSyAze2dhiNBl59FKZPRdPtvfXomwOPxG6rw',
             convert_system_message_to_human=True
         )
 template = """You are a nice chatbot having a conversation with a human.
@@ -29,3 +29,4 @@ conversation = LLMChain(
 )
 
 conversation({"question": "hi"})
+print('test')

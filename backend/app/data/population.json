@@ -1,0 +1,290 @@
+{
+    "table": "population",
+    "model": "Population",
+    "project_id": 1,
+    "columns": [
+        "id",
+        "project_id",
+        "population_type_affected",
+        "number_affected",
+        "source_information_affected",
+        "population_type_intervention",
+        "number_intervention",
+        "source_information_intervention",
+        "population_json"
+    ],
+    "relationships": {
+        "project": {
+            "target_model": "Project",
+            "direction": "RelationshipDirection.MANYTOONE",
+            "foreign_keys": [
+                "project_id"
+            ]
+        },
+        "affected_population": {
+            "target_model": "AffectedPopulation",
+            "direction": "RelationshipDirection.ONETOMANY",
+            "foreign_keys": [
+                "population_id"
+            ]
+        },
+        "intervention_population": {
+            "target_model": "InterventionPopulation",
+            "direction": "RelationshipDirection.ONETOMANY",
+            "foreign_keys": [
+                "population_id"
+            ]
+        },
+        "characteristics_population": {
+            "target_model": "CharacteristicsPopulation",
+            "direction": "RelationshipDirection.ONETOMANY",
+            "foreign_keys": [
+                "population_id"
+            ]
+        }
+    },
+    "data_count": 1,
+    "data": [
+        {
+            "id": 1,
+            "project_id": 1,
+            "population_type_affected": null,
+            "number_affected": null,
+            "source_information_affected": null,
+            "population_type_intervention": "No especificado",
+            "number_intervention": 0,
+            "source_information_intervention": null,
+            "population_json": null,
+            "project": {
+                "id": 1,
+                "name": "Mejoramiento de acceso al agua potable en zona rural",
+                "description": "Se requiere acceso al agua potable para la vereda el paraíso"
+            },
+            "affected_population": [
+                {
+                    "id": 1,
+                    "region": "Amazonas",
+                    "department": "Leticia",
+                    "city": "Ciudad 1",
+                    "population_center": "Centro 1",
+                    "location_entity": "Indígena",
+                    "population_id": 1
+                },
+                {
+                    "id": 2,
+                    "region": "Amazonas",
+                    "department": "Leticia",
+                    "city": "Ciudad 2",
+                    "population_center": "Centro 2",
+                    "location_entity": "Afrodescendiente",
+                    "population_id": 1
+                }
+            ],
+            "intervention_population": [
+                {
+                    "id": 1,
+                    "region": "Amazonas",
+                    "department": "Leticia",
+                    "city": "Ciudad 1",
+                    "population_center": "Centro 1",
+                    "location_entity": "Afrodescendiente",
+                    "population_id": 1
+                }
+            ],
+            "characteristics_population": [
+                {
+                    "id": 1,
+                    "classification": "Etapa del ciclo de vida",
+                    "detail": "Primera infancia 0 – 5 años",
+                    "people_number": 0,
+                    "information": "",
+                    "population_id": 1
+                },
+                {
+                    "id": 2,
+                    "classification": "Etapa del ciclo de vida",
+                    "detail": "Infancia 6 – 11 años",
+                    "people_number": 0,
+                    "information": "",
+                    "population_id": 1
+                },
+                {
+                    "id": 3,
+                    "classification": "Etapa del ciclo de vida",
+                    "detail": "Adolescencia 12- 18 años",
+                    "people_number": 0,
+                    "information": "",
+                    "population_id": 1
+                },
+                {
+                    "id": 4,
+                    "classification": "Etapa del ciclo de vida",
+                    "detail": "Juventud 14 – 26 años",
+                    "people_number": 0,
+                    "information": "",
+                    "population_id": 1
+                },
+                {
+                    "id": 5,
+                    "classification": "Etapa del ciclo de vida",
+                    "detail": "Adultez 27 – 59 años",
+                    "people_number": 0,
+                    "information": "",
+                    "population_id": 1
+                },
+                {
+                    "id": 6,
+                    "classification": "Etapa del ciclo de vida",
+                    "detail": "Vejez 60 años y más",
+                    "people_number": 0,
+                    "information": "",
+                    "population_id": 1
+                },
+                {
+                    "id": 7,
+                    "classification": "Etaria (Edad)",
+                    "detail": "0 a 14 años",
+                    "people_number": 0,
+                    "information": "",
+                    "population_id": 1
+                },
+                {
+                    "id": 8,
+                    "classification": "Etaria (Edad)",
+                    "detail": "15 a 19 años",
+                    "people_number": 0,
+                    "information": "",
+                    "population_id": 1
+                },
+                {
+                    "id": 9,
+                    "classification": "Etaria (Edad)",
+                    "detail": "20 a 59 años",
+                    "people_number": 0,
+                    "information": "",
+                    "population_id": 1
+                },
+                {
+                    "id": 10,
+                    "classification": "Etaria (Edad)",
+                    "detail": "Mayor de 60 años",
+                    "people_number": 0,
+                    "information": "",
+                    "population_id": 1
+                },
+                {
+                    "id": 11,
+                    "classification": "Grupos étnicos",
+                    "detail": "Pueblos Indígenas",
+                    "people_number": 0,
+                    "information": "",
+                    "population_id": 1
+                },
+                {
+                    "id": 12,
+                    "classification": "Grupos étnicos",
+                    "detail": "Comunidades Afrocolombianas",
+                    "people_number": 0,
+                    "information": "",
+                    "population_id": 1
+                },
+                {
+                    "id": 13,
+                    "classification": "Grupos étnicos",
+                    "detail": "Comunidades Raizales",
+                    "people_number": 0,
+                    "information": "",
+                    "population_id": 1
+                },
+                {
+                    "id": 14,
+                    "classification": "Grupos étnicos",
+                    "detail": "Pueblos Rrom",
+                    "people_number": 0,
+                    "information": "",
+                    "population_id": 1
+                },
+                {
+                    "id": 15,
+                    "classification": "Grupos étnicos",
+                    "detail": "Población Mestiza",
+                    "people_number": 0,
+                    "information": "",
+                    "population_id": 1
+                },
+                {
+                    "id": 16,
+                    "classification": "Grupos étnicos",
+                    "detail": "Comunidades Negras",
+                    "people_number": 0,
+                    "information": "",
+                    "population_id": 1
+                },
+                {
+                    "id": 17,
+                    "classification": "Grupos étnicos",
+                    "detail": "Comunidades Palenqueras",
+                    "people_number": 0,
+                    "information": "",
+                    "population_id": 1
+                },
+                {
+                    "id": 18,
+                    "classification": "Género",
+                    "detail": "Masculino",
+                    "people_number": 0,
+                    "information": "",
+                    "population_id": 1
+                },
+                {
+                    "id": 19,
+                    "classification": "Género",
+                    "detail": "Femenino",
+                    "people_number": 0,
+                    "information": "",
+                    "population_id": 1
+                },
+                {
+                    "id": 20,
+                    "classification": "Población Vulnerable",
+                    "detail": "Personas en Reincorporación (Acuerdos de Paz)",
+                    "people_number": 0,
+                    "information": "",
+                    "population_id": 1
+                },
+                {
+                    "id": 21,
+                    "classification": "Población Vulnerable",
+                    "detail": "Personas en Reintegración exintegrantes de Grupos Armados Organizados y otros en tránsito a la vida civil",
+                    "people_number": 0,
+                    "information": "",
+                    "population_id": 1
+                },
+                {
+                    "id": 22,
+                    "classification": "Población Vulnerable",
+                    "detail": "Desplazados",
+                    "people_number": 0,
+                    "information": "",
+                    "population_id": 1
+                },
+                {
+                    "id": 23,
+                    "classification": "Población Vulnerable",
+                    "detail": "Personas con discapacidad",
+                    "people_number": 0,
+                    "information": "",
+                    "population_id": 1
+                },
+                {
+                    "id": 24,
+                    "classification": "Población Vulnerable",
+                    "detail": "Víctimas de otros hechos diferentes al desplazamiento",
+                    "people_number": 0,
+                    "information": "",
+                    "population_id": 1
+                }
+            ]
+        }
+    ]
+}

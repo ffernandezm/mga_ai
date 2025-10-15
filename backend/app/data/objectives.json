@@ -1,0 +1,50 @@
+{
+    "table": "objectives",
+    "model": "Objectives",
+    "project_id": 1,
+    "columns": [
+        "id",
+        "project_id",
+        "general_problem",
+        "general_objective"
+    ],
+    "relationships": {
+        "project": {
+            "target_model": "Project",
+            "direction": "RelationshipDirection.MANYTOONE",
+            "foreign_keys": [
+                "project_id"
+            ]
+        },
+        "objectives_indicators": {
+            "target_model": "ObjectivesIndicator",
+            "direction": "RelationshipDirection.ONETOMANY",
+            "foreign_keys": [
+                "objective_id"
+            ]
+        },
+        "objectives_causes": {
+            "target_model": "ObjectivesCauses",
+            "direction": "RelationshipDirection.ONETOMANY",
+            "foreign_keys": [
+                "objective_id"
+            ]
+        }
+    },
+    "data_count": 1,
+    "data": [
+        {
+            "id": 1,
+            "project_id": 1,
+            "general_problem": null,
+            "general_objective": null,
+            "project": {
+                "id": 1,
+                "name": "Mejoramiento de acceso al agua potable en zona rural",
+                "description": "Se requiere acceso al agua potable para la vereda el paraíso"
+            },
+            "objectives_indicators": [],
+            "objectives_causes": []
+        }
+    ]
+}

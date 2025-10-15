@@ -23,7 +23,7 @@ function ProjectList() {
         <div className="container mt-4">
             <h2 className="mb-3">Projects</h2>
             <Link to="/create-project" className="btn btn-success mb-3">
-                Create Project
+                Crear Proyecto
             </Link>
 
             <div className="table-responsive">

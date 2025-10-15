@@ -31,6 +31,7 @@
     text-align: center;
 }
 
+/* === ESTILOS BASE DE BLOQUES === */
 .effect,
 .cause {
     display: flex;
@@ -42,6 +43,7 @@
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
+/* === SUBNIVELES (para anidar efectos y causas) === */
 .sub-effects,
 .sub-causes {
     display: flex;
@@ -50,21 +52,61 @@
     margin-left: 20px;
 }
 
-.effect-input-container,
+/* === COLORES DIFERENCIADOS === */
+
+/* 🎯 Efectos directos */
+.effect-input-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background-color: #e0f0ff;
+    /* azul suave */
+    border-left: 4px solid #4da3ff;
+    padding: 8px;
+    border-radius: 6px;
+    transition: background-color 0.3s ease;
+}
+
+/* 🌤️ Efectos indirectos */
+.sub-effects .effect-input-container {
+    background-color: #f0f8ff;
+    /* azul aún más claro */
+    border-left: 4px solid #99cfff;
+}
+
+/* 🌊 Causas directas */
 .cause-input-container {
     display: flex;
     align-items: center;
     gap: 10px;
+    background-color: #e0f0ff;
+    /* azul suave */
+    border-left: 4px solid #4da3ff;
+    padding: 8px;
+    border-radius: 6px;
+    transition: background-color 0.3s ease;
 }
 
-input {
+/* 💧 Causas indirectas */
+.sub-causes .cause-input-container {
+    background-color: #f0f8ff;
+    /* azul aún más claro */
+    border-left: 4px solid #99cfff;
+}
+
+/* Inputs dentro de los contenedores */
+.effect-input-container input,
+.cause-input-container input {
     flex: 1;
     padding: 8px;
     font-size: 14px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
+    border: none;
+    background: transparent;
+    outline: none;
+    color: #333;
 }
 
+/* === BOTONES === */
 .icon-button {
     background: none;
     border: none;
@@ -79,6 +121,19 @@ input {
     transition: background-color 0.3s ease;
 }
 
+.icon-button:hover {
+    background-color: #f0f0f0;
+}
+
+.add-button {
+    color: #28a745;
+}
+
+.delete-button {
+    color: #dc3545;
+}
+
+/* === BOTONES DE ACCIÓN === */
 .buttons-container {
     display: flex;
     justify-content: space-between;
@@ -106,38 +161,6 @@ input {
     gap: 10px;
 }
 
-.icon-button:hover {
-    background-color: #f0f0f0;
-}
-
-.add-button {
-    color: #28a745;
-}
-
-.delete-button {
-    color: #dc3545;
-}
-
-.submit-button {
-    background-color: #007bff;
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    font-size: 16px;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-}
-
-.submit-button:hover {
-    background-color: #0056b3;
-}
-
-.submit-button.saving {
-    background-color: #6c757d;
-    cursor: not-allowed;
-}
-
 .update-button {
     background-color: #2196F3;
     color: white;
@@ -147,30 +170,7 @@ input {
     background-color: #0b7dda;
 }
 
-.consult-ai-button {
-    background-color: #9c27b0;
-    color: white;
-    padding: 10px 20px;
-    border-radius: 5px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.consult-ai-button:hover:not(:disabled) {
-    background-color: #7b1fa2;
-}
-
-.consult-ai-button:disabled {
-    background-color: #b39ddb;
-    cursor: not-allowed;
-}
-
-/* Estado loading */
-.loading {
-    opacity: 0.7;
-}
-
+/* === POPUP DE ERROR === */
 .error-popup {
     background-color: white;
     padding: 20px;
@@ -194,12 +194,13 @@ input {
     cursor: pointer;
 }
 
-/* Estilo para el input con error */
+/* === INPUT CON ERROR === */
 .error-input {
     border: 2px solid #d32f2f !important;
     animation: shake 0.5s;
 }
 
+/* === ANIMACIÓN === */
 @keyframes shake {
 
     0%,

@@ -1,0 +1,61 @@
+{
+    "table": "participants_general",
+    "model": "ParticipantsGeneral",
+    "project_id": 1,
+    "columns": [
+        "id",
+        "participants_analisis",
+        "project_id",
+        "participants_json"
+    ],
+    "relationships": {
+        "project": {
+            "target_model": "Project",
+            "direction": "RelationshipDirection.MANYTOONE",
+            "foreign_keys": [
+                "project_id"
+            ]
+        },
+        "participants": {
+            "target_model": "Participants",
+            "direction": "RelationshipDirection.ONETOMANY",
+            "foreign_keys": [
+                "participants_general_id"
+            ]
+        }
+    },
+    "data_count": 1,
+    "data": [
+        {
+            "id": 1,
+            "participants_analisis": "Analisis de los participantes",
+            "project_id": 1,
+            "participants_json": null,
+            "project": {
+                "id": 1,
+                "name": "Mejoramiento de acceso al agua potable en zona rural",
+                "description": "Se requiere acceso al agua potable para la vereda el paraíso"
+            },
+            "participants": [
+                {
+                    "id": 1,
+                    "participant_actor": "Departamental",
+                    "participant_entity": "Antioquia",
+                    "interest_expectative": "gfdgdgdfg",
+                    "rol": "En contra",
+                    "contribution_conflicts": "dfsdfsf",
+                    "participants_general_id": 1
+                },
+                {
+                    "id": 2,
+                    "participant_actor": "Empresas industriales y Comerciales del Estado",
+                    "participant_entity": "ISA",
+                    "interest_expectative": "dgfgdfgdg",
+                    "rol": "A favor",
+                    "contribution_conflicts": "efssfd",
+                    "participants_general_id": 1
+                }
+            ]
+        }
+    ]
+}

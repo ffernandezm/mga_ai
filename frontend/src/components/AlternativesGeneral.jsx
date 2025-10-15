@@ -3,27 +3,32 @@ import { Link, useNavigate } from "react-router-dom";
 import api from "../services/api";
 
 function AlternativesGeneral({ projectId }) {
-    const [alternativesGeneral, setAlternativesGeneral] = useState([]);
+    const [alternativesGeneral, setAlternativesGeneral] = useState(null);
     const [alternatives, setAlternatives] = useState([]);
     const [solutionAlternatives, setSolutionAlternatives] = useState(false);
     const [cost, setCost] = useState(false);
     const [profitability, setProfitability] = useState(false);
-    const [alternativeId, setAlternativeId] = useState(null);
     const navigate = useNavigate();
 
     const fetchAlternativesGeneral = async () => {
         try {
-            const response = await api.get(`/alternatives-general`);
+            const response = await api.get(`/alternatives_general/${projectId}`);
             const data = response.data;
+            console.log("📦 Datos de alternativas generales:", data);
 
-            if (data && data.length > 0) {
-                const general = data[0];
+            if (data) {
                 setAlternativesGeneral(data);
-                setAlternativeId(general.id);
-                setSolutionAlternatives(general.solution_alternatives);
-                setCost(general.cost);
-                setProfitability(general.profitability);
-                setAlternatives(general.alternatives || []);
+                setSolutionAlternatives(data.solution_alternatives);
+                setCost(data.cost);
+                setProfitability(data.profitability);
+                setAlternatives(data.alternatives || []);
+            } else {
+                // Si no existe registro para este proyecto
+                setAlternativesGeneral(null);
+                setSolutionAlternatives(false);
+                setCost(false);
+                setProfitability(false);
+                setAlternatives([]);
             }
         } catch (error) {
             console.error("Error al obtener las alternativas generales:", error);
@@ -40,33 +45,24 @@ function AlternativesGeneral({ projectId }) {
             cost,
             profitability,
             alternatives,
+            project_id: projectId,
         };
 
         try {
-            if (alternativeId) {
-                await api.put(`/alternatives-general/${alternativeId}`, payload);
+            if (alternativesGeneral) {
+                // Actualizar existente
+                await api.put(`/alternatives_general/${projectId}`, payload);
+                alert("Alternativa general actualizada correctamente.");
             } else {
-                const res = await api.post(`/alternatives-general`, payload);
-                setAlternativeId(res.data.id);
+                // Crear nueva
+                const res = await api.post(`/alternatives_general/`, payload);
+                setAlternativesGeneral(res.data);
+                alert("Alternativa general creada correctamente.");
             }
-            alert("Alternativa general guardada correctamente.");
             fetchAlternativesGeneral();
         } catch (err) {
             console.error("Error al guardar la alternativa:", err);
             alert("Error al guardar la alternativa.");
-        }
-    };
-
-    const handleDeleteAlternative = async (id) => {
-        if (!id) return;
-        if (window.confirm("¿Eliminar esta alternativa?")) {
-            try {
-                await api.delete(`/alternatives/${id}`);
-                setAlternatives(prev => prev.filter(a => a.id !== id));
-            } catch (error) {
-                console.error("Error al eliminar alternativa:", error);
-                alert("Error al eliminar alternativa.");
-            }
         }
     };
 
@@ -110,11 +106,11 @@ function AlternativesGeneral({ projectId }) {
                 </label>
             </div>
 
-            {/* Tabla de Alternatives */}
+            {/* Tabla de alternativas */}
             <div className="mb-5">
                 <h2>Alternativas</h2>
                 <Link
-                    to={`/projects/${projectId}/create-alternative/${alternativeId}`}
+                    to={`/projects/${projectId}/create-alternative/${alternativesGeneral?.id || ""}`}
                     className="btn btn-success mb-3"
                 >
                     Crear Alternativa
@@ -148,12 +144,6 @@ function AlternativesGeneral({ projectId }) {
                                                 }
                                             >
                                                 Editar
-                                            </button>
-                                            <button
-                                                className="btn btn-sm btn-danger"
-                                                onClick={() => handleDeleteAlternative(a.id)}
-                                            >
-                                                Eliminar
                                             </button>
                                         </td>
                                     </tr>

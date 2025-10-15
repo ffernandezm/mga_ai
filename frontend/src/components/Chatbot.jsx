@@ -14,7 +14,7 @@ const Chatbot = ({ projectId, activeTab }) => {
                 console.log("ingresando a chat inicial")
                 console.log(projectId)
                 console.log(activeTab)
-                const response = await api.get(`chat_history/chat/${projectId}/${activeTab}`);
+                const response = await api.get(`chat_history/${projectId}/${activeTab}`);
                 const history = response.data;
                 console.log("historial de CHAT ")
                 console.log(history)
@@ -49,20 +49,29 @@ const Chatbot = ({ projectId, activeTab }) => {
         setInput("");
 
         try {
-            // Enviar mensaje al backend incluyendo activeTab como parámetro extra
             const response = await api.post(
-                `/problems/response_ai/${projectId}?message=${encodeURIComponent(userMessage)}&tab=${activeTab}`,
-                {}
+                `/chat_history/chat/${projectId}/${activeTab}`,
+                {
+                    question: userMessage
+                }
             );
-            console.log("RESPUESTA DEL CHATBOT")
-            console.log(response)
-            const botResponse = typeof response.data === "string" ? response.data : "No se obtuvo respuesta.";
-            setMessages((prev) => [...prev, { text: botResponse, sender: "bot" }]);
+
+            console.log("RESPUESTA DEL CHATBOT", response);
+
+            const botResponse =
+                response.data && response.data.message
+                    ? response.data.message
+                    : "No se obtuvo respuesta.";
+
+            setMessages((prev) => [
+                ...prev,
+                { text: botResponse, sender: "bot" }
+            ]);
         } catch (error) {
             console.error("Error consultando IA:", error);
             setMessages((prev) => [
                 ...prev,
-                { text: "Error al obtener respuesta.", sender: "bot" },
+                { text: "Error al obtener respuesta.", sender: "bot" }
             ]);
         }
     };
