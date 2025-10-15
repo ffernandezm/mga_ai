@@ -13,7 +13,7 @@ function Home() {
         <div className="mt-6 flex justify-center space-x-4">
           <Link to="/projects">
             <button className="px-6 py-3 border border-blue-600 text-blue-600 rounded-lg shadow-md hover:bg-blue-100 transition">
-              Empezar
+              Iniciar
             </button>
           </Link>
 

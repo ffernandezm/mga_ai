@@ -12,8 +12,9 @@ function ProblemsTree({ projectId, projectName, ProjectDescription }) {
     const [showErrorPopup, setShowErrorPopup] = useState(false);
     const [currentDescription, setCurrentDescription] = useState("");
     const [magnitudeProblem, setMagnitudeProblem] = useState("");
+    const [refreshTrigger, setRefreshTrigger] = useState(0); // 👈 Nuevo estado para forzar re-render
 
-    // Cargar el árbol de problemas al montar el componente o cuando cambie el projectId
+    // Cargar el árbol de problemas - ahora se ejecuta cuando cambia projectId O refreshTrigger
     useEffect(() => {
         const fetchProblemTree = async () => {
             if (!projectId) return;
@@ -43,13 +44,21 @@ function ProblemsTree({ projectId, projectName, ProjectDescription }) {
                     setProblem(central_problem || "");
                     setCauses(mappedCauses);
                     setEffects(mappedEffects);
+
+                    // También cargar los otros campos si existen en la respuesta
+                    if (response.data.current_description) {
+                        setCurrentDescription(response.data.current_description);
+                    }
+                    if (response.data.magnitude_problem) {
+                        setMagnitudeProblem(response.data.magnitude_problem);
+                    }
                 }
             } catch (error) {
                 console.error("Error fetching problem tree:", error);
             }
         };
         fetchProblemTree();
-    }, [projectId]);
+    }, [projectId, refreshTrigger]); // 👈 Ahora también depende de refreshTrigger
 
     const addEffect = (type, parentIndex = null) => {
         const newEffect = { text: "", children: [] };
@@ -77,6 +86,8 @@ function ProblemsTree({ projectId, projectName, ProjectDescription }) {
         if (effectId) {
             try {
                 await api.delete(`/effects/${effectId}`);
+                // Forzar recarga después de eliminar
+                setRefreshTrigger(prev => prev + 1);
             } catch (error) {
                 console.error("Error eliminando efecto:", error);
             }
@@ -95,6 +106,8 @@ function ProblemsTree({ projectId, projectName, ProjectDescription }) {
         if (causeId) {
             try {
                 await api.delete(`/causes/${causeId}`);
+                // Forzar recarga después de eliminar
+                setRefreshTrigger(prev => prev + 1);
             } catch (error) {
                 console.error("Error eliminando causa:", error);
             }
@@ -115,7 +128,7 @@ function ProblemsTree({ projectId, projectName, ProjectDescription }) {
             current_description: currentDescription,
             magnitude_problem: magnitudeProblem,
             direct_effects: effects.map(effect => ({
-                id: effect.id || undefined,  // Usar undefined en lugar de null
+                id: effect.id || undefined,
                 description: effect.text,
                 indirect_effects: effect.children.map(child => ({
                     id: child.id || undefined,
@@ -144,7 +157,9 @@ function ProblemsTree({ projectId, projectName, ProjectDescription }) {
         );
     };
 
-    const sendToFastAPI = async () => {
+    const updateProblemTree = async () => {
+        if (!projectId) return;
+
         // Validar campo problema general
         if (!problem.trim()) {
             setIsProblemEmpty(true);
@@ -154,83 +169,53 @@ function ProblemsTree({ projectId, projectName, ProjectDescription }) {
 
         setIsSaving(true);
         const jsonData = generateJson();
-
-        try {
-            const response = await api.post("/problems", jsonData);
-
-            if (!response.data) throw new Error("Error al crear el problema");
-
-            const { id: problemId } = response.data;
-            if (problemId && projectId) {
-                const updateData = {
-                    name: projectName,
-                    description: ProjectDescription,
-                    problem_id: problemId
-                };
-                await api.put(`/projects/${projectId}`, updateData);
-            }
-        } catch (error) {
-            console.error("Error:", error);
-        } finally {
-            setIsSaving(false);
-        }
-    };
-
-    const updateProblemTree = async () => {
-        if (!projectId) return;
-
-        setIsSaving(true);
-        const jsonData = generateJson();
-        console.log("Datos enviados para actualización:", jsonData); // Para depuración
+        console.log("Datos enviados para actualización:", jsonData);
 
         try {
             const response = await api.put(`/problems/${projectId}`, jsonData);
             console.log("Árbol de problemas actualizado correctamente", response.data);
 
-            // Opcional: Actualizar el estado local con la respuesta del servidor
-            if (response.data) {
-                const { central_problem, direct_effects = [], direct_causes = [] } = response.data;
+            // 👈 FORZAR RE-RENDER DESPUÉS DE ACTUALIZAR
+            setRefreshTrigger(prev => prev + 1);
 
-                const mappedEffects = direct_effects.map(effect => ({
-                    id: effect.id,
-                    text: effect.description,
-                    children: (effect.indirect_effects || []).map(indirect => ({
-                        id: indirect.id,
-                        text: indirect.description,
-                    })),
-                }));
+            // También puedes mostrar un mensaje de éxito
+            alert("Árbol de problemas actualizado correctamente");
 
-                const mappedCauses = direct_causes.map(cause => ({
-                    id: cause.id,
-                    text: cause.description,
-                    children: (cause.indirect_causes || []).map(indirect => ({
-                        id: indirect.id,
-                        text: indirect.description,
-                    })),
-                }));
-
-                setProblem(central_problem || "");
-                setCauses(mappedCauses);
-                setEffects(mappedEffects);
-            }
         } catch (error) {
             console.error("Error actualizando árbol de problemas:", error.response?.data || error.message);
+            alert("Error al actualizar el árbol de problemas");
         } finally {
             setIsSaving(false);
         }
     };
 
-
+    // Función para limpiar todos los campos (opcional)
+    const clearAll = () => {
+        setProblem("");
+        setCauses([]);
+        setEffects([]);
+        setCurrentDescription("");
+        setMagnitudeProblem("");
+    };
 
     return (
         <div className="problems-tree-container">
             <h3>Árbol de Problemas</h3>
 
+            {/* Botón para recargar manualmente (útil para debugging) */}
+            {/* <div style={{ marginBottom: '10px' }}>
+                <button 
+                    onClick={() => setRefreshTrigger(prev => prev + 1)}
+                    className="btn btn-sm btn-outline-secondary"
+                >
+                    🔄 Recargar Datos
+                </button>
+            </div> */}
+
             <div className="tree">
                 <div className="branches">
                     {effects.map((effect, index) => (
                         <div key={index} className="effect">
-
                             <div className="effect-input-container">
                                 <input
                                     type="text"
@@ -244,7 +229,7 @@ function ProblemsTree({ projectId, projectName, ProjectDescription }) {
                                 />
                                 <button
                                     className="icon-button delete-button"
-                                    onClick={() => removeEffect("direct", index)}
+                                    onClick={() => removeEffect("direct", index, null, effect.id)}
                                 >
                                     <FaTrash />
                                 </button>
@@ -264,7 +249,7 @@ function ProblemsTree({ projectId, projectName, ProjectDescription }) {
                                         />
                                         <button
                                             className="icon-button delete-button"
-                                            onClick={() => removeEffect("indirect", childIndex, index)}
+                                            onClick={() => removeEffect("indirect", childIndex, index, child.id)}
                                         >
                                             <FaTrash />
                                         </button>
@@ -294,7 +279,6 @@ function ProblemsTree({ projectId, projectName, ProjectDescription }) {
                         value={problem}
                         onChange={(e) => {
                             setProblem(e.target.value);
-                            // Resetear el estado de error cuando el usuario empiece a escribir
                             if (isProblemEmpty && e.target.value.trim()) {
                                 setIsProblemEmpty(false);
                             }
@@ -319,7 +303,7 @@ function ProblemsTree({ projectId, projectName, ProjectDescription }) {
                                 />
                                 <button
                                     className="icon-button delete-button"
-                                    onClick={() => removeCause("direct", index)}
+                                    onClick={() => removeCause("direct", index, null, cause.id)}
                                 >
                                     <FaTrash />
                                 </button>
@@ -339,7 +323,7 @@ function ProblemsTree({ projectId, projectName, ProjectDescription }) {
                                         />
                                         <button
                                             className="icon-button delete-button"
-                                            onClick={() => removeCause("indirect", childIndex, index)}
+                                            onClick={() => removeCause("indirect", childIndex, index, child.id)}
                                         >
                                             <FaTrash />
                                         </button>
@@ -362,52 +346,53 @@ function ProblemsTree({ projectId, projectName, ProjectDescription }) {
                     </button>
                 </div>
             </div>
+
             {showErrorPopup && (
                 <ErrorPopup
                     message="El campo Problema general es obligatorio. Por favor, complételo antes de guardar."
                     onClose={() => setShowErrorPopup(false)}
                 />
             )}
+
             <div className="trunk">
                 <input
                     type="text"
                     placeholder="Descripción de la situación existente con respecto al problema"
                     value={currentDescription}
                     onChange={(e) => setCurrentDescription(e.target.value)}
-                    className={isProblemEmpty ? "error-input" : ""}
                 />
             </div>
+
             <div className="trunk">
                 <input
                     type="text"
                     placeholder="Magnitud actual del problema e indicadores de referencia"
                     value={magnitudeProblem}
                     onChange={(e) => setMagnitudeProblem(e.target.value)}
-                    className={isProblemEmpty ? "error-input" : ""}
                 />
-                <div className="buttons-container">
-                    <div className="action-buttons">
-                        {/* <button
-                        className="action-button submit-button"
-                        onClick={sendToFastAPI}
+            </div>
+
+            <div className="buttons-container">
+                <div className="action-buttons">
+                    <button
+                        className="action-button update-button"
+                        onClick={updateProblemTree}
                         disabled={isSaving}
                     >
-                        {isSaving ? "Guardando..." : "Guardar"}
-                    </button> */}
-                        <button
-                            className="action-button update-button"
-                            onClick={updateProblemTree}
-                            disabled={isSaving}
-                        >
-                            {isSaving ? "Actualizando..." : "Actualizar"}
-                        </button>
-                    </div>
+                        {isSaving ? "Actualizando..." : "Guardar/Actualizar"}
+                    </button>
 
+                    {/* Botón opcional para limpiar */}
+                    {/* <button
+                        className="action-button clear-button"
+                        onClick={clearAll}
+                        style={{marginLeft: '10px', backgroundColor: '#dc3545'}}
+                    >
+                        Limpiar Todo
+                    </button> */}
                 </div>
             </div>
         </div>
-
-
     );
 }
 

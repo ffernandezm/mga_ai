@@ -1,0 +1,92 @@
+{
+    "table": "problems",
+    "model": "Problems",
+    "project_id": 1,
+    "columns": [
+        "id",
+        "central_problem",
+        "current_description",
+        "magnitude_problem",
+        "problem_tree_json",
+        "project_id",
+        "chat_history"
+    ],
+    "relationships": {
+        "project": {
+            "target_model": "Project",
+            "direction": "RelationshipDirection.MANYTOONE",
+            "foreign_keys": [
+                "project_id"
+            ]
+        },
+        "direct_effects": {
+            "target_model": "DirectEffect",
+            "direction": "RelationshipDirection.ONETOMANY",
+            "foreign_keys": [
+                "problem_id"
+            ]
+        },
+        "direct_causes": {
+            "target_model": "DirectCause",
+            "direction": "RelationshipDirection.ONETOMANY",
+            "foreign_keys": [
+                "problem_id"
+            ]
+        }
+    },
+    "data_count": 1,
+    "data": [
+        {
+            "id": 1,
+            "central_problem": "Hay poco acceso al agua potable en la vereda El paraíso",
+            "current_description": "",
+            "magnitude_problem": "",
+            "problem_tree_json": {
+                "central_problem": "Hay poco acceso al agua potable en la vereda El paraíso",
+                "current_description": "",
+                "magnitude_problem": "",
+                "direct_effects": [
+                    {
+                        "description": "Incremento de enfermedades en la zona rural",
+                        "indirect_effects": [
+                            {
+                                "description": "Aumento en los gatos familiares por atención médica"
+                            }
+                        ]
+                    }
+                ],
+                "direct_causes": [
+                    {
+                        "description": "Infraestructura en mal estado",
+                        "indirect_causes": [
+                            {
+                                "description": "Falta de mantenimiento en el sistema"
+                            }
+                        ]
+                    }
+                ]
+            },
+            "project_id": 1,
+            "chat_history": [],
+            "project": {
+                "id": 1,
+                "name": "Mejoramiento de acceso al agua potable en zona rural",
+                "description": "Se requiere acceso al agua potable para la vereda el paraíso"
+            },
+            "direct_effects": [
+                {
+                    "id": 1,
+                    "problem_id": 1,
+                    "description": "Incremento de enfermedades en la zona rural"
+                }
+            ],
+            "direct_causes": [
+                {
+                    "id": 1,
+                    "problem_id": 1,
+                    "description": "Infraestructura en mal estado"
+                }
+            ]
+        }
+    ]
+}

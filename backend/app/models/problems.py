@@ -7,11 +7,10 @@ from app.core.database import Base, SessionLocal
 from sqlalchemy import Column, Integer, Text, JSON, ForeignKey
 from sqlalchemy.orm import joinedload
 from pydantic import BaseModel
-from typing import List, Optional, Dict
+from typing import List, Optional, Dict, Any
 import json
 
 # Import local para evitar circular imports
-from app.models.project import Project
 from app.models.direct_effects import DirectEffect, DirectEffectCreate, DirectEffectResponse
 from app.models.direct_causes import DirectCause, DirectCauseCreate, DirectCauseResponse
 from app.models.indirect_effects import IndirectEffect
@@ -29,13 +28,14 @@ def get_db():
         db.close()
 
 # Modelo en SQLAlchemy
-class Problem(Base):
+class Problems(Base):
     __tablename__ = "problems"
 
     id = Column(Integer, primary_key=True, index=True)
-    central_problem = Column(Text)
-    current_description = Column(Text)
-    magnitude_problem = Column(Text)
+    central_problem = Column(Text, nullable=False, default="")
+    current_description = Column(Text, nullable=False, default="")
+    magnitude_problem = Column(Text, nullable=False, default="")
+    # Campos JSON opcionales
     problem_tree_json = Column(JSON, nullable=True)
     
     # Relación con Project (CORREGIDO)
@@ -49,8 +49,6 @@ class Problem(Base):
     direct_effects = relationship("DirectEffect", back_populates="problem", cascade="all, delete-orphan")
     direct_causes = relationship("DirectCause", back_populates="problem", cascade="all, delete-orphan")
 
-    # Atributos para Chatbot
-    chat_history = Column(JSON, nullable=True, default=[])
     
     @property
     def chatbot(self):
@@ -59,12 +57,11 @@ class Problem(Base):
 
 # Esquema Pydantic
 class ProblemBase(BaseModel):
-    project_id: int  # Añade project_id como requerido
-    central_problem: str
-    current_description: str
-    magnitude_problem: str
-    problem_tree_json: Optional[dict] = None
-    chat_history: Optional[dict] = None
+    project_id: int
+    central_problem: Optional[str] = ""
+    current_description: Optional[str] = ""
+    magnitude_problem: Optional[str] = ""
+    problem_tree_json: Optional[Dict[str, Any]] = None
 
 class ProblemCreate(ProblemBase):
     direct_effects: List[DirectEffectCreate] = []
@@ -74,7 +71,6 @@ class ProblemResponse(ProblemBase):
     id: int
     direct_effects: List[DirectEffectResponse] = []
     direct_causes: List[DirectCauseResponse] = []
-    chat_history: List[Dict[str, str]] 
 
     class Config:
         from_attributes = True
@@ -90,11 +86,11 @@ def create_problem(problem: ProblemCreate, db: Session = Depends(get_db)):
     from app.models.project import Project
     
     # Verificar que el proyecto exista
-    existing_problem = db.query(Problem).filter(Problem.project_id == problem.project_id).first()
+    existing_problem = db.query(Problems).filter(Problems.project_id == problem.project_id).first()
     if existing_problem:
         raise HTTPException(status_code=400, detail="El proyecto ya tiene un problema asignado")
     
-    db_problem = Problem(
+    db_problem = Problems(
         project_id=problem.project_id,  # Añade project_id
         central_problem=problem.central_problem,
         current_description=problem.current_description,
@@ -164,13 +160,12 @@ def create_problem(problem: ProblemCreate, db: Session = Depends(get_db)):
         "central_problem": db_problem.central_problem,
         "current_description": db_problem.current_description,
         "magnitude_problem": db_problem.magnitude_problem,
-        "problem_tree_json": problem_tree_dict,
-        "chat_history": db_problem.chat_history or []
+        "problem_tree_json": problem_tree_dict
     }
 
 @router.get("/", response_model=List[ProblemResponse])
 def get_problems(db: Session = Depends(get_db)):
-    return db.query(Problem).all()
+    return db.query(Problems).all()
 
 @router.get("/{project_id}", response_model=Optional[ProblemResponse])
 def get_problem(project_id: int, db: Session = Depends(get_db)):
@@ -186,11 +181,11 @@ def get_problem(project_id: int, db: Session = Depends(get_db)):
         return JSONResponse(content={"message": "No problem created yet"}, status_code=200)
 
     problem = (
-        db.query(Problem)
-        .filter(Problem.id == project.problem.id)
+        db.query(Problems)
+        .filter(Problems.id == project.problem.id)
         .options(
-            joinedload(Problem.direct_effects).joinedload(DirectEffect.indirect_effects),
-            joinedload(Problem.direct_causes).joinedload(DirectCause.indirect_causes),
+            joinedload(Problems.direct_effects).joinedload(DirectEffect.indirect_effects),
+            joinedload(Problems.direct_causes).joinedload(DirectCause.indirect_causes),
         )
         .first()
     )
@@ -213,6 +208,7 @@ def update_problem_tree(
     data: dict = Body(...),
     db: Session = Depends(get_db)
 ):
+    from app.models.project import Project
     try:
         # Obtener el proyecto
         project = db.query(Project).filter(Project.id == project_id).first()
@@ -220,11 +216,11 @@ def update_problem_tree(
             raise HTTPException(status_code=404, detail="Problema no encontrado")
 
         problem = (
-            db.query(Problem)
-            .filter(Problem.id == project.problem.id)
+            db.query(Problems)
+            .filter(Problems.id == project.problem.id)
             .options(
-                joinedload(Problem.direct_effects).joinedload(DirectEffect.indirect_effects),
-                joinedload(Problem.direct_causes).joinedload(DirectCause.indirect_causes),
+                joinedload(Problems.direct_effects).joinedload(DirectEffect.indirect_effects),
+                joinedload(Problems.direct_causes).joinedload(DirectCause.indirect_causes),
             )
             .first()
         )
@@ -328,10 +324,6 @@ def update_problem_tree(
         db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
 
-    
-    except Exception as e:
-        db.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/response_ai/{project_id}")
 async def post_response_ai_problem(
@@ -374,7 +366,7 @@ async def post_response_ai_problem(
     #response = await main(problem_tree_text, message)  
     #return {"response": response}
     ###Prueba de respuestas con llm
-    problem = db.query(Problem).first()
+    problem = db.query(Problems).first()
     response = project.problem.chatbot.ask(message,
             info_json=str(problem_tree_json),
             project_id=project.id,

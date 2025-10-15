@@ -14,7 +14,7 @@ class DirectCause(Base):
     id = Column(Integer, primary_key=True, index=True)
     problem_id = Column(Integer, ForeignKey("problems.id", ondelete="CASCADE"))
     description = Column(Text)
-    problem = relationship("Problem", back_populates="direct_causes")
+    problem = relationship("Problems", back_populates="direct_causes")
     
     # Relaciones
     indirect_causes = relationship("IndirectCause", back_populates="direct_cause")

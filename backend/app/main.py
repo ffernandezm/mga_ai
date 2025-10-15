@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.models.project import router as project_router
-from app.models.problem import router as problem_router
+from app.models.problems import router as problem_router
 from app.models.participants import router as participants_router
 from app.models.participants_general import router as participants_general_router
 from app.models.objectives import router as objectives_router
@@ -15,8 +15,11 @@ from app.models.intervention_population import router as intervention_population
 from app.models.characteristics_population import router as characteristics_population_router
 from app.models.survey import router as survey_router
 from app.models.chat_history import router as chat_history_router
+from app.models.get_table_data import router as get_table_data
 
 from app.core.database import Base, engine
+
+from app.ai.llm_models.init_llm_database import init_langchain_tables
 
 import asyncio
 
@@ -45,7 +48,7 @@ Base.metadata.create_all(bind=engine)
 
 @app.get("/")
 def read_root():
-    return {"message": "FastAPI está funcionando correctamente 🚀"}
+    return {"message": "FastAPI está funcionando correctamente"}
 
 # Incluir Rutas
 app.include_router(project_router, prefix="/projects", tags=["Projects"])
@@ -63,3 +66,11 @@ app.include_router(intervention_population_router, prefix="/intervention_populat
 app.include_router(characteristics_population_router, prefix="/characteristics_population", tags=["CharacteristicsPopulation"])
 app.include_router(survey_router, prefix="/survey", tags=["Survey"])
 app.include_router(chat_history_router, prefix="/chat_history", tags=["ChatHistory"])
+
+app.include_router(get_table_data, prefix="/api", tags=["Data"])
+
+
+# Inicialización de tablas LangChain
+@app.on_event("startup")
+async def startup_event():
+    init_langchain_tables()

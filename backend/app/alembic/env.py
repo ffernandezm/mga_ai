@@ -9,7 +9,7 @@ from app.models.participants import Participants
 from app.models.participants_general import ParticipantsGeneral
 from app.models.project import Project
 from app.models.population import Population
-from app.models.problem import Problem
+from app.models.problems import Problems
 
 # Agregar el directorio raíz del proyecto al path de Python
 
