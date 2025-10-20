@@ -10,7 +10,7 @@ from sqlalchemy.sql import func
 from pydantic import BaseModel
 
 from app.core.database import Base, SessionLocal, engine
-from app.ai.llm_models.llm_model import LLMManager
+from app.ai.llm_models.llm_manager import LLMManager
 
 
 # ==============================
@@ -112,7 +112,7 @@ def chat_with_ai(
         save_chat_message(db, project_id, tab, session_id, "user", question)
 
         # Llamar modelo LLM
-        answer = llm_manager.ask(question, session_id)
+        answer = llm_manager.ask(question, session_id, tab, project_id, db=db)
 
         # Guardar respuesta del bot
         bot_message = save_chat_message(db, project_id, tab, session_id, "bot", answer)

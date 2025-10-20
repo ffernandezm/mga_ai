@@ -38,7 +38,7 @@ function CreateAffectedPopulation() {
                 population_id: parseInt(AffectedPopulationId, 10), // 👈 necesario
             };
             await api.post("/affected_population/", payload);
-            navigate(`/projects/${projectId}/affected_population`);
+            navigate(`/projects/${projectId}/formulation?tab=population`);
         } catch (error) {
             console.error("Error al crear registro afectado:", error);
             alert("Hubo un error al crear el registro.");
@@ -140,7 +140,9 @@ function CreateAffectedPopulation() {
                 <button
                     type="button"
                     className="btn btn-secondary"
-                    onClick={() => navigate(`/edit-project/${projectId}`)}
+                    onClick={() =>
+                        navigate(`/projects/${projectId}/formulation?tab=population`)
+                    }
                 >
                     Cancelar
                 </button>

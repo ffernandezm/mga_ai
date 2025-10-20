@@ -27,7 +27,12 @@ function App() {
           <Routes>
             <Route path="/projects" element={<ProjectList />} />
             <Route path="/create-project" element={<CreateProject />} />
+
+            {/* 🔧 Ruta antigua (si aún la usas) */}
             <Route path="/edit-project/:id" element={<Formulation />} />
+
+            {/* ✅ Nueva ruta correcta para el flujo actual */}
+            <Route path="/projects/:id/formulation" element={<Formulation />} />
 
             <Route
               path="/projects/:projectId/create-participant/:generalId"
@@ -54,10 +59,7 @@ function App() {
               element={<EditInterventionPopulation />}
             />
 
-            <Route
-              path="/projects/:projectId/survey"
-              element={<Survey />}
-            />
+            <Route path="/projects/:projectId/survey" element={<Survey />} />
 
             <Route path="/" element={<Home />} />
           </Routes>

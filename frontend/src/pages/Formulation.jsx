@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom"; // 👈 Agregamos useNavigate
-
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import ProblemsTree from "../components/ProblemsTree";
 import Participants from "../components/Participants";
 import Population from "../components/Population";
@@ -8,17 +7,26 @@ import Objectives from "../components/Objectives";
 import AlternativesGeneral from "../components/AlternativesGeneral";
 import Chatbot from "../components/Chatbot";
 import ProjectHeader from "../components/ProjectHeader";
-
 import api from "../services/api";
 
 function Formulation() {
     const { id } = useParams();
-    const navigate = useNavigate(); // 👈 Hook para redirigir
+    const navigate = useNavigate();
+    const location = useLocation(); // 👈 Para leer query params
 
     const [activeTab, setActiveTab] = useState("problems");
     const [project, setProject] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+
+    // 👇 Detectar el parámetro ?tab= en la URL
+    useEffect(() => {
+        const params = new URLSearchParams(location.search);
+        const tab = params.get("tab");
+        if (tab) {
+            setActiveTab(tab);
+        }
+    }, [location.search]);
 
     useEffect(() => {
         const fetchProject = async () => {
@@ -33,6 +41,12 @@ function Formulation() {
         };
         fetchProject();
     }, [id]);
+
+    const handleTabChange = (tab) => {
+        setActiveTab(tab);
+        // 👇 Actualiza la URL sin recargar la página
+        navigate(`/projects/${id}/formulation?tab=${tab}`, { replace: true });
+    };
 
     const renderContent = () => {
         switch (activeTab) {
@@ -71,7 +85,6 @@ function Formulation() {
                         </button>
                     </div>
                     <ProjectHeader id={id} project={project} loading={loading} error={error} />
-
                 </div>
 
                 <main className="flex-grow-1 d-flex flex-column overflow-auto">
@@ -80,43 +93,37 @@ function Formulation() {
                         <button
                             className={`btn btn-sm ${activeTab === "problems" ? "btn-primary" : "btn-outline-primary"
                                 }`}
-                            onClick={() => setActiveTab("problems")}
+                            onClick={() => handleTabChange("problems")}
                         >
                             Árbol de Problemas
                         </button>
                         <button
                             className={`btn btn-sm ${activeTab === "participants_general"
-                                ? "btn-primary"
-                                : "btn-outline-primary"
+                                    ? "btn-primary"
+                                    : "btn-outline-primary"
                                 }`}
-                            onClick={() => setActiveTab("participants_general")}
+                            onClick={() => handleTabChange("participants_general")}
                         >
                             Participantes
                         </button>
                         <button
-                            className={`btn btn-sm ${activeTab === "population"
-                                ? "btn-primary"
-                                : "btn-outline-primary"
+                            className={`btn btn-sm ${activeTab === "population" ? "btn-primary" : "btn-outline-primary"
                                 }`}
-                            onClick={() => setActiveTab("population")}
+                            onClick={() => handleTabChange("population")}
                         >
                             Población
                         </button>
                         <button
-                            className={`btn btn-sm ${activeTab === "objectives"
-                                ? "btn-primary"
-                                : "btn-outline-primary"
+                            className={`btn btn-sm ${activeTab === "objectives" ? "btn-primary" : "btn-outline-primary"
                                 }`}
-                            onClick={() => setActiveTab("objectives")}
+                            onClick={() => handleTabChange("objectives")}
                         >
                             Objetivos
                         </button>
                         <button
-                            className={`btn btn-sm ${activeTab === "alternatives"
-                                ? "btn-primary"
-                                : "btn-outline-primary"
+                            className={`btn btn-sm ${activeTab === "alternatives" ? "btn-primary" : "btn-outline-primary"
                                 }`}
-                            onClick={() => setActiveTab("alternatives")}
+                            onClick={() => handleTabChange("alternatives")}
                         >
                             Alternativas
                         </button>
