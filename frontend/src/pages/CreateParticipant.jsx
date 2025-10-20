@@ -39,10 +39,12 @@ function CreateParticipant() {
         try {
             const payload = {
                 ...formData,
-                participants_general_id: parseInt(generalId), // ✅ solo este ID importa
+                participants_general_id: parseInt(generalId),
             };
             await api.post("/participants/", payload);
-            navigate(`/projects/${projectId}/participants`);
+
+            // ✅ Redirige al formulario con el tab de participantes activo
+            navigate(`/projects/${projectId}/formulation?tab=participants_general`);
         } catch (error) {
             console.error("Error al crear participante:", error);
             alert("Hubo un error al crear el participante.");
@@ -137,10 +139,14 @@ function CreateParticipant() {
                 <button type="submit" className="btn btn-primary">
                     Guardar Participante
                 </button>
+
+                {/* 👇 Ajuste para volver al mismo tab */}
                 <button
                     type="button"
                     className="btn btn-secondary ms-2"
-                    onClick={() => navigate(`/edit-project/${projectId}`)}
+                    onClick={() =>
+                        navigate(`/projects/${projectId}/formulation?tab=participants_general`)
+                    }
                 >
                     Cancelar
                 </button>

@@ -8,8 +8,7 @@
         "current_description",
         "magnitude_problem",
         "problem_tree_json",
-        "project_id",
-        "chat_history"
+        "project_id"
     ],
     "relationships": {
         "project": {
@@ -67,7 +66,6 @@
                 ]
             },
             "project_id": 1,
-            "chat_history": [],
             "project": {
                 "id": 1,
                 "name": "Mejoramiento de acceso al agua potable en zona rural",
