@@ -7,6 +7,23 @@
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
+.problem-general-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.problem-general-label::after {
+    content: " *";
+    color: #dc3545;
+}
+
+.problem-general-label {
+    font-weight: 600;
+    color: #333;
+    font-size: 0.9rem;
+}
+
 .tree {
     display: flex;
     flex-direction: column;
@@ -216,5 +233,55 @@
     40%,
     80% {
         transform: translateX(5px);
+    }
+}
+
+
+/* Campos adicionales */
+.additional-fields {
+    margin-top: 20px;
+}
+
+.additional-fields .trunk {
+    margin-bottom: 15px;
+}
+
+/* Mejoras en los popups existentes */
+.error-popup {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 20px;
+}
+
+.error-icon {
+    color: #dc3545;
+    font-size: 1.2rem;
+}
+
+/* Validación visual para campos requeridos */
+.error-input {
+    border-color: #dc3545 !important;
+    box-shadow: 0 0 0 2px rgba(220, 53, 69, 0.1) !important;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .problem-general-container {
+        margin: 0 10px;
+    }
+
+    .confirmation-popup {
+        width: 95%;
+        margin: 0 10px;
+    }
+
+    .success-message-overlay {
+        right: 10px;
+        left: 10px;
+    }
+
+    .success-message {
+        min-width: auto;
     }
 }

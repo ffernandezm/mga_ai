@@ -2,6 +2,10 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.models.project import router as project_router
 from app.models.problems import router as problem_router
+from app.models.direct_effects import router as direct_effect_router
+from app.models.indirect_effects import router as indirect_effect_router
+from app.models.direct_causes import router as direct_cause_router
+from app.models.indirect_causes import router as indirect_cause_router
 from app.models.participants import router as participants_router
 from app.models.participants_general import router as participants_general_router
 from app.models.objectives import router as objectives_router
@@ -53,6 +57,10 @@ def read_root():
 # Incluir Rutas
 app.include_router(project_router, prefix="/projects", tags=["Projects"])
 app.include_router(problem_router, prefix="/problems", tags=["Problems"])
+app.include_router(direct_effect_router, prefix="/direct_effects", tags=["DirectEffects"])
+app.include_router(indirect_effect_router, prefix="/indirect_effects", tags=["IndirectEffects"])
+app.include_router(direct_cause_router, prefix="/direct_causes", tags=["DirectCauses"])
+app.include_router(indirect_cause_router, prefix="/indirect_causes", tags=["IndirectCauses"])
 app.include_router(participants_general_router, prefix="/participants_general", tags=["ParticipantsGeneral"])
 app.include_router(participants_router, prefix="/participants", tags=["Participants"])
 app.include_router(objectives_router, prefix="/objectives", tags=["Objectives"])
