@@ -1,11 +1,16 @@
 import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import api from "../services/api";
 import participantOptions from "../data/participantOptions";
 
 function EditParticipant() {
     const { projectId, participantId } = useParams();
     const navigate = useNavigate();
+    const location = useLocation();
+
+    // 👇 Leer parámetro activeTab desde la URL
+    const params = new URLSearchParams(location.search);
+    const activeTab = params.get("activeTab") || "participants_general";
 
     const [formData, setFormData] = useState({
         participant_actor: "",
@@ -29,7 +34,6 @@ function EditParticipant() {
                 console.error("Error al obtener participante:", error);
             }
         };
-
         fetchParticipant();
     }, [projectId, participantId]);
 
@@ -53,8 +57,9 @@ function EditParticipant() {
                 ...formData,
                 project_id: parseInt(projectId),
             });
-            // Redirigir al formulario de edición del proyecto
-            navigate(`/edit-project/${projectId}`);
+
+            // 👇 Redirigir al tab activo en Formulation
+            navigate(`/projects/${projectId}/formulation?tab=${activeTab}`);
         } catch (error) {
             console.error("Error al actualizar participante:", error);
             alert("Hubo un error al actualizar el participante.");
@@ -132,6 +137,7 @@ function EditParticipant() {
                         required
                     ></textarea>
                 </div>
+
                 <div className="mb-3">
                     <label className="form-label">Contribuciones / Conflictos</label>
                     <textarea
@@ -142,13 +148,14 @@ function EditParticipant() {
                         required
                     ></textarea>
                 </div>
+
                 <button type="submit" className="btn btn-primary">
                     Guardar Cambios
                 </button>
                 <button
                     type="button"
                     className="btn btn-secondary ms-2"
-                    onClick={() => navigate(`/edit-project/${projectId}`)}
+                    onClick={() => navigate(`/projects/${projectId}/formulation?tab=${activeTab}`)}
                 >
                     Cancelar
                 </button>

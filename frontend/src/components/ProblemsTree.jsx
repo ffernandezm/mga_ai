@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react";
-import { FaPlus, FaTrash } from "react-icons/fa";
+import { FaPlus, FaTrash, FaExclamationTriangle } from "react-icons/fa";
 import "../styles/problemsTree.css";
 import api from "../services/api";
+import ConfirmationPopup from "./ConfirmationPopup";
+import SuccessMessage from "./SuccessMessage";
 
 function ProblemsTree({ projectId, projectName, ProjectDescription }) {
     const [problem, setProblem] = useState("");
@@ -12,9 +14,15 @@ function ProblemsTree({ projectId, projectName, ProjectDescription }) {
     const [showErrorPopup, setShowErrorPopup] = useState(false);
     const [currentDescription, setCurrentDescription] = useState("");
     const [magnitudeProblem, setMagnitudeProblem] = useState("");
-    const [refreshTrigger, setRefreshTrigger] = useState(0); // 👈 Nuevo estado para forzar re-render
+    const [refreshTrigger, setRefreshTrigger] = useState(0);
 
-    // Cargar el árbol de problemas - ahora se ejecuta cuando cambia projectId O refreshTrigger
+    // Estados para los nuevos componentes
+    const [showConfirmation, setShowConfirmation] = useState(false);
+    const [confirmationConfig, setConfirmationConfig] = useState({});
+    const [showSuccess, setShowSuccess] = useState(false);
+    const [successMessage, setSuccessMessage] = useState("");
+
+    // Cargar el árbol de problemas
     useEffect(() => {
         const fetchProblemTree = async () => {
             if (!projectId) return;
@@ -45,7 +53,6 @@ function ProblemsTree({ projectId, projectName, ProjectDescription }) {
                     setCauses(mappedCauses);
                     setEffects(mappedEffects);
 
-                    // También cargar los otros campos si existen en la respuesta
                     if (response.data.current_description) {
                         setCurrentDescription(response.data.current_description);
                     }
@@ -58,10 +65,37 @@ function ProblemsTree({ projectId, projectName, ProjectDescription }) {
             }
         };
         fetchProblemTree();
-    }, [projectId, refreshTrigger]); // 👈 Ahora también depende de refreshTrigger
+    }, [projectId, refreshTrigger]);
+
+    // Validaciones
+    const validateMinimumRequirements = () => {
+        const hasDirectEffect = effects.length > 0;
+        const hasDirectCause = causes.length > 0;
+        const hasIndirectEffect = effects.some(effect => effect.children && effect.children.length > 0);
+        const hasIndirectCause = causes.some(cause => cause.children && cause.children.length > 0);
+
+        return {
+            isValid: hasDirectEffect && hasDirectCause && hasIndirectEffect && hasIndirectCause,
+            messages: [
+                !hasDirectEffect && "Al menos un Efecto Directo",
+                !hasDirectCause && "Al menos una Causa Directa",
+                !hasIndirectEffect && "Al menos un Efecto Indirecto",
+                !hasIndirectCause && "Al menos una Causa Indirecta"
+            ].filter(Boolean)
+        };
+    };
+
+    const showSuccessMessage = (message) => {
+        setSuccessMessage(message);
+        setShowSuccess(true);
+    };
 
     const addEffect = (type, parentIndex = null) => {
-        const newEffect = { text: "", children: [] };
+        const newEffect = {
+            text: "",
+            children: []
+        };
+
         if (type === "direct") {
             setEffects([...effects, newEffect]);
         } else {
@@ -72,7 +106,11 @@ function ProblemsTree({ projectId, projectName, ProjectDescription }) {
     };
 
     const addCause = (type, parentIndex = null) => {
-        const newCause = { text: "", children: [] };
+        const newCause = {
+            text: "",
+            children: []
+        };
+
         if (type === "direct") {
             setCauses([...causes, newCause]);
         } else {
@@ -82,14 +120,29 @@ function ProblemsTree({ projectId, projectName, ProjectDescription }) {
         }
     };
 
-    const removeEffect = async (type, index, parentIndex = null, effectId = null) => {
-        if (effectId) {
+    // Función para mostrar confirmación de eliminación
+    const confirmDelete = (config) => {
+        setConfirmationConfig(config);
+        setShowConfirmation(true);
+    };
+
+    const removeEffect = async (type, index, parentIndex = null, effectId = null, effectText = "") => {
+        if (type === "direct" && effectId) {
             try {
-                await api.delete(`/effects/${effectId}`);
-                // Forzar recarga después de eliminar
-                setRefreshTrigger(prev => prev + 1);
+                await api.delete(`/direct_effects/${projectId}/${effectId}`);
+                showSuccessMessage("Efecto directo y sus efectos indirectos eliminados correctamente");
             } catch (error) {
-                console.error("Error eliminando efecto:", error);
+                console.error("Error eliminando efecto directo:", error);
+                return;
+            }
+        } else if (type === "indirect" && effectId) {
+            try {
+                const directEffect = effects[parentIndex];
+                await api.delete(`/indirect_effects/${directEffect.id}/${effectId}`);
+                showSuccessMessage("Efecto indirecto eliminado correctamente");
+            } catch (error) {
+                console.error("Error eliminando efecto indirecto:", error);
+                return;
             }
         }
 
@@ -100,16 +153,27 @@ function ProblemsTree({ projectId, projectName, ProjectDescription }) {
             updatedEffects[parentIndex].children = updatedEffects[parentIndex].children.filter((_, i) => i !== index);
             setEffects(updatedEffects);
         }
+
+        setRefreshTrigger(prev => prev + 1);
     };
 
-    const removeCause = async (type, index, parentIndex = null, causeId = null) => {
-        if (causeId) {
+    const removeCause = async (type, index, parentIndex = null, causeId = null, causeText = "") => {
+        if (type === "direct" && causeId) {
             try {
-                await api.delete(`/causes/${causeId}`);
-                // Forzar recarga después de eliminar
-                setRefreshTrigger(prev => prev + 1);
+                await api.delete(`/direct_causes/${projectId}/${causeId}`);
+                showSuccessMessage("Causa directa y sus causas indirectas eliminadas correctamente");
             } catch (error) {
-                console.error("Error eliminando causa:", error);
+                console.error("Error eliminando causa directa:", error);
+                return;
+            }
+        } else if (type === "indirect" && causeId) {
+            try {
+                const directCause = causes[parentIndex];
+                await api.delete(`/indirect_causes/${directCause.id}/${causeId}`);
+                showSuccessMessage("Causa indirecta eliminada correctamente");
+            } catch (error) {
+                console.error("Error eliminando causa indirecta:", error);
+                return;
             }
         }
 
@@ -120,6 +184,8 @@ function ProblemsTree({ projectId, projectName, ProjectDescription }) {
             updatedCauses[parentIndex].children = updatedCauses[parentIndex].children.filter((_, i) => i !== index);
             setCauses(updatedCauses);
         }
+
+        setRefreshTrigger(prev => prev + 1);
     };
 
     const generateJson = () => {
@@ -150,6 +216,9 @@ function ProblemsTree({ projectId, projectName, ProjectDescription }) {
         return (
             <div className="error-popup-overlay">
                 <div className="error-popup">
+                    <div className="error-icon">
+                        <FaExclamationTriangle />
+                    </div>
                     <p>{message}</p>
                     <button onClick={onClose}>Cerrar</button>
                 </div>
@@ -167,50 +236,32 @@ function ProblemsTree({ projectId, projectName, ProjectDescription }) {
             return;
         }
 
+        // Validar requisitos mínimos
+        const validation = validateMinimumRequirements();
+        if (!validation.isValid) {
+            setShowErrorPopup(true);
+            return;
+        }
+
         setIsSaving(true);
         const jsonData = generateJson();
-        console.log("Datos enviados para actualización:", jsonData);
 
         try {
             const response = await api.put(`/problems/${projectId}`, jsonData);
             console.log("Árbol de problemas actualizado correctamente", response.data);
-
-            // 👈 FORZAR RE-RENDER DESPUÉS DE ACTUALIZAR
             setRefreshTrigger(prev => prev + 1);
-
-            // También puedes mostrar un mensaje de éxito
-            alert("Árbol de problemas actualizado correctamente");
-
+            showSuccessMessage("Árbol de problemas actualizado correctamente");
         } catch (error) {
             console.error("Error actualizando árbol de problemas:", error.response?.data || error.message);
-            alert("Error al actualizar el árbol de problemas");
+            setShowErrorPopup(true);
         } finally {
             setIsSaving(false);
         }
     };
 
-    // Función para limpiar todos los campos (opcional)
-    const clearAll = () => {
-        setProblem("");
-        setCauses([]);
-        setEffects([]);
-        setCurrentDescription("");
-        setMagnitudeProblem("");
-    };
-
     return (
         <div className="problems-tree-container">
             <h3>Árbol de Problemas</h3>
-
-            {/* Botón para recargar manualmente (útil para debugging) */}
-            {/* <div style={{ marginBottom: '10px' }}>
-                <button 
-                    onClick={() => setRefreshTrigger(prev => prev + 1)}
-                    className="btn btn-sm btn-outline-secondary"
-                >
-                    🔄 Recargar Datos
-                </button>
-            </div> */}
 
             <div className="tree">
                 <div className="branches">
@@ -229,7 +280,12 @@ function ProblemsTree({ projectId, projectName, ProjectDescription }) {
                                 />
                                 <button
                                     className="icon-button delete-button"
-                                    onClick={() => removeEffect("direct", index, null, effect.id)}
+                                    onClick={() => confirmDelete({
+                                        type: "effect",
+                                        action: () => removeEffect("direct", index, null, effect.id, effect.text),
+                                        title: "Eliminar Efecto Directo",
+                                        message: `¿Está seguro de que desea eliminar el efecto directo "${effect.text || 'sin nombre'}"? Esta acción también eliminará todos sus efectos indirectos.`
+                                    })}
                                 >
                                     <FaTrash />
                                 </button>
@@ -249,7 +305,12 @@ function ProblemsTree({ projectId, projectName, ProjectDescription }) {
                                         />
                                         <button
                                             className="icon-button delete-button"
-                                            onClick={() => removeEffect("indirect", childIndex, index, child.id)}
+                                            onClick={() => confirmDelete({
+                                                type: "effect",
+                                                action: () => removeEffect("indirect", childIndex, index, child.id, child.text),
+                                                title: "Eliminar Efecto Indirecto",
+                                                message: `¿Está seguro de que desea eliminar el efecto indirecto "${child.text || 'sin nombre'}"?`
+                                            })}
                                         >
                                             <FaTrash />
                                         </button>
@@ -273,18 +334,21 @@ function ProblemsTree({ projectId, projectName, ProjectDescription }) {
                 </div>
 
                 <div className="trunk">
-                    <input
-                        type="text"
-                        placeholder="Problema general"
-                        value={problem}
-                        onChange={(e) => {
-                            setProblem(e.target.value);
-                            if (isProblemEmpty && e.target.value.trim()) {
-                                setIsProblemEmpty(false);
-                            }
-                        }}
-                        className={isProblemEmpty ? "error-input" : ""}
-                    />
+                    <div className="problem-general-container">
+                        <label className="problem-general-label">Problema General *</label>
+                        <input
+                            type="text"
+                            placeholder="Problema general"
+                            value={problem}
+                            onChange={(e) => {
+                                setProblem(e.target.value);
+                                if (isProblemEmpty && e.target.value.trim()) {
+                                    setIsProblemEmpty(false);
+                                }
+                            }}
+                            className={isProblemEmpty ? "error-input" : ""}
+                        />
+                    </div>
                 </div>
 
                 <div className="roots">
@@ -303,7 +367,12 @@ function ProblemsTree({ projectId, projectName, ProjectDescription }) {
                                 />
                                 <button
                                     className="icon-button delete-button"
-                                    onClick={() => removeCause("direct", index, null, cause.id)}
+                                    onClick={() => confirmDelete({
+                                        type: "cause",
+                                        action: () => removeCause("direct", index, null, cause.id, cause.text),
+                                        title: "Eliminar Causa Directa",
+                                        message: `¿Está seguro de que desea eliminar la causa directa "${cause.text || 'sin nombre'}"? Esta acción también eliminará todas sus causas indirectas.`
+                                    })}
                                 >
                                     <FaTrash />
                                 </button>
@@ -323,7 +392,12 @@ function ProblemsTree({ projectId, projectName, ProjectDescription }) {
                                         />
                                         <button
                                             className="icon-button delete-button"
-                                            onClick={() => removeCause("indirect", childIndex, index, child.id)}
+                                            onClick={() => confirmDelete({
+                                                type: "cause",
+                                                action: () => removeCause("indirect", childIndex, index, child.id, child.text),
+                                                title: "Eliminar Causa Indirecta",
+                                                message: `¿Está seguro de que desea eliminar la causa indirecta "${child.text || 'sin nombre'}"?`
+                                            })}
                                         >
                                             <FaTrash />
                                         </button>
@@ -349,27 +423,32 @@ function ProblemsTree({ projectId, projectName, ProjectDescription }) {
 
             {showErrorPopup && (
                 <ErrorPopup
-                    message="El campo Problema general es obligatorio. Por favor, complételo antes de guardar."
+                    message={
+                        !problem.trim()
+                            ? "El campo Problema general es obligatorio. Por favor, complételo antes de guardar."
+                            : "Debe cumplir con los requisitos mínimos: Al menos un Efecto Directo, un Efecto Indirecto, una Causa Directa y una Causa Indirecta."
+                    }
                     onClose={() => setShowErrorPopup(false)}
                 />
             )}
 
-            <div className="trunk">
-                <input
-                    type="text"
-                    placeholder="Descripción de la situación existente con respecto al problema"
-                    value={currentDescription}
-                    onChange={(e) => setCurrentDescription(e.target.value)}
-                />
-            </div>
-
-            <div className="trunk">
-                <input
-                    type="text"
-                    placeholder="Magnitud actual del problema e indicadores de referencia"
-                    value={magnitudeProblem}
-                    onChange={(e) => setMagnitudeProblem(e.target.value)}
-                />
+            <div className="additional-fields">
+                <div className="trunk">
+                    <input
+                        type="text"
+                        placeholder="Descripción de la situación existente con respecto al problema"
+                        value={currentDescription}
+                        onChange={(e) => setCurrentDescription(e.target.value)}
+                    />
+                </div>
+                <div className="trunk">
+                    <input
+                        type="text"
+                        placeholder="Magnitud actual del problema e indicadores de referencia"
+                        value={magnitudeProblem}
+                        onChange={(e) => setMagnitudeProblem(e.target.value)}
+                    />
+                </div>
             </div>
 
             <div className="buttons-container">
@@ -381,17 +460,26 @@ function ProblemsTree({ projectId, projectName, ProjectDescription }) {
                     >
                         {isSaving ? "Actualizando..." : "Guardar/Actualizar"}
                     </button>
-
-                    {/* Botón opcional para limpiar */}
-                    {/* <button
-                        className="action-button clear-button"
-                        onClick={clearAll}
-                        style={{marginLeft: '10px', backgroundColor: '#dc3545'}}
-                    >
-                        Limpiar Todo
-                    </button> */}
                 </div>
             </div>
+
+            {/* Componentes de Confirmación y Éxito */}
+            <ConfirmationPopup
+                isOpen={showConfirmation}
+                onConfirm={() => {
+                    confirmationConfig.action();
+                    setShowConfirmation(false);
+                }}
+                onCancel={() => setShowConfirmation(false)}
+                title={confirmationConfig.title}
+                message={confirmationConfig.message}
+            />
+
+            <SuccessMessage
+                message={successMessage}
+                isVisible={showSuccess}
+                onHide={() => setShowSuccess(false)}
+            />
         </div>
     );
 }
