@@ -507,17 +507,12 @@ def format_module_data_for_prompt(data: dict, max_items: int = 50) -> str:
             parts = []
             
             for key, value in record.items():
-                # Saltar listas (subtablas) por ahora
+                # Saltar listas (subtablas) - se manejan de forma especial
                 if isinstance(value, list):
                     if value:  # Solo mostrar si tiene contenido
-                        parts.append(f"{prefix}• {key.replace('_', ' ').title()}: ({len(value)} registro{'s' if len(value) > 1 else ''})")
-                        # Mostrar primer item de la lista
-                        if isinstance(value[0], dict):
-                            for item in value[:2]:  # Mostrar máximo 2 items
-                                for subkey, subval in list(item.items())[:3]:  # Máximo 3 campos
-                                    clean_key = subkey.replace('_', ' ').title()
-                                    clean_val = format_value(subval)
-                                    parts.append(f"{prefix}  - {clean_key}: {clean_val}")
+                        total_count = len(value)
+                        label = f"{key.replace('_', ' ').title()}: {total_count} registro{'s' if total_count > 1 else ''}"
+                        parts.append(f"{prefix}• {label}")
                 else:
                     # Mostrar valores simples
                     clean_key = key.replace('_', ' ').title()
