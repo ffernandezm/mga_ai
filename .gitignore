@@ -54,3 +54,7 @@ coverage.xml
 *.bak
 *.swp
 *.tmp
+
+# Entornos virtuales específicos
+backend/venv_fastapi_new/
+frontend/node_modules/
