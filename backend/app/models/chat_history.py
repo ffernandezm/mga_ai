@@ -148,6 +148,348 @@ def get_existing_session_id(db: Session, project_id: int, tab: str) -> Optional[
         return None
 
 
+def get_comprehensive_module_data(db: Session, project_id: int, tab: str) -> dict:
+    """
+    Recupera TODA la información de un módulo incluyendo sus tablas relacionadas (subtablas).
+    Estructura jerárquica completa con todos los campos excepto JSON y campos internos.
+    
+    Args:
+        db: Sesión de BD
+        project_id: ID del proyecto
+        tab: Nombre de la tabla/módulo principal
+        
+    Returns:
+        Dict con estructura jerárquica de datos con formato JSON
+        
+    Ejemplo:
+        {
+            "module": "problems",
+            "table": "problems",
+            "total_records": 1,
+            "records": [
+                {
+                    "central_problem": "...",
+                    "current_description": "...",
+                    "direct_effects": [
+                        {
+                            "description": "...",
+                            "indirect_effects": [...]
+                        }
+                    ],
+                    "direct_causes": [...]
+                }
+            ]
+        }
+    """
+    try:
+        from sqlalchemy import text, MetaData, Table, inspect, ForeignKey
+        from sqlalchemy.orm import object_session
+        
+        # Configuración de relaciones jerárquicas (tabla padre -> [tabla hija, ...])
+        relationship_map = {
+            'problems': ['direct_effects', 'direct_causes'],
+            'direct_effects': ['indirect_effects'],
+            'direct_causes': ['indirect_causes'],
+            'population': ['affected_population', 'intervention_population', 'characteristics_population'],
+            'participants_general': ['participants'],
+            'objectives': ['objectives_causes', 'objectives_indicators'],
+            'alternatives_general': ['alternatives'],
+        }
+        
+        # Columnas a ignorar (JSON, timestamps, IDs internos)
+        ignored_columns = {
+            'id', 'created_at', 'updated_at', 'deleted_at',
+            'problem_tree_json', 'population_json', 'participants_json',
+            'alternatives_json', '_json'
+        }
+        
+        def serialize_value(value):
+            """Convierte valores a formatos JSON-compatibles."""
+            if value is None:
+                return None
+            if isinstance(value, (str, int, float, bool)):
+                return value
+            if isinstance(value, (datetime, )):
+                return value.isoformat()
+            return str(value)
+        
+        def get_record_data(table_obj, record, exclude_fk=None):
+            """Extrae datos de un registro excluyendo FKs y columnas internas."""
+            if exclude_fk is None:
+                exclude_fk = set()
+            
+            data = {}
+            mapper = inspect(table_obj.__class__)
+            
+            for column in mapper.columns:
+                col_name = column.name
+                
+                # Saltar columnas ignoradas
+                if col_name in ignored_columns:
+                    continue
+                if col_name in exclude_fk:
+                    continue
+                if col_name.endswith('_id') and col_name != 'project_id':
+                    continue
+                
+                value = getattr(record, col_name, None)
+                data[col_name] = serialize_value(value)
+            
+            return data
+        
+        def get_children_data(parent_record, parent_table, child_table_name, depth=0):
+            """Recursivamente obtiene datos de tablas hijas."""
+            if depth > 5:  # Límite de profundidad
+                return []
+            
+            try:
+                # Obtener relación del modelo padre
+                mapper = inspect(parent_record.__class__)
+                relationship_keys = [rel.key for rel in mapper.relationships]
+                
+                # Si el nombre exacto no está, intentar variaciones comunes
+                if child_table_name not in relationship_keys:
+                    # Intentar singulares/plurales
+                    if child_table_name + 's' in relationship_keys:
+                        child_table_name = child_table_name + 's'
+                    elif child_table_name[:-1] in relationship_keys:
+                        child_table_name = child_table_name[:-1]
+                    else:
+                        return []
+                
+                children = getattr(parent_record, child_table_name, None)
+                if not children:
+                    return []
+                
+                # Asegurar que es una lista
+                children_list = children if isinstance(children, list) else [children]
+                
+                result = []
+                for child in children_list:
+                    if not child:
+                        continue
+                    
+                    child_data = get_record_data(child, child)
+                    
+                    # Buscar relaciones dentro de este hijo
+                    grandchildren_tables = relationship_map.get(child_table_name, [])
+                    for grandchild_name in grandchildren_tables:
+                        grandchildren = get_children_data(child, child_table_name, grandchild_name, depth + 1)
+                        if grandchildren:
+                            child_data[grandchild_name] = grandchildren
+                    
+                    result.append(child_data)
+                
+                return result
+            except Exception as e:
+                logger.warning(f"⚠️ Error obteniendo datos de {child_table_name}: {str(e)}")
+                return []
+        
+        # PASO 1: Obtener registros de la tabla principal
+        if tab not in relationship_map and tab != 'problems' and tab != 'population' and tab != 'participants_general' and tab != 'objectives' and tab != 'alternatives_general':
+            # Es una tabla secundaria, obtener desde su relación
+            parent_table = None
+            for parent, children in relationship_map.items():
+                if tab in children:
+                    parent_table = parent
+                    break
+            
+            if not parent_table:
+                return {
+                    "module": tab,
+                    "table": tab,
+                    "status": "unsupported",
+                    "message": f"Tabla '{tab}' no soportada o no es una tabla principal"
+                }
+        
+        # Importar modelos dinámicamente
+        try:
+            module = __import__(f'app.models.{tab}', fromlist=[tab.capitalize()])
+            # Convertir snake_case a CamelCase
+            class_name = ''.join(word.capitalize() for word in tab.split('_'))
+            model_class = getattr(module, class_name, None)
+            
+            if not model_class:
+                return {
+                    "module": tab,
+                    "table": tab,
+                    "status": "error",
+                    "message": f"No se pudo cargar el modelo para '{tab}'"
+                }
+        except ImportError as e:
+            logger.error(f"❌ Error importando modelo {tab}: {str(e)}")
+            return {
+                "module": tab,
+                "table": tab,
+                "status": "error",
+                "message": f"Error al importar modelo: {str(e)}"
+            }
+        
+        # PASO 2: Consultar registros de la tabla principal
+        # Cargar con relaciones anidadas para evitar lazy loading
+        try:
+            if tab == 'problems':
+                from app.models.problems import Problems
+                from app.models.direct_effects import DirectEffect
+                from app.models.indirect_effects import IndirectEffect
+                from app.models.direct_causes import DirectCause
+                from app.models.indirect_causes import IndirectCause
+                from sqlalchemy.orm import joinedload
+                
+                main_records = db.query(Problems).filter(
+                    Problems.project_id == project_id
+                ).options(
+                    joinedload(Problems.direct_effects).joinedload(DirectEffect.indirect_effects),
+                    joinedload(Problems.direct_causes).joinedload(DirectCause.indirect_causes)
+                ).all()
+            
+            elif tab == 'population':
+                from app.models.population import Population
+                from sqlalchemy.orm import joinedload
+                
+                main_records = db.query(Population).filter(
+                    Population.project_id == project_id
+                ).options(
+                    joinedload(Population.affected_population),
+                    joinedload(Population.intervention_population),
+                    joinedload(Population.characteristics_population)
+                ).all()
+            
+            elif tab == 'participants_general':
+                from app.models.participants_general import ParticipantsGeneral
+                from sqlalchemy.orm import joinedload
+                
+                main_records = db.query(ParticipantsGeneral).filter(
+                    ParticipantsGeneral.project_id == project_id
+                ).options(
+                    joinedload(ParticipantsGeneral.participants)
+                ).all()
+            
+            elif tab == 'objectives':
+                from app.models.objectives import Objectives
+                from sqlalchemy.orm import joinedload
+                
+                main_records = db.query(Objectives).filter(
+                    Objectives.project_id == project_id
+                ).options(
+                    joinedload(Objectives.objectives_causes),
+                    joinedload(Objectives.objectives_indicators)
+                ).all()
+            
+            elif tab == 'alternatives_general':
+                from app.models.alternatives_general import AlternativesGeneral
+                from sqlalchemy.orm import joinedload
+                
+                main_records = db.query(AlternativesGeneral).filter(
+                    AlternativesGeneral.project_id == project_id
+                ).options(
+                    joinedload(AlternativesGeneral.alternatives)
+                ).all()
+            
+            else:
+                # Tabla genérica sin relaciones especiales
+                main_records = db.query(model_class).filter(
+                    model_class.project_id == project_id
+                ).all()
+        except Exception as e:
+            logger.warning(f"⚠️ Error cargando registros con relaciones: {str(e)}, usando fallback")
+            main_records = db.query(model_class).filter(
+                model_class.project_id == project_id
+            ).all()
+        
+        if not main_records:
+            return {
+                "module": tab,
+                "table": tab,
+                "total_records": 0,
+                "records": []
+            }
+        
+        # PASO 3: Construir estructura jerárquica
+        records_data = []
+        children_tables = relationship_map.get(tab, [])
+        
+        for record in main_records:
+            record_data = get_record_data(record, record)
+            
+            # Agregar datos de tablas hijas
+            for child_table in children_tables:
+                try:
+                    children = get_children_data(record, tab, child_table)
+                    if children:
+                        record_data[child_table] = children
+                except Exception as e:
+                    logger.warning(f"⚠️ Error procesando relación {child_table}: {str(e)}")
+                    pass
+            
+            records_data.append(record_data)
+        
+        return {
+            "module": tab,
+            "table": tab,
+            "total_records": len(main_records),
+            "records": records_data
+        }
+    
+    except Exception as e:
+        logger.error(f"❌ Error recuperando datos completos de {tab}: {str(e)}")
+        return {
+            "module": tab,
+            "table": tab,
+            "status": "error",
+            "message": str(e)
+        }
+
+
+def format_module_data_for_prompt(data: dict, max_items: int = 50) -> str:
+    """
+    Convierte los datos del módulo a formato JSON legible para el prompt.
+    Limita la cantidad de items para no sobrecargar el contexto.
+    
+    Args:
+        data: Dict con estructura de datos del módulo
+        max_items: Máximo de items a incluir por tabla
+        
+    Returns:
+        String con datos formateados en JSON para usar como contexto
+    """
+    try:
+        if data.get("status") == "error":
+            return f"ERROR: {data.get('message', 'Error desconocido')}"
+        
+        # Crear versión limitada de los datos
+        limited_data = {
+            "module": data.get("module"),
+            "total_records": data.get("total_records", 0),
+            "records": []
+        }
+        
+        # Limitar registros
+        records = data.get("records", [])[:max_items]
+        limited_data["records"] = records
+        
+        # Convertir a JSON formateado
+        json_str = json.dumps(limited_data, indent=2, ensure_ascii=False)
+        
+        # Agregar encabezado informativo
+        summary = f"""
+================================================================================
+📊 INFORMACIÓN COMPLETA DEL MÓDULO: {data.get('module').upper()}
+================================================================================
+Total de registros en BD: {data.get('total_records', 0)}
+Registros incluidos en contexto: {min(len(records), max_items)}
+
+ESTRUCTURA JSON:
+================================================================================
+{json_str}
+================================================================================
+"""
+        return summary
+    except Exception as e:
+        logger.error(f"❌ Error formateando datos: {str(e)}")
+        return f"ERROR: {str(e)}"
+
+
 def get_module_data(db: Session, project_id: int, tab: str) -> str:
     """
     Recupera TODOS los datos registrados en cualquier tabla/módulo del proyecto.
@@ -371,16 +713,21 @@ def chat_with_ai(
         
         logger.info(f"📚 Historial de {len(chat_history)} mensajes anteriores recuperado")
 
-        # 🆕 NUEVO: Recuperar datos del módulo registrados en el proyecto
-        logger.info(f"📊 Recuperando datos del módulo {tab} para contexto...")
-        module_context = get_module_data(db, project_id, tab)
+        # 🆕 MEJORADO: Recuperar datos COMPLETOS del módulo con estructura jerárquica
+        logger.info(f"📊 Recuperando datos COMPLETOS del módulo {tab} (incluyendo subtablas)...")
+        comprehensive_data = get_comprehensive_module_data(db, project_id, tab)
+        
+        # Formatear datos para el prompt
+        module_context = format_module_data_for_prompt(comprehensive_data, max_items=50)
+        
+        logger.info(f"✅ Contexto del módulo {tab} recuperado ({comprehensive_data.get('total_records', 0)} registros en BD)")
 
-        # Llamar modelo LLM con historial Y datos del módulo
-        logger.info(f"🤖 Invocando LLM para tab={tab} con contexto de chat y datos del módulo")
+        # Llamar modelo LLM con historial Y datos COMPLETOS del módulo
+        logger.info(f"🤖 Invocando LLM para tab={tab} con contexto completo de chat y módulo")
         answer = llm_manager.ask(
             question=question,
             tab=tab,
-            context=module_context,  # 🆕 Incluir datos del módulo como contexto
+            context=module_context,  # 🆕 Datos COMPLETOS con estructura jerárquica
             chat_history=chat_history if chat_history else None,  # Pasar historial si existe
             session_id=session_id
         )
