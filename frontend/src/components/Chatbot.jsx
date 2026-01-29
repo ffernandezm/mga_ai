@@ -2,10 +2,12 @@ import { useState, useEffect } from "react";
 import api from "../services/api";
 import "../styles/Chatbot.css";
 import MessageRenderer from "./MessageRender"; // Componente para renderizar mensajes
+import ConfirmationPopup from "./ConfirmationPopup";
 
 const Chatbot = ({ projectId, activeTab }) => {
     const [messages, setMessages] = useState([]);
     const [input, setInput] = useState("");
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
     // 🔹 Cargar historial al iniciar
     useEffect(() => {
@@ -76,9 +78,29 @@ const Chatbot = ({ projectId, activeTab }) => {
         }
     };
 
+    const handleDeleteChat = async () => {
+        try {
+            await api.delete(`/chat_history/${projectId}/${activeTab}`);
+            setMessages([{ text: "¡Hola! ¿En qué puedo ayudarte?", sender: "bot" }]);
+            setShowDeleteConfirm(false);
+        } catch (error) {
+            console.error("Error al limpiar el chat:", error);
+            alert("Error al limpiar el chat. Intenta de nuevo.");
+        }
+    };
+
     return (
         <div className="chat-container">
-            <div className="chat-header">💬 Asistente Virtual </div>
+            <div className="chat-header">
+                <div className="chat-title">💬 Asistente Virtual</div>
+                <button
+                    className="clear-chat-btn"
+                    onClick={() => setShowDeleteConfirm(true)}
+                    title="Limpiar chat"
+                >
+                    🗑️
+                </button>
+            </div>
             <div className="chat-box">
                 {messages.map((msg, index) => (
                     <div key={index} className={`message ${msg.sender}`}>
@@ -96,6 +118,15 @@ const Chatbot = ({ projectId, activeTab }) => {
                 />
                 <button onClick={handleSend}>➤</button>
             </div>
+            <ConfirmationPopup
+                isOpen={showDeleteConfirm}
+                onConfirm={handleDeleteChat}
+                onCancel={() => setShowDeleteConfirm(false)}
+                title="Limpiar chat"
+                message="¿Está seguro de que desea limpiar todo el historial del chat?"
+                confirmText="Limpiar"
+                cancelText="Cancelar"
+            />
         </div>
     );
 };
