@@ -443,51 +443,108 @@ def get_comprehensive_module_data(db: Session, project_id: int, tab: str) -> dic
 
 def format_module_data_for_prompt(data: dict, max_items: int = 50) -> str:
     """
-    Convierte los datos del módulo a formato JSON legible para el prompt.
-    Limita la cantidad de items para no sobrecargar el contexto.
+    Convierte los datos del módulo a formato natural para el prompt.
+    Evita JSON técnico y presenta los datos de forma legible.
     
     Args:
         data: Dict con estructura de datos del módulo
         max_items: Máximo de items a incluir por tabla
         
     Returns:
-        String con datos formateados en JSON para usar como contexto
+        String con datos formateados de forma natural para el contexto
     """
     try:
         if data.get("status") == "error":
-            return f"ERROR: {data.get('message', 'Error desconocido')}"
+            return f"(No hay datos disponibles: {data.get('message', 'Error desconocido')})"
         
-        # Crear versión limitada de los datos
-        limited_data = {
-            "module": data.get("module"),
-            "total_records": data.get("total_records", 0),
-            "records": []
+        total_records = data.get("total_records", 0)
+        records = data.get("records", [])[:max_items]
+        module = data.get("module", "módulo")
+        
+        if total_records == 0:
+            return f"(No hay información registrada en {module})"
+        
+        # Mapeo de nombres de módulos a descripciones
+        module_names = {
+            "problems": "Árbol de Problemas",
+            "population": "Población",
+            "participants_general": "Actores del Proyecto",
+            "participants": "Participantes",
+            "objectives": "Objetivos",
+            "alternatives_general": "Alternativas de Solución",
+            "alternatives": "Alternativas Específicas",
+            "direct_effects": "Efectos Directos",
+            "indirect_effects": "Efectos Indirectos",
+            "direct_causes": "Causas Directas",
+            "indirect_causes": "Causas Indirectas",
+            "affected_population": "Población Afectada",
+            "intervention_population": "Población de Intervención",
+            "characteristics_population": "Características de Población",
+            "objectives_causes": "Causas del Objetivo",
+            "objectives_indicators": "Indicadores del Objetivo"
         }
         
-        # Limitar registros
-        records = data.get("records", [])[:max_items]
-        limited_data["records"] = records
+        module_display = module_names.get(module, module)
         
-        # Convertir a JSON formateado
-        json_str = json.dumps(limited_data, indent=2, ensure_ascii=False)
+        # Construir resumen natural
+        lines = []
+        lines.append(f"INFORMACIÓN REGISTRADA EN {module_display.upper()}:")
+        lines.append("-" * 60)
         
-        # Agregar encabezado informativo
-        summary = f"""
-================================================================================
-📊 INFORMACIÓN COMPLETA DEL MÓDULO: {data.get('module').upper()}
-================================================================================
-Total de registros en BD: {data.get('total_records', 0)}
-Registros incluidos en contexto: {min(len(records), max_items)}
-
-ESTRUCTURA JSON:
-================================================================================
-{json_str}
-================================================================================
-"""
-        return summary
+        def format_value(val):
+            """Formatea valores de forma natural."""
+            if val is None or val == "":
+                return "(sin información)"
+            if isinstance(val, bool):
+                return "Sí" if val else "No"
+            if isinstance(val, (int, float)):
+                return str(val)
+            return str(val)[:200]  # Truncar valores muy largos
+        
+        def format_record(record, indent=0):
+            """Formatea un registro de forma natural."""
+            prefix = "  " * indent
+            parts = []
+            
+            for key, value in record.items():
+                # Saltar listas (subtablas) por ahora
+                if isinstance(value, list):
+                    if value:  # Solo mostrar si tiene contenido
+                        parts.append(f"{prefix}• {key.replace('_', ' ').title()}: ({len(value)} registro{'s' if len(value) > 1 else ''})")
+                        # Mostrar primer item de la lista
+                        if isinstance(value[0], dict):
+                            for item in value[:2]:  # Mostrar máximo 2 items
+                                for subkey, subval in list(item.items())[:3]:  # Máximo 3 campos
+                                    clean_key = subkey.replace('_', ' ').title()
+                                    clean_val = format_value(subval)
+                                    parts.append(f"{prefix}  - {clean_key}: {clean_val}")
+                else:
+                    # Mostrar valores simples
+                    clean_key = key.replace('_', ' ').title()
+                    clean_val = format_value(value)
+                    if clean_val != "(sin información)":
+                        parts.append(f"{prefix}• {clean_key}: {clean_val}")
+            
+            return "\n".join(parts) if parts else f"{prefix}(sin información completa)"
+        
+        # Agregar registros formateados
+        for idx, record in enumerate(records, 1):
+            if len(records) > 1:
+                lines.append(f"\nRegistro {idx}:")
+            lines.append(format_record(record))
+        
+        lines.append("-" * 60)
+        
+        # Agregar nota sobre cantidad de registros
+        if total_records > max_items:
+            lines.append(f"(Mostrando {len(records)} de {total_records} registro{'s' if total_records > 1 else ''})")
+        
+        return "\n".join(lines)
+        
     except Exception as e:
         logger.error(f"❌ Error formateando datos: {str(e)}")
-        return f"ERROR: {str(e)}"
+        return f"(Error al procesar los datos del módulo: {str(e)[:50]})"
+
 
 
 def get_module_data(db: Session, project_id: int, tab: str) -> str:

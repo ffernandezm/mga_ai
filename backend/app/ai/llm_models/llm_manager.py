@@ -119,7 +119,7 @@ class LLMManager:
 
     def _build_chat_context(self, chat_history: list) -> str:
         """
-        Construye el contexto del historial de chat.
+        Construye el contexto del historial de chat de forma natural.
         
         Args:
             chat_history: Lista de mensajes anteriores
@@ -130,20 +130,20 @@ class LLMManager:
         if not chat_history:
             return ""
         
-        context_lines = ["=" * 60]
-        context_lines.append("HISTORIAL DE CONVERSACIÓN ANTERIOR:")
-        context_lines.append("=" * 60)
+        context_lines = []
+        context_lines.append("Contexto de la conversación anterior:")
+        context_lines.append("-" * 50)
         
-        for msg in chat_history[-10:]:  # Usar últimos 10 mensajes para no exceder límite
-            sender = "Tú" if msg.get("sender") == "user" else "Asistente"
-            message_text = msg.get("message", "")[:500]  # Truncar mensajes largos
-            context_lines.append(f"\n{sender}: {message_text}")
+        # Usar últimos 8 mensajes para no exceder límite
+        for msg in chat_history[-8:]:
+            sender = "Tú" if msg.get("sender") == "user" else "Yo"
+            message_text = msg.get("message", "")[:400]  # Truncar mensajes largos
+            context_lines.append(f"{sender}: {message_text}")
         
-        context_lines.append("\n" + "=" * 60)
-        context_lines.append("NUEVA PREGUNTA:")
-        context_lines.append("=" * 60)
+        context_lines.append("-" * 50)
         
         return "\n".join(context_lines)
+
 
     def ask(
         self,
