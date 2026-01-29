@@ -1,5 +1,29 @@
-from fastapi import FastAPI
+"""
+FastAPI Application - MGA Backend.
+
+Servidor FastAPI para gestión de proyectos de inversión pública
+usando la Metodología General Ajustada (MGA) con integración de LLM.
+"""
+
+import logging
+import os
+from contextlib import asynccontextmanager
+from dotenv import load_dotenv
+
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from pydantic import ValidationError
+
+# Configurar logging
+load_dotenv()
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
+
+# Importar routers
 from app.models.project import router as project_router
 from app.models.problems import router as problem_router
 from app.models.direct_effects import router as direct_effect_router
@@ -19,42 +43,131 @@ from app.models.intervention_population import router as intervention_population
 from app.models.characteristics_population import router as characteristics_population_router
 from app.models.survey import router as survey_router
 from app.models.chat_history import router as chat_history_router
-from app.models.get_table_data import router as get_table_data
+from app.models.get_table_data import router as get_table_data_router
 
 from app.core.database import Base, engine
-
 from app.ai.llm_models.init_llm_database import init_langchain_tables
 
-import asyncio
 
-try:
-    asyncio.get_running_loop()
-except RuntimeError:
-    asyncio.run(asyncio.sleep(0))
+# ==============================
+# 🔹 LIFESPAN CONTEXT MANAGER
+# ==============================
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Gestiona el ciclo de vida de la aplicación."""
+    # Startup
+    logger.info("🚀 Iniciando MGA Backend...")
+    try:
+        # Crear tablas
+        Base.metadata.create_all(bind=engine)
+        logger.info("✅ Tablas de BD creadas/verificadas")
+        
+        # Inicializar tablas de LangChain
+        init_langchain_tables()
+        logger.info("✅ Tablas de LangChain inicializadas")
+        
+        # Validar LLM
+        llm_provider = os.getenv("LLM_PROVIDER", "groq").lower()
+        logger.info(f"✅ LLM Provider configurado: {llm_provider}")
+        
+    except Exception as e:
+        logger.error(f"❌ Error en startup: {str(e)}", exc_info=True)
+        raise
+    
+    yield
+    
+    # Shutdown
+    logger.info("👋 Apagando MGA Backend...")
 
-app = FastAPI(title="FastAPI Project with PostgreSQL")
 
-# Habilitar CORS para permitir peticiones desde el frontend
-
-origins = [
-    "http://localhost:5173",  # origen del frontend
-]
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],           # permite cualquier origen
-    allow_credentials=True,
-    allow_methods=["*"],           # permite todos los métodos
-    allow_headers=["*"],           # permite todos los headers
+# ==============================
+# 🔹 CREAR APLICACIÓN FASTAPI
+# ==============================
+app = FastAPI(
+    title="MGA Backend API",
+    description="API para gestión de proyectos MGA con LLM integrado",
+    version="1.0.0",
+    lifespan=lifespan
 )
 
-# Crear tablas en la base de datos
-Base.metadata.create_all(bind=engine)
 
+# ==============================
+# 🔹 CONFIGURAR CORS
+# ==============================
+origins = [
+    "http://localhost:5173",
+    "http://localhost:3000",
+    "http://127.0.0.1:5173",
+    "http://127.0.0.1:3000",
+]
+
+env = os.getenv("ENVIRONMENT", "development").lower()
+if env == "production":
+    # En producción, ser más restrictivo
+    origins = [
+        os.getenv("FRONTEND_URL", "https://yourdomain.com"),
+    ]
+else:
+    # En desarrollo, permitir todos los orígenes
+    origins = ["*"]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+logger.info(f"✅ CORS configurado para: {origins}")
+
+
+# ==============================
+# 🔹 EXCEPTION HANDLERS
+# ==============================
+@app.exception_handler(ValidationError)
+async def validation_exception_handler(request: Request, exc: ValidationError):
+    """Handler para errores de validación."""
+    logger.warning(f"⚠️ Validation error: {exc.errors()}")
+    return JSONResponse(
+        status_code=422,
+        content={
+            "detail": exc.errors(),
+            "message": "Error de validación"
+        }
+    )
+
+
+# ==============================
+# 🔹 ENDPOINTS GENERALES
+# ==============================
 @app.get("/")
-def read_root():
-    return {"message": "FastAPI está funcionando correctamente"}
+async def read_root():
+    """Health check básico."""
+    return {
+        "message": "MGA Backend API",
+        "status": "operational",
+        "version": "1.0.0"
+    }
 
-# Incluir Rutas
+
+@app.get("/health")
+async def health_check():
+    """Endpoint de salud detallado."""
+    return {
+        "status": "healthy",
+        "service": "MGA Project Assistant API",
+        "version": "1.0.0",
+        "environment": os.getenv("ENVIRONMENT", "development"),
+        "llm_provider": os.getenv("LLM_PROVIDER", "groq")
+    }
+
+
+# ==============================
+# 🔹 REGISTRAR ROUTERS
+# ==============================
+logger.info("📝 Registrando routers...")
+
+# Routers de proyectos y modelos
 app.include_router(project_router, prefix="/projects", tags=["Projects"])
 app.include_router(problem_router, prefix="/problems", tags=["Problems"])
 app.include_router(direct_effect_router, prefix="/direct_effects", tags=["DirectEffects"])
@@ -73,12 +186,11 @@ app.include_router(affected_population_router, prefix="/affected_population", ta
 app.include_router(intervention_population_router, prefix="/intervention_population", tags=["InterventionPopulation"])
 app.include_router(characteristics_population_router, prefix="/characteristics_population", tags=["CharacteristicsPopulation"])
 app.include_router(survey_router, prefix="/survey", tags=["Survey"])
-app.include_router(chat_history_router, prefix="/chat_history", tags=["ChatHistory"])
 
-app.include_router(get_table_data, prefix="/api", tags=["Data"])
+# Router de chat (ya tiene su prefijo incluido en el router)
+app.include_router(chat_history_router, tags=["ChatHistory"])
 
+# Router de datos
+app.include_router(get_table_data_router, prefix="/api", tags=["Data"])
 
-# Inicialización de tablas LangChain
-@app.on_event("startup")
-async def startup_event():
-    init_langchain_tables()
+logger.info("✅ Todos los routers registrados")

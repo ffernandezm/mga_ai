@@ -1,7 +1,7 @@
 {
     "table": "problems",
     "model": "Problems",
-    "project_id": 1,
+    "project_id": 4,
     "columns": [
         "id",
         "central_problem",
@@ -36,53 +36,53 @@
     "data_count": 1,
     "data": [
         {
-            "id": 1,
-            "central_problem": "Hay poco acceso al agua potable en la vereda El paraíso",
+            "id": 4,
+            "central_problem": "En el colegio municipal no hay Aulas múltiples",
             "current_description": "",
             "magnitude_problem": "",
             "problem_tree_json": {
-                "central_problem": "Hay poco acceso al agua potable en la vereda El paraíso",
+                "central_problem": "En el colegio municipal no hay Aulas múltiples",
                 "current_description": "",
                 "magnitude_problem": "",
                 "direct_effects": [
                     {
-                        "description": "Incremento de enfermedades en la zona rural",
+                        "description": "No hay forma de realizar eventos",
                         "indirect_effects": [
                             {
-                                "description": "Aumento en los gatos familiares por atención médica"
+                                "description": "No hay motivacion por parte de los alumnos"
                             }
                         ]
                     }
                 ],
                 "direct_causes": [
                     {
-                        "description": "Infraestructura en mal estado",
+                        "description": "Falta de dinero",
                         "indirect_causes": [
                             {
-                                "description": "Falta de mantenimiento en el sistema"
+                                "description": "No hay infraestructura"
                             }
                         ]
                     }
                 ]
             },
-            "project_id": 1,
+            "project_id": 4,
             "project": {
-                "id": 1,
-                "name": "Mejoramiento de acceso al agua potable en zona rural",
-                "description": "Se requiere acceso al agua potable para la vereda el paraíso"
+                "id": 4,
+                "name": "Mejora de aulas multiples ",
+                "description": "Mejora de Aulas múltiples en Florencia Cauca"
             },
             "direct_effects": [
                 {
-                    "id": 1,
-                    "problem_id": 1,
-                    "description": "Incremento de enfermedades en la zona rural"
+                    "id": 4,
+                    "problem_id": 4,
+                    "description": "No hay forma de realizar eventos"
                 }
             ],
             "direct_causes": [
                 {
-                    "id": 1,
-                    "problem_id": 1,
-                    "description": "Infraestructura en mal estado"
+                    "id": 3,
+                    "problem_id": 4,
+                    "description": "Falta de dinero"
                 }
             ]
         }
