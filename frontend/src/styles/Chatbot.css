@@ -69,11 +69,11 @@
 }
 
 .chat-container {
-    position: fixed;
+    /* position: fixed; */
     right: 0;
     top: 0;
     bottom: 0;
-    width: 480px;
+    width: 600px;
     height: 100vh;
     margin: 0;
     padding: 0;

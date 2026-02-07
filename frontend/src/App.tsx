@@ -23,7 +23,7 @@ function App() {
     <Router>
       <ProjectProvider>
         <Navbar />
-        <div className="container mt-4">
+        <div className="container">
           <Routes>
             <Route path="/projects" element={<ProjectList />} />
             <Route path="/create-project" element={<CreateProject />} />
