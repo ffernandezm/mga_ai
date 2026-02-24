@@ -99,8 +99,8 @@ function Formulation() {
                         </button>
                         <button
                             className={`btn btn-sm ${activeTab === "participants_general"
-                                    ? "btn-primary"
-                                    : "btn-outline-primary"
+                                ? "btn-primary"
+                                : "btn-outline-primary"
                                 }`}
                             onClick={() => handleTabChange("participants_general")}
                         >
@@ -135,16 +135,15 @@ function Formulation() {
                 </main>
             </div>
 
-            {/* Columna derecha con chatbot sticky */}
             <div
-                style={{
-                    width: "350px",
-                    height: "100vh",
-                    background: "#f9f9f9",
-                    borderLeft: "1px solid #ddd",
-                    padding: "1rem",
-                    boxSizing: "border-box",
-                }}
+            // style={{
+            //     width: "600px",
+            //     height: "100vh",
+            //     background: "#f9f9f9",
+            //     borderLeft: "1px solid #ddd",
+            //     padding: "1rem",
+            //     boxSizing: "border-box",
+            // }}
             >
                 <Chatbot projectId={id} activeTab={activeTab} />
             </div>

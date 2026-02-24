@@ -1,4 +1,4 @@
-#!/home/ffernandez/mga_ai/backend/venv_fastapi_new/bin/python3
+#!/home/ffernandez/mga_ai/backend/venv_fastapi_new/bin/python3.12
 # -*- coding: utf-8 -*-
 import re
 import sys

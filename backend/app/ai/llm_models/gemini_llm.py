@@ -1,105 +1,112 @@
-from typing import Optional
-from langchain_core.prompts import PromptTemplate
-from langchain.chains import LLMChain
-from langchain.memory import ConversationBufferMemory
-from langchain_google_genai import ChatGoogleGenerativeAI
+"""
+Google Gemini LLM Integration for MGA (Legacy/Alternative Provider).
 
-from sqlalchemy.orm import Session
-from app.models.chat_history import ChatHistory
-from app.core.database import SessionLocal
+Proporciona un chatbot basado en Google Generative AI (Gemini)
+como proveedor alternativo a Groq.
+
+NOTA: El proveedor preferido es GROQ (configurado en .env).
+Este módulo se mantiene como alternativa.
+"""
+
+import os
+import logging
+from typing import Optional
+from dotenv import load_dotenv
+
+from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_core.prompts import PromptTemplate
+from langchain_core.output_parsers import StrOutputParser
+
+# Configurar logging
+load_dotenv()
+logger = logging.getLogger(__name__)
 
 
 class ChatBotModel:
-    def __init__(self, api_key: str, model_name: str = "gemini-2.5-flash"):
-        self.llm = ChatGoogleGenerativeAI(
-            model=model_name,
-            google_api_key='AIzaSyAze2dhiNBl59FKZPRdPtvfXomwOPxG6rw',
-            convert_system_message_to_human=True
-        )
-        self.conversation: Optional[LLMChain] = None  # se inicializa más tarde
-
-    def _init_chain(self, project_id: int = None, tab: str = None):
-        """Inicializa la cadena con memoria y prompt si aún no existe."""
-        if self.conversation is None:
-            template = """Eres un chatbot que está capacitado para Formular proyectos de Inversión Pública,
-            más precisamente en la Metodología General Ajustada (MGA) en Colombia.
+    """
+    Chatbot para MGA usando Google Generative AI (Gemini).
+    
+    NOTA: Se recomienda usar Groq LLMManager como proveedor principal.
+    """
+    
+    def __init__(self, api_key: Optional[str] = None, model_name: str = "gemini-2.5-flash"):
+        """
+        Inicializa el modelo de chat Gemini.
+        
+        Args:
+            api_key: API key de Google (o se toma de GOOGLE_API_KEY env)
+            model_name: Nombre del modelo Gemini a usar
+        """
+        try:
+            api_key = api_key or os.getenv("GOOGLE_API_KEY")
             
-            Conversación previa:
-            {chat_history}
-
-            Información adicional: {info_json}
-
-            Nueva pregunta humana: {question}
-            Respuesta:"""
-
-            prompt = PromptTemplate.from_template(template)
-
-            # Inicializar memoria vacía
-            memory = ConversationBufferMemory(
-                memory_key="chat_history",
-                input_key="question",
-                return_messages=True
+            if not api_key:
+                logger.warning("GOOGLE_API_KEY no configurada, Gemini no disponible")
+                self.llm = None
+                return
+            
+            self.llm = ChatGoogleGenerativeAI(
+                model=model_name,
+                google_api_key=api_key,
+                convert_system_message_to_human=True,
+                temperature=0.7,
             )
-
-            # ⚡ Cargar historial previo desde BD si se tiene
-            if project_id and tab:
-                db: Session = SessionLocal()
-                try:
-                    history_records = (
-                        db.query(ChatHistory)
-                        .filter(ChatHistory.project_id == project_id, ChatHistory.tab == tab)
-                        .order_by(ChatHistory.timestamp.asc())
-                        .all()
-                    )
-                    # Agregar cada mensaje al buffer de memoria
-                    for msg in history_records:
-                        sender = "human" if msg.sender == "user" else "ai"
-                        memory.chat_memory.add_message(msg.message)
-                finally:
-                    db.close()
-
-            self.conversation = LLMChain(
-                llm=self.llm,
-                prompt=prompt,
-                verbose=True,
-                memory=memory
-            )
+            self.model_name = model_name
+            logger.info(f"✅ Gemini LLM inicializado con modelo: {model_name}")
+            
+        except Exception as e:
+            logger.error(f"❌ Error inicializando Gemini LLM: {str(e)}")
+            self.llm = None
 
     def ask(
         self,
         question: str,
         info_json: str = "{}",
-        project_id: int = None,
-        instance = None,
+        project_id: Optional[int] = None,
+        tab: str = "general",
     ) -> str:
         """
-        Hace una pregunta al chatbot y guarda el historial en la base de datos.
+        Hace una pregunta al chatbot Gemini.
+        
+        Args:
+            question: Pregunta del usuario
+            info_json: Información adicional en formato JSON
+            project_id: ID del proyecto (opcional)
+            tab: Componente MGA
+            
+        Returns:
+            Respuesta del chatbot
         """
-        tab = instance.__tablename__ if instance else "general"
-        self._init_chain(project_id, tab)
-
-        # Generar respuesta usando la conversación
-        response = self.conversation({
-            "question": question,
-            "info_json": info_json
-        })
-        bot_message = response["text"]
-
-        # Guardar nuevo mensaje en BD
-        db = SessionLocal()
+        if not self.llm:
+            return "❌ Gemini LLM no está disponible. Verifica tu GOOGLE_API_KEY."
+        
         try:
-            db.add(ChatHistory(project_id=project_id, tab=tab, sender="user", message=question))
-            db.add(ChatHistory(project_id=project_id, tab=tab, sender="bot", message=bot_message))
-            db.commit()
-        except Exception as e:
-            db.rollback()
-            raise e
-        finally:
-            db.close()
+            template = PromptTemplate(
+                template="""Eres un chatbot especializado en la Metodología General Ajustada (MGA) 
+de Colombia para proyectos de inversión pública.
 
-        return bot_message
+Información del proyecto: {info_json}
+
+Pregunta del usuario: {question}
+
+Respuesta:""",
+                input_variables=["question", "info_json"]
+            )
+            
+            chain = template | self.llm | StrOutputParser()
+            response = chain.invoke({
+                "question": question,
+                "info_json": info_json
+            })
+            
+            logger.info(f"✅ Respuesta generada por Gemini para tab={tab}")
+            return response
+            
+        except Exception as e:
+            logger.error(f"❌ Error en Gemini LLM: {str(e)}", exc_info=True)
+            return "Lo siento, ocurrió un error al procesar tu pregunta."
 
     def reset_memory(self):
-        """Borra la memoria interna del LLM sin tocar la BD."""
-        if self.conversation:
-            self.conversation.memory.clear()
+        """Nota: La memoria se gestiona desde la BD."""
+        pass
+
