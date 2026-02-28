@@ -28,10 +28,10 @@ function App() {
             <Route path="/projects" element={<ProjectList />} />
             <Route path="/create-project" element={<CreateProject />} />
 
-            {/* 🔧 Ruta antigua (si aún la usas) */}
+            {/* Ruta antigua (si aún la usas) */}
             <Route path="/edit-project/:id" element={<Formulation />} />
 
-            {/* ✅ Nueva ruta correcta para el flujo actual */}
+            {/* Nueva ruta correcta para el flujo actual */}
             <Route path="/projects/:id/formulation" element={<Formulation />} />
 
             <Route
