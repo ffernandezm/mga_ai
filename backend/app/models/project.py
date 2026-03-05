@@ -101,6 +101,34 @@ class Project(Base):
         cascade="all, delete-orphan"
     )
 
+    # Relación con ValueChains
+    value_chains = relationship(
+        "ValueChain",
+        back_populates="project",
+        cascade="all, delete-orphan"
+    )
+
+    # Relación con ValueChainObjectives
+    value_chain_objectives = relationship(
+        "ValueChainObjectives",
+        back_populates="project",
+        cascade="all, delete-orphan"
+    )
+
+    # Relación con Products
+    products = relationship(
+        "Product",
+        back_populates="project",
+        cascade="all, delete-orphan"
+    )
+
+    # Relación con Activities
+    activities = relationship(
+        "Activity",
+        back_populates="project",
+        cascade="all, delete-orphan"
+    )
+
 
 
 # Esquema Pydantic
