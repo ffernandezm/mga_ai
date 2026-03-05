@@ -5,6 +5,10 @@ import Participants from "../components/Participants";
 import Population from "../components/Population";
 import Objectives from "../components/Objectives";
 import AlternativesGeneral from "../components/AlternativesGeneral";
+import RequirementsGeneral from "../components/RequirementsGeneral";
+import TechnicalAnalysis from "../components/TechnicalAnalysis";
+import LocalizationGeneral from "../components/LocalizationGeneral";
+
 import Chatbot from "../components/Chatbot";
 import ProjectHeader from "../components/ProjectHeader";
 import api from "../services/api";
@@ -66,6 +70,12 @@ function Formulation() {
                 return <Objectives projectId={id} />;
             case "alternatives":
                 return <AlternativesGeneral projectId={id} />;
+            case "requirements_general":
+                return <RequirementsGeneral projectId={id} />;
+            case "technical_analysis":
+                return <TechnicalAnalysis projectId={id} />;
+            case "localization_general":
+                return <LocalizationGeneral projectId={id} />;
             default:
                 return <div>Componente no disponible</div>;
         }
@@ -126,6 +136,38 @@ function Formulation() {
                             onClick={() => handleTabChange("alternatives")}
                         >
                             Alternativas
+                        </button>
+                    </nav>
+                    <nav className="bg-white border-bottom px-4 py-2 d-flex gap-3 flex-wrap">
+                        <button
+                            className={`btn btn-sm ${activeTab === "requirements_general" ? "btn-primary" : "btn-outline-primary"
+                                }`}
+                            onClick={() => handleTabChange("requirements_general")}
+                        >
+                            Necesidades
+                        </button>
+                        <button
+                            className={`btn btn-sm ${activeTab === "technical_analysis"
+                                ? "btn-primary"
+                                : "btn-outline-primary"
+                                }`}
+                            onClick={() => handleTabChange("technical_analysis")}
+                        >
+                            Análisis Técnico
+                        </button>
+                        <button
+                            className={`btn btn-sm ${activeTab === "localization_general" ? "btn-primary" : "btn-outline-primary"
+                                }`}
+                            onClick={() => handleTabChange("localization_general")}
+                        >
+                            Localización
+                        </button>
+                        <button
+                            className={`btn btn-sm ${activeTab === "objectives" ? "btn-primary" : "btn-outline-primary"
+                                }`}
+                            onClick={() => handleTabChange("objectives")}
+                        >
+                            Cadeba de Valor
                         </button>
                     </nav>
 

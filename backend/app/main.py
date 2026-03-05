@@ -41,6 +41,11 @@ from app.models.population import router as population_router
 from app.models.affected_population import router as affected_population_router
 from app.models.intervention_population import router as intervention_population_router
 from app.models.characteristics_population import router as characteristics_population_router
+from app.models.requirements import router as requirements_router
+from app.models.requirements_general import router as requirements_general_router
+from app.models.technical_analysis import router as technical_analysis_router
+from app.models.localization_general import router as localization_general_router
+from app.models.localization import router as localization_router
 from app.models.survey import router as survey_router
 from app.models.chat_history import router as chat_history_router
 from app.models.get_table_data import router as get_table_data_router
@@ -184,7 +189,13 @@ app.include_router(alternatives_router, prefix="/alternatives", tags=["Alternati
 app.include_router(population_router, prefix="/population", tags=["Population"])
 app.include_router(affected_population_router, prefix="/affected_population", tags=["AffectedPopulation"])
 app.include_router(intervention_population_router, prefix="/intervention_population", tags=["InterventionPopulation"])
+app.include_router(requirements_router, prefix="/requirements", tags=["Requirements"])
+app.include_router(requirements_general_router, prefix="/requirements_general", tags=["RequirementsGeneral"])
 app.include_router(characteristics_population_router, prefix="/characteristics_population", tags=["CharacteristicsPopulation"])
+app.include_router(technical_analysis_router, prefix="/technical_analysis", tags=["TechnicalAnalysis"])
+app.include_router(localization_general_router, prefix="/localization_general", tags=["LocalizationGeneral"])
+app.include_router(localization_router, prefix="/localization", tags=["Localization"])
+
 app.include_router(survey_router, prefix="/survey", tags=["Survey"])
 
 # Router de chat (ya tiene su prefijo incluido en el router)
@@ -193,4 +204,4 @@ app.include_router(chat_history_router, tags=["ChatHistory"])
 # Router de datos
 app.include_router(get_table_data_router, prefix="/api", tags=["Data"])
 
-logger.info("✅ Todos los routers registrados")
+logger.info("Todos los routers registrados")

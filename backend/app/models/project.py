@@ -12,6 +12,9 @@ from app.models.population import Population
 from app.models.characteristics_population import CharacteristicsPopulation
 from app.models.objectives import Objectives
 from app.models.alternatives_general import AlternativesGeneral
+from app.models.requirements_general import RequirementsGeneral
+from app.models.technical_analysis import TechnicalAnalysis
+from app.models.localization_general import LocalizationGeneral
 
 # Conexión a la DB
 from app.core.database import Base, SessionLocal
@@ -69,6 +72,27 @@ class Project(Base):
         back_populates="project",
         cascade="all, delete-orphan"
     )
+
+    requirements_general = relationship(
+        "RequirementsGeneral",
+        uselist=False,
+        back_populates="project",
+        cascade="all, delete-orphan"
+    )
+
+    technical_analysis = relationship(
+        "TechnicalAnalysis",
+        uselist=False,
+        back_populates="project",
+        cascade="all, delete-orphan"
+    )
+
+    localization_general = relationship(
+        "LocalizationGeneral",
+        uselist=False,
+        back_populates="project",
+        cascade="all, delete-orphan"
+    )
     
     survey = relationship(
         "Survey",
@@ -76,6 +100,8 @@ class Project(Base):
         back_populates="project",
         cascade="all, delete-orphan"
     )
+
+
 
 # Esquema Pydantic
 class ProjectBase(BaseModel):
@@ -146,7 +172,28 @@ def create_project(project: ProjectCreate, db: Session = Depends(get_db)):
     alternatives_general = AlternativesGeneral(
         project_id=new_project.id
     )
-    db.add_all([problem, participants_general, population, objectives, alternatives_general])
+
+    requirements_general = RequirementsGeneral(
+        project_id=new_project.id
+    )
+
+    technical_analysis = TechnicalAnalysis(
+        project_id=new_project.id
+    )
+    
+    localization_general = LocalizationGeneral(
+        project_id=new_project.id
+    )
+
+    db.add_all([problem,
+                participants_general,
+                population,
+                objectives,
+                alternatives_general,
+                requirements_general,
+                technical_analysis,
+                localization_general
+                ])
     db.flush()  # para obtener population.id antes de usarlo
 
     # 4. Cargar los datos predeterminados desde el CSV
