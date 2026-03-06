@@ -194,6 +194,11 @@ def get_comprehensive_module_data(db: Session, project_id: int, tab: str) -> dic
             'participants_general': ['participants'],
             'objectives': ['objectives_causes', 'objectives_indicators'],
             'alternatives_general': ['alternatives'],
+            'requirements_general': ['requirements'],
+            'localization_general': ['localizations'],
+            'value_chains': ['value_chain_objectives'],
+            'value_chain_objectives': ['products'],
+            'products': ['activities'],
         }
         
         # Columnas a ignorar (JSON, timestamps, IDs internos)
@@ -726,12 +731,24 @@ def chat_with_ai(
         excluded_tables = ['projects', 'chat_history', 'survey', 'alembic_version']
         valid_tabs = [t for t in available_tables if t not in excluded_tables]
         
+        # Normalizar singular/plural para comodidad del usuario
+        normalized_tab = tab
         if tab not in valid_tabs:
+            # intentar agregar o quitar 's'
+            if not tab.endswith('s') and f"{tab}s" in valid_tabs:
+                normalized_tab = f"{tab}s"
+            elif tab.endswith('s') and tab[:-1] in valid_tabs:
+                normalized_tab = tab[:-1]
+            # también casos especiales con 'es' (no hay por ahora)
+
+        if normalized_tab not in valid_tabs:
             logger.warning(f"⚠️ Tab no válido: {tab}. Opciones: {', '.join(valid_tabs)}")
             raise HTTPException(
                 status_code=400,
                 detail=f"Tab '{tab}' no válido. Opciones disponibles: {', '.join(valid_tabs)}"
             )
+        else:
+            tab = normalized_tab  # usar versión corregida en adelante
         
         # Obtener o crear sesión
         session_id = get_existing_session_id(db, project_id, tab) or str(uuid.uuid4())

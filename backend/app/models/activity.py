@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session, relationship
-from sqlalchemy import Column, Integer, String, Float, ForeignKey
+from sqlalchemy import Column, Integer, String, Float, ForeignKey, Text
 from pydantic import BaseModel
 from typing import List, Optional
 
@@ -22,6 +22,7 @@ class Activity(Base):
     product_id = Column(Integer, ForeignKey("products.id"), nullable=False)
     cost = Column(Float)
     stage = Column(String)
+    description = Column(Text)
 
     # Relación con Project
     project = relationship("Project", back_populates="activities")
@@ -35,12 +36,14 @@ class ActivityBase(BaseModel):
     product_id: int
     cost: Optional[float] = None
     stage: Optional[str] = None
+    description: Optional[str] = None
 
 class ActivityCreate(BaseModel):
     project_id: int
     product_id: int
     cost: Optional[float] = None
     stage: Optional[str] = None
+    description: Optional[str] = None
 
 class ActivityResponse(ActivityBase):
     id: int

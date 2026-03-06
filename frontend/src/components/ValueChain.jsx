@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from "react";
 import api from "../services/api";
-import { Plus, Trash2, Save, RefreshCw } from "lucide-react";
 
 const ValueChain = ({ projectId }) => {
     const [objectives, setObjectives] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [savingId, setSavingId] = useState(null); // Para mostrar feedback de guardado
+    const [savingId, setSavingId] = useState(null);
 
     useEffect(() => {
-        fetchData();
+        if (projectId) {
+            fetchData();
+        }
     }, [projectId]);
 
     const fetchData = async () => {
@@ -16,11 +17,11 @@ const ValueChain = ({ projectId }) => {
             setLoading(true);
             const resObjectives = await api.get(`/value_chain_objectives/`);
             const projectObjectives = resObjectives.data.filter(obj => obj.project_id === parseInt(projectId));
-
+            
             const fullData = await Promise.all(projectObjectives.map(async (obj) => {
                 const resProducts = await api.get(`/products/`);
                 const products = resProducts.data.filter(p => p.value_chain_objective_id === obj.id);
-
+                
                 const productsWithActivities = await Promise.all(products.map(async (prod) => {
                     const resActs = await api.get(`/activities/`);
                     const activities = resActs.data.filter(a => a.product_id === prod.id);
@@ -38,13 +39,12 @@ const ValueChain = ({ projectId }) => {
         }
     };
 
-    // --- Manejadores de Cambio Local (Sincronizan el Input con el Estado) ---
     const handleProductChange = (objId, prodId, field, value) => {
         setObjectives(prev => prev.map(obj => {
             if (obj.id !== objId) return obj;
             return {
                 ...obj,
-                products: obj.products.map(p =>
+                products: obj.products.map(p => 
                     p.id === prodId ? { ...p, [field]: value } : p
                 )
             };
@@ -60,7 +60,7 @@ const ValueChain = ({ projectId }) => {
                     if (p.id !== prodId) return p;
                     return {
                         ...p,
-                        activities: p.activities.map(a =>
+                        activities: p.activities.map(a => 
                             a.id === actId ? { ...a, [field]: value } : a
                         )
                     };
@@ -69,69 +69,68 @@ const ValueChain = ({ projectId }) => {
         }));
     };
 
-    // --- Función Principal: GUARDAR TODO ---
-    const handleSaveEverything = async (objId, product) => {
+    const handleSaveEverything = async (product) => {
         setSavingId(product.id);
         try {
-            // 1. Actualizar el Producto
             const productData = {
                 project_id: product.project_id,
                 value_chain_objective_id: product.value_chain_objective_id,
-                measured_through: product.measured_through,
-                quantity: parseFloat(product.quantity),
-                cost: parseFloat(product.cost),
-                stage: product.stage
+                description: product.description || "",
+                measured_through: product.measured_through || "",
+                quantity: parseFloat(product.quantity) || 0,
+                cost: parseFloat(product.cost) || 0,
+                stage: product.stage || "Preinversión"
             };
             await api.put(`/products/${product.id}`, productData);
 
-            // 2. Actualizar todas las Actividades de ese producto
             const activityPromises = product.activities.map(act => {
                 const actData = {
                     project_id: act.project_id,
                     product_id: act.product_id,
-                    cost: parseFloat(act.cost),
-                    stage: act.stage
+                    description: act.description || "",
+                    cost: parseFloat(act.cost) || 0,
+                    stage: act.stage || "Ejecución"
                 };
                 return api.put(`/activities/${act.id}`, actData);
             });
 
             await Promise.all(activityPromises);
-
-            alert("¡Información actualizada correctamente!");
+            alert("¡Cambios guardados con éxito!");
         } catch (error) {
             console.error("Error al guardar:", error);
-            alert("Hubo un error al guardar los cambios.");
+            alert("Error al actualizar los datos.");
         } finally {
             setSavingId(null);
         }
     };
 
-    // --- Funciones CRUD (Crear/Eliminar) ---
     const handleAddProduct = async (objectiveId) => {
         const newProduct = {
             project_id: parseInt(projectId),
             value_chain_objective_id: objectiveId,
-            measured_through: "", quantity: 0, cost: 0, stage: "Planeación"
+            description: "Nuevo Producto",
+            measured_through: "", quantity: 0, cost: 0, stage: "Preinversión"
         };
         await api.post("/products/", newProduct);
         fetchData();
-    };
-
-    const handleDeleteProduct = async (id) => {
-        if (window.confirm("¿Eliminar producto y sus actividades?")) {
-            await api.delete(`/products/${id}`);
-            fetchData();
-        }
     };
 
     const handleAddActivity = async (productId) => {
         const newActivity = {
             project_id: parseInt(projectId),
             product_id: productId,
+            description: "Nueva Actividad",
             cost: 0, stage: "Ejecución"
         };
         await api.post("/activities/", newActivity);
         fetchData();
+    };
+
+    const handleDeleteProduct = async (id) => {
+        if (window.confirm("¿Eliminar este producto y sus actividades?")) {
+            await api.delete(`/products/${id}`);
+            fetchData();
+        }
     };
 
     const handleDeleteActivity = async (id) => {
@@ -139,142 +138,176 @@ const ValueChain = ({ projectId }) => {
         fetchData();
     };
 
-    if (loading) return <div className="text-center p-5 fw-bold">Cargando Cadena de Valor...</div>;
+    if (loading) return <div className="text-center p-5 fw-bold text-primary">Cargando datos...</div>;
 
     return (
         <div className="container-fluid py-3">
-            <div className="d-flex justify-content-between align-items-center mb-4">
-                <h4 className="text-primary mb-0">Cadena de Valor</h4>
+            {/* Header del Componente */}
+            <div className="d-flex justify-content-between align-items-center mb-4 bg-white p-3 rounded shadow-sm border">
+                <div>
+                    <h4 className="text-primary mb-0 fw-bold">🔗 Cadena de Valor</h4>
+                    <small className="text-muted">Gestión de productos y actividades por objetivo</small>
+                </div>
                 <button className="btn btn-outline-primary btn-sm" onClick={fetchData}>
-                    <RefreshCw size={14} className="me-1" /> Recargar Datos
+                    🔄 Sincronizar
                 </button>
             </div>
 
             {objectives.map((obj) => (
-                <div key={obj.id} className="card mb-5 border-primary shadow-sm">
-                    <div className="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-                        <h5 className="mb-0">Objetivo: {obj.name}</h5>
-                        <button className="btn btn-light btn-sm fw-bold" onClick={() => handleAddProduct(obj.id)}>
-                            <Plus size={16} /> Nuevo Producto
-                        </button>
+                <div key={obj.id} className="card mb-5 border-0 shadow-sm overflow-hidden border">
+                    {/* Encabezado del Objetivo */}
+                    <div className="card-header bg-dark text-white p-3">
+                        <div className="d-flex justify-content-between align-items-center">
+                            <h5 className="mb-0 small fw-bold text-uppercase">
+                                📋 Objetivo: {obj.name}
+                            </h5>
+                            <button className="btn btn-warning btn-sm fw-bold" onClick={() => handleAddProduct(obj.id)}>
+                                ➕ Nuevo Producto
+                            </button>
+                        </div>
                     </div>
 
-                    <div className="card-body bg-light">
+                    <div className="card-body p-4 bg-light">
                         {obj.products.map((prod) => (
-                            <div key={prod.id} className="row mb-4 bg-white rounded border p-3 shadow-sm mx-1 position-relative">
-
-                                {/* LADO IZQUIERDO: PRODUCTO */}
-                                <div className="col-md-5 border-end">
-                                    <div className="d-flex justify-content-between border-bottom mb-3 pb-2">
-                                        <h6 className="text-success fw-bold mb-0">📦 Datos del Producto</h6>
-                                        <button className="btn btn-outline-danger btn-sm border-0" onClick={() => handleDeleteProduct(prod.id)}>
-                                            <Trash2 size={14} />
+                            <div key={prod.id} className="row mb-4 bg-white rounded-3 shadow-sm mx-0 border overflow-hidden">
+                                
+                                {/* COLUMNA IZQUIERDA: PRODUCTO */}
+                                <div className="col-md-5 p-4 border-end">
+                                    <div className="d-flex justify-content-between align-items-start mb-2">
+                                        <div className="flex-grow-1">
+                                            <label className="text-uppercase fw-bold text-success d-block mb-1" style={{fontSize: '0.7rem'}}>
+                                                Descripción del Producto
+                                            </label>
+                                            <textarea 
+                                                className="form-control border-0 ps-0 fw-bold"
+                                                rows="2"
+                                                placeholder="Ej: Construcción de alcantarillado..."
+                                                style={{ resize: "none", fontSize: "1rem", backgroundColor: "transparent" }}
+                                                value={prod.description || ""}
+                                                onChange={(e) => handleProductChange(obj.id, prod.id, 'description', e.target.value)}
+                                            />
+                                        </div>
+                                        <button className="btn btn-link text-danger p-0" onClick={() => handleDeleteProduct(prod.id)}>
+                                            🗑️
                                         </button>
                                     </div>
-                                    <div className="row g-3">
+
+                                    <div className="row g-2 p-3 rounded bg-light border">
                                         <div className="col-12">
-                                            <label className="small fw-bold text-muted">Medido a través de:</label>
-                                            <input
-                                                type="text" className="form-control form-control-sm"
-                                                value={prod.measured_through || ""}
+                                            <label className="small text-muted fw-bold mb-1">Medido a través de:</label>
+                                            <input 
+                                                type="text" className="form-control form-control-sm" 
+                                                value={prod.measured_through || ""} 
                                                 onChange={(e) => handleProductChange(obj.id, prod.id, 'measured_through', e.target.value)}
                                             />
                                         </div>
                                         <div className="col-6">
-                                            <label className="small fw-bold text-muted">Cantidad:</label>
-                                            <input
-                                                type="number" className="form-control form-control-sm"
+                                            <label className="small text-muted fw-bold mb-1">Cantidad</label>
+                                            <input 
+                                                type="number" className="form-control form-control-sm" 
                                                 value={prod.quantity || 0}
                                                 onChange={(e) => handleProductChange(obj.id, prod.id, 'quantity', e.target.value)}
                                             />
                                         </div>
                                         <div className="col-6">
-                                            <label className="small fw-bold text-muted">Costo Unitario:</label>
-                                            <input
-                                                type="number" className="form-control form-control-sm"
+                                            <label className="small text-muted fw-bold mb-1">Costo Unitario</label>
+                                            <input 
+                                                type="number" className="form-control form-control-sm" 
                                                 value={prod.cost || 0}
                                                 onChange={(e) => handleProductChange(obj.id, prod.id, 'cost', e.target.value)}
                                             />
                                         </div>
                                         <div className="col-12">
-                                            <label className="small fw-bold text-muted">Etapa:</label>
-                                            <select
-                                                className="form-select form-select-sm"
-                                                value={prod.stage || "Planeación"}
+                                            <label className="small text-muted fw-bold mb-1">Etapa</label>
+                                            <select 
+                                                className="form-select form-select-sm" 
+                                                value={prod.stage || "Preinversión"}
                                                 onChange={(e) => handleProductChange(obj.id, prod.id, 'stage', e.target.value)}
                                             >
-                                                <option value="Planeación">Planeación</option>
+                                                <option value="Preinversión">Preinversión</option>
                                                 <option value="Ejecución">Ejecución</option>
-                                                <option value="Finalizado">Finalizado</option>
+                                                <option value="Operación">Operación</option>
                                             </select>
                                         </div>
                                     </div>
                                 </div>
 
-                                {/* LADO DERECHO: ACTIVIDADES */}
-                                <div className="col-md-7">
+                                {/* COLUMNA DERECHA: ACTIVIDADES */}
+                                <div className="col-md-7 p-4 bg-white">
                                     <div className="d-flex justify-content-between align-items-center mb-3">
-                                        <h6 className="text-secondary fw-bold mb-0 ps-2">🛠️ Actividades</h6>
+                                        <h6 className="text-secondary fw-bold mb-0" style={{fontSize: '0.9rem'}}>
+                                            🛠️ Actividades Relacionadas
+                                        </h6>
                                         <button className="btn btn-outline-secondary btn-sm" onClick={() => handleAddActivity(prod.id)}>
-                                            <Plus size={14} /> Añadir Actividad
+                                            ➕ Actividad
                                         </button>
                                     </div>
-
-                                    <div className="table-responsive">
-                                        <table className="table table-sm table-hover border mb-0">
-                                            <thead className="table-secondary">
-                                                <tr>
-                                                    <th>Costo de Actividad</th>
+                                    
+                                    <div className="table-responsive border rounded bg-white">
+                                        <table className="table table-sm table-hover mb-0">
+                                            <thead className="table-light">
+                                                <tr style={{fontSize: '0.75rem'}}>
+                                                    <th className="ps-2">Descripción de Actividad</th>
+                                                    <th>Costo</th>
                                                     <th>Etapa</th>
                                                     <th style={{ width: "40px" }}></th>
                                                 </tr>
                                             </thead>
                                             <tbody>
                                                 {prod.activities.map((act) => (
-                                                    <tr key={act.id}>
+                                                    <tr key={act.id} className="align-middle" style={{fontSize: '0.85rem'}}>
                                                         <td>
-                                                            <div className="input-group input-group-sm">
-                                                                <span className="input-group-text border-0 bg-transparent">$</span>
-                                                                <input
-                                                                    type="number" className="form-control form-control-sm border-0 bg-transparent"
-                                                                    value={act.cost || 0}
-                                                                    onChange={(e) => handleActivityChange(obj.id, prod.id, act.id, 'cost', e.target.value)}
-                                                                />
-                                                            </div>
+                                                            <input 
+                                                                type="text" className="form-control form-control-sm border-0 bg-transparent"
+                                                                placeholder="Nombre de la actividad..."
+                                                                value={act.description || ""}
+                                                                onChange={(e) => handleActivityChange(obj.id, prod.id, act.id, 'description', e.target.value)}
+                                                            />
                                                         </td>
                                                         <td>
-                                                            <select
-                                                                className="form-select form-select-sm border-0 bg-transparent shadow-none"
+                                                            <input 
+                                                                type="number" className="form-control form-control-sm border-0 bg-transparent" 
+                                                                style={{ width: "90px" }}
+                                                                value={act.cost || 0}
+                                                                onChange={(e) => handleActivityChange(obj.id, prod.id, act.id, 'cost', e.target.value)}
+                                                            />
+                                                        </td>
+                                                        <td>
+                                                            <select 
+                                                                className="form-select form-select-sm border-0 bg-transparent" 
                                                                 value={act.stage || "Ejecución"}
                                                                 onChange={(e) => handleActivityChange(obj.id, prod.id, act.id, 'stage', e.target.value)}
                                                             >
-                                                                <option value="Planeación">Planeación</option>
+                                                                <option value="Preinversión">Preinversión</option>
                                                                 <option value="Ejecución">Ejecución</option>
                                                             </select>
                                                         </td>
-                                                        <td className="align-middle">
-                                                            <button className="btn btn-link btn-sm text-danger p-0 shadow-none" onClick={() => handleDeleteActivity(act.id)}>
-                                                                <Trash2 size={14} />
+                                                        <td className="text-center">
+                                                            <button className="btn btn-link text-danger p-0" onClick={() => handleDeleteActivity(act.id)}>
+                                                                🗑️
                                                             </button>
                                                         </td>
                                                     </tr>
                                                 ))}
+                                                {prod.activities.length === 0 && (
+                                                    <tr>
+                                                        <td colSpan="4" className="text-center py-3 text-muted small">
+                                                            No hay actividades registradas.
+                                                        </td>
+                                                    </tr>
+                                                )}
                                             </tbody>
                                         </table>
                                     </div>
 
-                                    {/* BOTÓN GUARDAR (Para este producto y sus actividades) */}
+                                    {/* Botón Guardar Bloque */}
                                     <div className="mt-3 text-end">
-                                        <button
-                                            className="btn btn-success btn-sm px-4 fw-bold shadow-sm"
-                                            onClick={() => handleSaveEverything(obj.id, prod)}
+                                        <button 
+                                            className="btn btn-success fw-bold px-4"
+                                            onClick={() => handleSaveEverything(prod)}
                                             disabled={savingId === prod.id}
                                         >
-                                            {savingId === prod.id ? (
-                                                <> <RefreshCw size={14} className="spinner-border spinner-border-sm me-2" /> Guardando... </>
-                                            ) : (
-                                                <> <Save size={14} className="me-2" /> Guardar Producto y Actividades </>
-                                            )}
+                                            {savingId === prod.id ? "⌛ Guardando..." : "💾 Guardar Cambios"}
                                         </button>
                                     </div>
                                 </div>
