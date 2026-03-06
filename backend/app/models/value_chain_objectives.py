@@ -35,6 +35,13 @@ class ValueChainObjectives(Base):
         cascade="all, delete-orphan"
     )
 
+    # Relación con ObjectivesCauses
+    objectives_causes = relationship(
+        "ObjectivesCauses",
+        back_populates="value_chain_objective",
+        cascade="all, delete-orphan"
+    )
+
 # Esquema Pydantic
 class ValueChainObjectivesBase(BaseModel):
     project_id: int

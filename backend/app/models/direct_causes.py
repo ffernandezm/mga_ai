@@ -196,19 +196,24 @@ def update_direct_cause(
         old_description = obj.description
         obj.description = payload.description
 
-        # Actualizar en objectives_causes
+        # Actualizar en objectives_causes y en value_chain_objectives si corresponde
         from app.models.problems import Problems
         problem = db.query(Problems).filter(Problems.id == problem_id).first()
         if problem:
             objective = db.query(Objectives).filter(Objectives.project_id == problem.project_id).first()
             if objective:
-                # Buscar y actualizar el registro correspondiente
+                # Buscar registro de objectives_causes correspondiente
                 obj_causes = db.query(ObjectivesCauses).filter(
                     ObjectivesCauses.cause_id == obj.id,
-                    ObjectivesCauses.type == "directa"
+                    ObjectivesCauses.type == "directa",
                 ).first()
                 if obj_causes:
                     obj_causes.cause_related = obj.description
+                    # si existe un value_chain_objective ligado, no lo actualizamos aquí porque el
+                    # nombre de vc_obj se deriva de specifics_objectives, no de la descripción
+                    # de la causa. Solo lo haremos si especificamos explícitamente un mapping
+                    # futuro.
+
 
     db.add(obj)
     db.commit()
@@ -226,18 +231,26 @@ def delete_direct_cause(
 ):
     obj = _get_direct_cause_or_404(db, direct_cause_id, problem_id=problem_id)
 
-    # Eliminar en objectives_causes
+    # Eliminar en objectives_causes (y cascada a value_chain_objectives)
     from app.models.problems import Problems
+    from app.models.value_chain_objectives import ValueChainObjectives
     problem = db.query(Problems).filter(Problems.id == problem_id).first()
     if problem:
         objective = db.query(Objectives).filter(Objectives.project_id == problem.project_id).first()
         if objective:
-            # Buscar y eliminar el registro correspondiente
+            # Buscar el registro de objectives_causes correspondiente
             obj_causes = db.query(ObjectivesCauses).filter(
                 ObjectivesCauses.cause_id == obj.id,
-                ObjectivesCauses.type == "directa"
+                ObjectivesCauses.type == "directa",
             ).first()
             if obj_causes:
+                # Si hay un value_chain_objective asociado, eliminarlo también
+                if obj_causes.value_chain_objective_id:
+                    vc_obj = db.query(ValueChainObjectives).filter(
+                        ValueChainObjectives.id == obj_causes.value_chain_objective_id
+                    ).first()
+                    if vc_obj:
+                        db.delete(vc_obj)
                 db.delete(obj_causes)
 
     db.delete(obj)
