@@ -7,15 +7,17 @@ from sqlalchemy.orm import Session, relationship
 
 from app.core.database import Base, SessionLocal
 
-# =========================
-# Conexión a la DB (get_db)
-# =========================
+# Conexión a la DB
 def get_db():
     db = SessionLocal()
     try:
         yield db
     finally:
         db.close()
+
+# Importar modelos relacionados para objectives_causes
+from app.models.objectives_causes import ObjectivesCauses
+from app.models.objectives import Objectives
 
 
 # =========================
@@ -107,7 +109,30 @@ def create_indirect_cause(
         direct_cause_id=direct_cause_id, description=payload.description
     )
     db.add(obj)
-    db.commit()
+    db.flush()  # Para obtener el ID
+
+    # Obtener el project_id a través de la cadena: indirect_cause -> direct_cause -> problem -> project
+    from app.models.direct_causes import DirectCause
+    from app.models.problems import Problems
+    
+    direct_cause = db.query(DirectCause).filter(DirectCause.id == direct_cause_id).first()
+    if direct_cause:
+        problem = db.query(Problems).filter(Problems.id == direct_cause.problem_id).first()
+        if problem:
+            # Buscar el objetivo del proyecto
+            objective = db.query(Objectives).filter(Objectives.project_id == problem.project_id).first()
+            if objective:
+                # Crear registro en objectives_causes
+                obj_causes = ObjectivesCauses(
+                    type="indirecta",
+                    cause_related=obj.description,
+                    specifics_objectives=None,  # En blanco inicialmente
+                    objective_id=objective.id,
+                    cause_id=obj.id
+                )
+                db.add(obj_causes)
+                db.commit()
+
     db.refresh(obj)
     return obj
 
@@ -142,7 +167,25 @@ def update_indirect_cause(
     )
 
     if payload.description is not None:
+        old_description = obj.description
         obj.description = payload.description
+
+        # Actualizar en objectives_causes
+        from app.models.direct_causes import DirectCause
+        direct_cause = db.query(DirectCause).filter(DirectCause.id == direct_cause_id).first()
+        if direct_cause:
+            from app.models.problems import Problems
+            problem = db.query(Problems).filter(Problems.id == direct_cause.problem_id).first()
+            if problem:
+                objective = db.query(Objectives).filter(Objectives.project_id == problem.project_id).first()
+                if objective:
+                    # Buscar y actualizar el registro correspondiente
+                    obj_causes = db.query(ObjectivesCauses).filter(
+                        ObjectivesCauses.cause_id == obj.id,
+                        ObjectivesCauses.type == "indirecta"
+                    ).first()
+                    if obj_causes:
+                        obj_causes.cause_related = obj.description
 
     db.add(obj)
     db.commit()
@@ -161,6 +204,24 @@ def delete_indirect_cause(
     obj = _get_indirect_cause_or_404(
         db, indirect_cause_id, direct_cause_id=direct_cause_id
     )
+
+    # Eliminar en objectives_causes
+    from app.models.direct_causes import DirectCause
+    direct_cause = db.query(DirectCause).filter(DirectCause.id == direct_cause_id).first()
+    if direct_cause:
+        from app.models.problems import Problems
+        problem = db.query(Problems).filter(Problems.id == direct_cause.problem_id).first()
+        if problem:
+            objective = db.query(Objectives).filter(Objectives.project_id == problem.project_id).first()
+            if objective:
+                # Buscar y eliminar el registro correspondiente
+                obj_causes = db.query(ObjectivesCauses).filter(
+                    ObjectivesCauses.cause_id == obj.id,
+                    ObjectivesCauses.type == "indirecta"
+                ).first()
+                if obj_causes:
+                    db.delete(obj_causes)
+
     db.delete(obj)
     db.commit()
     return None

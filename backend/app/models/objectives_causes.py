@@ -22,6 +22,7 @@ class ObjectivesCauses(Base):
     type = Column(Text, nullable=True)
     cause_related = Column(Text, nullable=True)
     specifics_objectives = Column(Text, nullable=True)
+    cause_id = Column(Integer, nullable=True)  # ID de la causa (directa o indirecta)
     
     objective_id = Column(Integer, ForeignKey("objectives.id"))
     objective = relationship("Objectives", back_populates="objectives_causes")
@@ -31,6 +32,7 @@ class ObjectivesCausesBase(BaseModel):
     type: str
     cause_related: str
     specifics_objectives: str | None = None
+    cause_id: int | None = None
 
 class ObjectivesCausesCreate(ObjectivesCausesBase):
     objective_id: int
