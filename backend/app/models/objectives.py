@@ -18,6 +18,9 @@ from app.models.objectives_indicators import (
     ObjectivesIndicatorResponse,
 )
 
+# Importación local para evitar circular imports
+# from app.models.problems import Problems
+
 # Conexión DB
 def get_db():
     db = SessionLocal()
@@ -79,10 +82,21 @@ router = APIRouter()
 # Crear un objetivo para un proyecto
 @router.post("/{project_id}/", response_model=ObjectivesResponse)
 def create_objective(project_id: int, objective: ObjectivesCreate, db: Session = Depends(get_db)):
+    # Import local para evitar circular imports
+    from app.models.problems import Problems
+    
     db_objective = Objectives(project_id=project_id, **objective.dict())
     db.add(db_objective)
     db.commit()
     db.refresh(db_objective)
+    
+    # Sincronizar general_problem con central_problem de Problems
+    if objective.general_problem:
+        db_problem = db.query(Problems).filter(Problems.project_id == project_id).first()
+        if db_problem:
+            db_problem.central_problem = objective.general_problem
+            db.commit()
+    
     return db_objective
 
 
@@ -101,6 +115,9 @@ def get_objectives(db: Session = Depends(get_db)):
 # Actualizar un objetivo
 @router.put("/{project_id}/{objective_id}", response_model=ObjectivesResponse)
 def update_objective(project_id: int, objective_id: int, objective: ObjectivesUpdate, db: Session = Depends(get_db)):
+    # Import local para evitar circular imports
+    from app.models.problems import Problems
+    
     db_objective = (
         db.query(Objectives)
         .filter(Objectives.project_id == project_id, Objectives.id == objective_id)
@@ -111,6 +128,13 @@ def update_objective(project_id: int, objective_id: int, objective: ObjectivesUp
 
     for key, value in objective.dict(exclude_unset=True).items():
         setattr(db_objective, key, value)
+
+    # Sincronizar general_problem con central_problem de Problems
+    if "general_problem" in objective.dict(exclude_unset=True):
+        db_problem = db.query(Problems).filter(Problems.project_id == project_id).first()
+        if db_problem:
+            db_problem.central_problem = objective.general_problem
+            db.commit()
 
     db.commit()
     db.refresh(db_objective)

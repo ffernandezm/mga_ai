@@ -7,15 +7,18 @@ from sqlalchemy.orm import Session, relationship
 
 from app.core.database import Base, SessionLocal
 
-# =========================
-# Conexión a la DB (get_db)
-# =========================
+# Conexión a la DB
 def get_db():
     db = SessionLocal()
     try:
         yield db
     finally:
         db.close()
+
+# Importar modelos relacionados para objectives_causes
+from app.models.objectives_causes import ObjectivesCauses
+from app.models.objectives import Objectives
+from app.models.indirect_causes import IndirectCause as IndirectCauseModel
 
 
 # =========================
@@ -121,15 +124,45 @@ def create_direct_cause(
     db.add(obj)
     db.flush()  # Obtener ID para hijos
 
-    for child in payload.indirect_causes or []:
-        db.add(
-            IndirectCauseModel(
-                direct_cause_id=obj.id,
-                description=child.description,
-            )
-        )
+    # Obtener el objective del proyecto
+    from app.models.problems import Problems
+    problem = db.query(Problems).filter(Problems.id == problem_id).first()
+    objective = None
+    if problem:
+        objective = db.query(Objectives).filter(Objectives.project_id == problem.project_id).first()
 
-    db.commit()
+    for child in payload.indirect_causes or []:
+        indirect_obj = IndirectCauseModel(
+            direct_cause_id=obj.id,
+            description=child.description,
+        )
+        db.add(indirect_obj)
+        db.flush()  # Obtener ID
+
+        # Crear registro en objectives_causes para la indirecta
+        if objective:
+            obj_causes_indirect = ObjectivesCauses(
+                type="indirecta",
+                cause_related=indirect_obj.description,
+                specifics_objectives=None,
+                objective_id=objective.id,
+                cause_id=indirect_obj.id
+            )
+            db.add(obj_causes_indirect)
+            db.commit()
+
+    # Crear registro en objectives_causes para la directa
+    if objective:
+        obj_causes = ObjectivesCauses(
+            type="directa",
+            cause_related=obj.description,
+            specifics_objectives=None,
+            objective_id=objective.id,
+            cause_id=obj.id
+        )
+        db.add(obj_causes)
+        db.commit()
+
     db.refresh(obj)
     return obj
 
@@ -160,7 +193,27 @@ def update_direct_cause(
     obj = _get_direct_cause_or_404(db, direct_cause_id, problem_id=problem_id)
 
     if payload.description is not None:
+        old_description = obj.description
         obj.description = payload.description
+
+        # Actualizar en objectives_causes y en value_chain_objectives si corresponde
+        from app.models.problems import Problems
+        problem = db.query(Problems).filter(Problems.id == problem_id).first()
+        if problem:
+            objective = db.query(Objectives).filter(Objectives.project_id == problem.project_id).first()
+            if objective:
+                # Buscar registro de objectives_causes correspondiente
+                obj_causes = db.query(ObjectivesCauses).filter(
+                    ObjectivesCauses.cause_id == obj.id,
+                    ObjectivesCauses.type == "directa",
+                ).first()
+                if obj_causes:
+                    obj_causes.cause_related = obj.description
+                    # si existe un value_chain_objective ligado, no lo actualizamos aquí porque el
+                    # nombre de vc_obj se deriva de specifics_objectives, no de la descripción
+                    # de la causa. Solo lo haremos si especificamos explícitamente un mapping
+                    # futuro.
+
 
     db.add(obj)
     db.commit()
@@ -177,6 +230,29 @@ def delete_direct_cause(
     problem_id: int, direct_cause_id: int, db: Session = Depends(get_db)
 ):
     obj = _get_direct_cause_or_404(db, direct_cause_id, problem_id=problem_id)
+
+    # Eliminar en objectives_causes (y cascada a value_chain_objectives)
+    from app.models.problems import Problems
+    from app.models.value_chain_objectives import ValueChainObjectives
+    problem = db.query(Problems).filter(Problems.id == problem_id).first()
+    if problem:
+        objective = db.query(Objectives).filter(Objectives.project_id == problem.project_id).first()
+        if objective:
+            # Buscar el registro de objectives_causes correspondiente
+            obj_causes = db.query(ObjectivesCauses).filter(
+                ObjectivesCauses.cause_id == obj.id,
+                ObjectivesCauses.type == "directa",
+            ).first()
+            if obj_causes:
+                # Si hay un value_chain_objective asociado, eliminarlo también
+                if obj_causes.value_chain_objective_id:
+                    vc_obj = db.query(ValueChainObjectives).filter(
+                        ValueChainObjectives.id == obj_causes.value_chain_objective_id
+                    ).first()
+                    if vc_obj:
+                        db.delete(vc_obj)
+                db.delete(obj_causes)
+
     db.delete(obj)
     db.commit()
     return None

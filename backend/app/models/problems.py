@@ -15,6 +15,8 @@ from app.models.direct_effects import DirectEffect, DirectEffectCreate, DirectEf
 from app.models.direct_causes import DirectCause, DirectCauseCreate, DirectCauseResponse
 from app.models.indirect_effects import IndirectEffect
 from app.models.indirect_causes import IndirectCause
+from app.models.objectives_causes import ObjectivesCauses
+from app.models.objectives import Objectives
 
 from ..ai.llm_models.gemini_llm import ChatBotModel
 from app.ai.main import main
@@ -99,6 +101,12 @@ def create_problem(problem: ProblemCreate, db: Session = Depends(get_db)):
     db.add(db_problem)
     db.commit()
     db.refresh(db_problem)
+
+    # Sincronizar central_problem con general_problem de Objectives
+    db_objective = db.query(Objectives).filter(Objectives.project_id == problem.project_id).first()
+    if db_objective and problem.central_problem:
+        db_objective.general_problem = problem.central_problem
+        db.commit()
 
     problem_tree = {
         "central_problem": db_problem.central_problem,
@@ -227,9 +235,15 @@ def update_problem_tree(
         if not problem:
             raise HTTPException(status_code=404, detail="Problema no encontrado")
 
+        # Obtener el objective del proyecto
+        objective = db.query(Objectives).filter(Objectives.project_id == project_id).first()
+
         # Actualizar el problema central
         if "central_problem" in data and data["central_problem"] != problem.central_problem:
             problem.central_problem = data["central_problem"]
+            # Sincronizar con general_problem de Objectives
+            if objective:
+                objective.general_problem = data["central_problem"]
         
         if "current_description" in data:
             problem.current_description = data["current_description"]
@@ -283,14 +297,21 @@ def update_problem_tree(
 
         # Actualizar causas directas e indirectas
         if "direct_causes" in data:
+            # Obtener IDs de causas directas existentes para detectar eliminaciones
+            existing_direct_cause_ids = {cause.id for cause in problem.direct_causes}
+            updated_direct_cause_ids = set()
+
             for cause_data in data["direct_causes"]:
                 cause = db.query(DirectCause).filter(
                     DirectCause.id == cause_data.get("id"),
                     DirectCause.problem_id == problem.id
                 ).first() if "id" in cause_data else None
 
+                old_description = None
                 if cause:
+                    old_description = cause.description
                     cause.description = cause_data["description"]
+                    updated_direct_cause_ids.add(cause.id)
                 else:
                     cause = DirectCause(
                         description=cause_data["description"],
@@ -298,22 +319,97 @@ def update_problem_tree(
                     )
                     db.add(cause)
                     db.flush()
+                    updated_direct_cause_ids.add(cause.id)
+
+                # Gestionar objectives_causes para causa directa
+                if objective:
+                    if old_description:  # Actualización
+                        obj_causes = db.query(ObjectivesCauses).filter(
+                            ObjectivesCauses.cause_id == cause.id,
+                            ObjectivesCauses.type == "directa"
+                        ).first()
+                        if obj_causes:
+                            obj_causes.cause_related = cause.description
+                    else:  # Nueva
+                        obj_causes = ObjectivesCauses(
+                            type="directa",
+                            cause_related=cause.description,
+                            specifics_objectives=None,
+                            objective_id=objective.id,
+                            cause_id=cause.id
+                        )
+                        db.add(obj_causes)
+                        db.commit()
 
                 # Indirect causes
                 if "indirect_causes" in cause_data:
+                    # Obtener IDs de causas indirectas existentes para detectar eliminaciones
+                    existing_indirect_cause_ids = {indirect.id for indirect in cause.indirect_causes}
+                    updated_indirect_cause_ids = set()
+
                     for indirect_data in cause_data["indirect_causes"]:
                         indirect = db.query(IndirectCause).filter(
                             IndirectCause.id == indirect_data.get("id"),
-                            IndirectCause.direct_cause_id==cause.id
+                            IndirectCause.direct_cause_id == cause.id
                         ).first() if "id" in indirect_data else None
 
+                        old_indirect_description = None
                         if indirect:
+                            old_indirect_description = indirect.description
                             indirect.description = indirect_data["description"]
+                            updated_indirect_cause_ids.add(indirect.id)
                         else:
-                            db.add(IndirectCause(
+                            indirect = IndirectCause(
                                 description=indirect_data["description"],
                                 direct_cause_id=cause.id
-                            ))
+                            )
+                            db.add(indirect)
+                            db.flush()
+                            updated_indirect_cause_ids.add(indirect.id)
+
+                        # Gestionar objectives_causes para causa indirecta
+                        if objective:
+                            if old_indirect_description:  # Actualización
+                                obj_causes = db.query(ObjectivesCauses).filter(
+                                    ObjectivesCauses.cause_id == indirect.id,
+                                    ObjectivesCauses.type == "indirecta"
+                                ).first()
+                                if obj_causes:
+                                    obj_causes.cause_related = indirect.description
+                            else:  # Nueva
+                                obj_causes = ObjectivesCauses(
+                                    type="indirecta",
+                                    cause_related=indirect.description,
+                                    specifics_objectives=None,
+                                    objective_id=objective.id,
+                                    cause_id=indirect.id
+                                )
+                                db.add(obj_causes)
+                                db.commit()
+
+                    # Eliminar causas indirectas que ya no existen
+                    for indirect_id in existing_indirect_cause_ids - updated_indirect_cause_ids:
+                        indirect_to_delete = db.query(IndirectCause).filter(IndirectCause.id == indirect_id).first()
+                        if indirect_to_delete and objective:
+                            obj_causes = db.query(ObjectivesCauses).filter(
+                                ObjectivesCauses.cause_id == indirect_id,
+                                ObjectivesCauses.type == "indirecta"
+                            ).first()
+                            if obj_causes:
+                                db.delete(obj_causes)
+                        db.delete(indirect_to_delete)
+
+            # Eliminar causas directas que ya no existen
+            for cause_id in existing_direct_cause_ids - updated_direct_cause_ids:
+                cause_to_delete = db.query(DirectCause).filter(DirectCause.id == cause_id).first()
+                if cause_to_delete and objective:
+                    obj_causes = db.query(ObjectivesCauses).filter(
+                        ObjectivesCauses.cause_id == cause_id,
+                        ObjectivesCauses.type == "directa"
+                    ).first()
+                    if obj_causes:
+                        db.delete(obj_causes)
+                db.delete(cause_to_delete)
 
         db.commit()
         db.refresh(problem)

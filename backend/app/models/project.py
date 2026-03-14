@@ -15,7 +15,7 @@ from app.models.alternatives_general import AlternativesGeneral
 from app.models.requirements_general import RequirementsGeneral
 from app.models.technical_analysis import TechnicalAnalysis
 from app.models.localization_general import LocalizationGeneral
-
+from app.models.value_chain import ValueChain
 # Conexión a la DB
 from app.core.database import Base, SessionLocal
 
@@ -97,6 +97,34 @@ class Project(Base):
     survey = relationship(
         "Survey",
         uselist=False,
+        back_populates="project",
+        cascade="all, delete-orphan"
+    )
+
+    # Relación con ValueChains
+    value_chains = relationship(
+        "ValueChain",
+        back_populates="project",
+        cascade="all, delete-orphan"
+    )
+
+    # Relación con ValueChainObjectives
+    value_chain_objectives = relationship(
+        "ValueChainObjectives",
+        back_populates="project",
+        cascade="all, delete-orphan"
+    )
+
+    # Relación con Products
+    products = relationship(
+        "Product",
+        back_populates="project",
+        cascade="all, delete-orphan"
+    )
+
+    # Relación con Activities
+    activities = relationship(
+        "Activity",
         back_populates="project",
         cascade="all, delete-orphan"
     )
@@ -185,6 +213,10 @@ def create_project(project: ProjectCreate, db: Session = Depends(get_db)):
         project_id=new_project.id
     )
 
+    value_chains = ValueChain(
+        project_id=new_project.id,
+    )
+
     db.add_all([problem,
                 participants_general,
                 population,
@@ -192,7 +224,8 @@ def create_project(project: ProjectCreate, db: Session = Depends(get_db)):
                 alternatives_general,
                 requirements_general,
                 technical_analysis,
-                localization_general
+                localization_general,
+                value_chains
                 ])
     db.flush()  # para obtener population.id antes de usarlo
 

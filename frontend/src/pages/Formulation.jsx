@@ -8,6 +8,8 @@ import AlternativesGeneral from "../components/AlternativesGeneral";
 import RequirementsGeneral from "../components/RequirementsGeneral";
 import TechnicalAnalysis from "../components/TechnicalAnalysis";
 import LocalizationGeneral from "../components/LocalizationGeneral";
+import ValueChain from "../components/ValueChain";
+
 
 import Chatbot from "../components/Chatbot";
 import ProjectHeader from "../components/ProjectHeader";
@@ -76,6 +78,8 @@ function Formulation() {
                 return <TechnicalAnalysis projectId={id} />;
             case "localization_general":
                 return <LocalizationGeneral projectId={id} />;
+            case "value_chain":
+                return <ValueChain projectId={id} />;
             default:
                 return <div>Componente no disponible</div>;
         }
@@ -162,10 +166,12 @@ function Formulation() {
                         >
                             Localización
                         </button>
+
+                        {/* Aqui cambiar a la nueva tab que se llamará value_chain */}
                         <button
-                            className={`btn btn-sm ${activeTab === "objectives" ? "btn-primary" : "btn-outline-primary"
+                            className={`btn btn-sm ${activeTab === "value_chain" ? "btn-primary" : "btn-outline-primary"
                                 }`}
-                            onClick={() => handleTabChange("objectives")}
+                            onClick={() => handleTabChange("value_chain")}
                         >
                             Cadeba de Valor
                         </button>

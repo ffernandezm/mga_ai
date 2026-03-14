@@ -49,6 +49,10 @@ from app.models.localization import router as localization_router
 from app.models.survey import router as survey_router
 from app.models.chat_history import router as chat_history_router
 from app.models.get_table_data import router as get_table_data_router
+from app.models.value_chain import router as value_chain_router
+from app.models.value_chain_objectives import router as value_chain_objectives_router
+from app.models.product import router as product_router
+from app.models.activity import router as activity_router
 
 from app.core.database import Base, engine
 from app.ai.llm_models.init_llm_database import init_langchain_tables
@@ -197,6 +201,11 @@ app.include_router(localization_general_router, prefix="/localization_general", 
 app.include_router(localization_router, prefix="/localization", tags=["Localization"])
 
 app.include_router(survey_router, prefix="/survey", tags=["Survey"])
+
+app.include_router(value_chain_router, prefix="/value_chains", tags=["ValueChains"])
+app.include_router(value_chain_objectives_router, prefix="/value_chain_objectives", tags=["ValueChainObjectives"])
+app.include_router(product_router, prefix="/products", tags=["Products"])
+app.include_router(activity_router, prefix="/activities", tags=["Activities"])
 
 # Router de chat (ya tiene su prefijo incluido en el router)
 app.include_router(chat_history_router, tags=["ChatHistory"])
