@@ -200,6 +200,15 @@ def get_comprehensive_module_data(db: Session, project_id: int, tab: str) -> dic
             'value_chains': ['value_chain_objectives'],
             'value_chain_objectives': ['products'],
             'products': ['activities'],
+            'technical_analysis': [],  # tabla plana, sin hijas
+        }
+
+        # Tablas cuyo módulo Python o clase difiere del nombre de la tabla en BD
+        module_name_overrides = {
+            'value_chains': 'value_chain',
+        }
+        class_name_overrides = {
+            'value_chains': 'ValueChain',
         }
         
         # Columnas a ignorar (JSON, timestamps, IDs internos)
@@ -310,11 +319,13 @@ def get_comprehensive_module_data(db: Session, project_id: int, tab: str) -> dic
         
         # Importar modelos dinámicamente
         try:
-            module = __import__(f'app.models.{tab}', fromlist=[tab.capitalize()])
-            # Convertir snake_case a CamelCase
-            class_name = ''.join(word.capitalize() for word in tab.split('_'))
+            module_file = module_name_overrides.get(tab, tab)
+            class_name = class_name_overrides.get(
+                tab, ''.join(word.capitalize() for word in tab.split('_'))
+            )
+            module = __import__(f'app.models.{module_file}', fromlist=[class_name])
             model_class = getattr(module, class_name, None)
-            
+
             if not model_class:
                 return {
                     "module": tab,
@@ -384,16 +395,28 @@ def get_comprehensive_module_data(db: Session, project_id: int, tab: str) -> dic
             
             elif tab == 'alternatives_general':
                 from app.models.alternatives_general import AlternativesGeneral
+                from app.models.alternatives import Alternatives
                 from sqlalchemy.orm import joinedload
-                
+
                 main_records = db.query(AlternativesGeneral).filter(
                     AlternativesGeneral.project_id == project_id
                 ).options(
                     joinedload(AlternativesGeneral.alternatives)
                 ).all()
-            
+
+            elif tab == 'value_chains':
+                from app.models.value_chain import ValueChain
+                from app.models.value_chain_objectives import ValueChainObjectives
+                from sqlalchemy.orm import joinedload
+
+                main_records = db.query(ValueChain).filter(
+                    ValueChain.project_id == project_id
+                ).options(
+                    joinedload(ValueChain.value_chain_objectives)
+                ).all()
+
             else:
-                # Tabla genérica sin relaciones especiales
+                # Tabla plana sin relaciones especiales (ej: technical_analysis)
                 main_records = db.query(model_class).filter(
                     model_class.project_id == project_id
                 ).all()
@@ -417,6 +440,27 @@ def get_comprehensive_module_data(db: Session, project_id: int, tab: str) -> dic
         
         for record in main_records:
             record_data = get_record_data(record, record)
+
+            if tab == 'alternatives_general':
+                # Fallback defensivo: si la relación viene vacía, consultar hijas directamente.
+                has_loaded_children = bool(getattr(record, 'alternatives', None))
+                if not has_loaded_children:
+                    try:
+                        direct_children = db.query(Alternatives).filter(
+                            Alternatives.alternative_id == record.id
+                        ).all()
+                        if direct_children:
+                            record_data['alternatives'] = [get_record_data(child, child) for child in direct_children]
+                    except Exception as fallback_error:
+                        logger.warning(f"⚠️ Fallback alternatives_general falló: {str(fallback_error)}")
+
+                logger.info(
+                    "🧪 alternatives_general context debug | project_id=%s record_id=%s keys=%s alternatives_count=%s",
+                    project_id,
+                    getattr(record, 'id', None),
+                    list(record_data.keys()),
+                    len(record_data.get('alternatives', [])) if isinstance(record_data.get('alternatives'), list) else 0,
+                )
             
             # Agregar datos de tablas hijas
             for child_table in children_tables:

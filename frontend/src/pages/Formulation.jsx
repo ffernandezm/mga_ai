@@ -73,7 +73,7 @@ function Formulation() {
                 return <Population projectId={id} />;
             case "objectives":
                 return <Objectives projectId={id} />;
-            case "alternatives":
+            case "alternatives_general":
                 return <AlternativesGeneral projectId={id} />;
             case "requirements_general":
                 return <RequirementsGeneral projectId={id} />;
@@ -145,9 +145,9 @@ function Formulation() {
                             Objetivos
                         </button>
                         <button
-                            className={`btn btn-sm ${activeTab === "alternatives" ? "btn-primary" : "btn-outline-primary"
+                            className={`btn btn-sm ${activeTab === "alternatives_general" ? "btn-primary" : "btn-outline-primary"
                                 }`}
-                            onClick={() => handleTabChange("alternatives")}
+                            onClick={() => handleTabChange("alternatives_general")}
                         >
                             Alternativas
                         </button>

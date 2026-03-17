@@ -7,7 +7,7 @@ from typing import List, Optional
 
 from app.models.alternatives import (
     Alternatives,
-    AlternativesCreate,
+    AlternativesNestedCreate,
     AlternativesResponse,
 )
 
@@ -54,14 +54,15 @@ class AlternativesGeneralBase(BaseModel):
 
 
 class AlternativesGeneralCreate(AlternativesGeneralBase):
-    alternatives: List[AlternativesCreate] = []
+    project_id: int
+    alternatives: List[AlternativesNestedCreate] = []
 
 
 class AlternativesGeneralUpdate(BaseModel):
     solution_alternatives: Optional[bool] = None
     cost: Optional[bool] = None
     profitability: Optional[bool] = None
-    alternatives: Optional[List[AlternativesCreate]] = None
+    alternatives: Optional[List[AlternativesNestedCreate]] = None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -83,7 +84,21 @@ router = APIRouter()
 
 @router.post("/", response_model=AlternativesGeneralResponse)
 def create_alternative(alternative: AlternativesGeneralCreate, db: Session = Depends(get_db)):
-    db_alternative = AlternativesGeneral(**alternative.dict())
+    payload = alternative.model_dump()
+    alternatives_payload = payload.pop("alternatives", [])
+
+    existing = db.query(AlternativesGeneral).filter(
+        AlternativesGeneral.project_id == payload.get("project_id")
+    ).first()
+    if existing:
+        raise HTTPException(status_code=400, detail="AlternativesGeneral already exists for this project")
+
+    db_alternative = AlternativesGeneral(**payload)
+
+    # Crear hijas explícitamente para garantizar relación correcta
+    for alt_data in alternatives_payload:
+        db_alternative.alternatives.append(Alternatives(**alt_data))
+
     db.add(db_alternative)
     db.commit()
     db.refresh(db_alternative)
@@ -109,9 +124,17 @@ def update_alternative(project_id: int, updated: AlternativesGeneralUpdate, db: 
     if not alternative:
         raise HTTPException(status_code=404, detail="Alternative not found")
 
-    updated_data = updated.dict(exclude_unset=True)
+    updated_data = updated.model_dump(exclude_unset=True)
+    alternatives_payload = updated_data.pop("alternatives", None)
+
     for key, value in updated_data.items():
         setattr(alternative, key, value)
+
+    # Si se envían alternativas, reemplazar las existentes por las nuevas
+    if alternatives_payload is not None:
+        alternative.alternatives.clear()
+        for alt_data in alternatives_payload:
+            alternative.alternatives.append(Alternatives(**alt_data))
 
     db.commit()
     db.refresh(alternative)

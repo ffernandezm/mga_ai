@@ -8,46 +8,32 @@ function AlternativesGeneral({ projectId }) {
     const [solutionAlternatives, setSolutionAlternatives] = useState(false);
     const [cost, setCost] = useState(false);
     const [profitability, setProfitability] = useState(false);
+
     const navigate = useNavigate();
 
-    /* ================= ALTERNATIVAS GENERALES ================= */
+    /* ================= OBTENER GENERAL ================= */
 
     const fetchAlternativesGeneral = async () => {
         try {
-            const response = await api.get(`/alternatives_general/${projectId}`);
-            const data = response.data;
+            const res = await api.get(`/alternatives_general/${projectId}`);
+            const data = res.data;
 
-            if (data) {
-                setAlternativesGeneral(data);
-                setSolutionAlternatives(data.solution_alternatives);
-                setCost(data.cost);
-                setProfitability(data.profitability);
-                fetchAlternatives(data.id);
-            } else {
-                setAlternativesGeneral(null);
-                setAlternatives([]);
-            }
-        } catch (error) {
-            console.error("Error al obtener alternativas generales:", error);
-        }
-    };
+            setAlternativesGeneral(data);
+            setSolutionAlternatives(data.solution_alternatives);
+            setCost(data.cost);
+            setProfitability(data.profitability);
 
-    /* ================= ALTERNATIVAS ================= */
-
-    const fetchAlternatives = async (alternativesGeneralId) => {
-        try {
-            const res = await api.get("/alternatives/", {
-                params: { alternatives_general_id: alternativesGeneralId },
-            });
-
+            // 👇 ya vienen anidadas
             setAlternatives(
-                res.data.map((a) => ({
+                (data.alternatives || []).map(a => ({
                     ...a,
-                    isEditing: false,
+                    isEditing: false
                 }))
             );
-        } catch (err) {
-            console.error("Error al obtener alternativas:", err);
+
+        } catch (error) {
+            setAlternativesGeneral(null);
+            setAlternatives([]);
         }
     };
 
@@ -55,9 +41,14 @@ function AlternativesGeneral({ projectId }) {
         fetchAlternativesGeneral();
     }, [projectId]);
 
-    /* ================= CRUD INLINE ================= */
+    /* ================= CRUD ALTERNATIVAS ================= */
 
     const handleAddAlternative = () => {
+        if (!alternativesGeneral) {
+            alert("Primero debes guardar las alternativas generales");
+            return;
+        }
+
         setAlternatives([
             ...alternatives,
             {
@@ -66,8 +57,8 @@ function AlternativesGeneral({ projectId }) {
                 active: true,
                 state: "",
                 isEditing: true,
-                isNew: true,
-            },
+                isNew: true
+            }
         ]);
     };
 
@@ -85,11 +76,8 @@ function AlternativesGeneral({ projectId }) {
 
     const handleCancel = (index) => {
         const copy = [...alternatives];
-        if (copy[index].isNew) {
-            copy.splice(index, 1);
-        } else {
-            copy[index].isEditing = false;
-        }
+        if (copy[index].isNew) copy.splice(index, 1);
+        else copy[index].isEditing = false;
         setAlternatives(copy);
     };
 
@@ -98,32 +86,36 @@ function AlternativesGeneral({ projectId }) {
 
         try {
             if (alt.isNew) {
+
                 const res = await api.post("/alternatives/", {
                     name: alt.name,
                     active: alt.active,
                     state: alt.state,
-                    alternatives_general_id: alternativesGeneral.id,
+                    project_id: projectId   // ✅ CORRECTO
                 });
 
                 alternatives[index] = {
                     ...res.data,
                     isEditing: false,
-                    isNew: false,
+                    isNew: false
                 };
+
             } else {
+
                 await api.put(`/alternatives/${alt.id}`, {
                     name: alt.name,
                     active: alt.active,
-                    state: alt.state,
+                    state: alt.state
                 });
 
                 alternatives[index].isEditing = false;
             }
 
             setAlternatives([...alternatives]);
+
         } catch (err) {
-            console.error("Error guardando alternativa:", err);
-            alert("Error al guardar la alternativa");
+            console.error(err);
+            alert("Error guardando alternativa");
         }
     };
 
@@ -135,34 +127,39 @@ function AlternativesGeneral({ projectId }) {
             const copy = [...alternatives];
             copy.splice(index, 1);
             setAlternatives(copy);
+
         } catch (err) {
-            console.error("Error eliminando alternativa:", err);
-            alert("Error al eliminar la alternativa");
+            alert("Error eliminando alternativa");
         }
     };
 
     /* ================= GUARDAR GENERAL ================= */
 
     const handleSubmit = async () => {
+
         const payload = {
             solution_alternatives: solutionAlternatives,
             cost,
             profitability,
-            project_id: projectId,
+            project_id: projectId
         };
 
         try {
+
             if (alternativesGeneral) {
+
                 await api.put(`/alternatives_general/${projectId}`, payload);
-                alert("Alternativa general actualizada");
+                alert("Actualizado");
+
             } else {
+
                 const res = await api.post("/alternatives_general/", payload);
                 setAlternativesGeneral(res.data);
-                alert("Alternativa general creada");
+                alert("Creado");
             }
+
         } catch (err) {
-            console.error(err);
-            alert("Error al guardar alternativas generales");
+            alert("Error guardando");
         }
     };
 
@@ -170,42 +167,40 @@ function AlternativesGeneral({ projectId }) {
 
     return (
         <div className="container mt-4">
+
             <h2>Alternativas Generales</h2>
 
             <div className="form-check mb-2">
-                <input
-                    type="checkbox"
+                <input type="checkbox"
                     className="form-check-input"
                     checked={solutionAlternatives}
-                    onChange={(e) => setSolutionAlternatives(e.target.checked)}
+                    onChange={e => setSolutionAlternatives(e.target.checked)}
                 />
-                <label className="form-check-label">
-                    Soluciones alternativas
-                </label>
+                <label>Soluciones alternativas</label>
             </div>
 
             <div className="form-check mb-2">
-                <input
-                    type="checkbox"
+                <input type="checkbox"
                     className="form-check-input"
                     checked={cost}
-                    onChange={(e) => setCost(e.target.checked)}
+                    onChange={e => setCost(e.target.checked)}
                 />
-                <label className="form-check-label">Costo</label>
+                <label>Costo</label>
             </div>
 
             <div className="form-check mb-4">
-                <input
-                    type="checkbox"
+                <input type="checkbox"
                     className="form-check-input"
                     checked={profitability}
-                    onChange={(e) => setProfitability(e.target.checked)}
+                    onChange={e => setProfitability(e.target.checked)}
                 />
-                <label className="form-check-label">Rentabilidad</label>
+                <label>Rentabilidad</label>
             </div>
 
             <h3>Alternativas</h3>
-            <button className="btn btn-success mb-3" onClick={handleAddAlternative}>
+
+            <button className="btn btn-success mb-3"
+                onClick={handleAddAlternative}>
                 Crear Alternativa
             </button>
 
@@ -218,88 +213,70 @@ function AlternativesGeneral({ projectId }) {
                         <th>Acciones</th>
                     </tr>
                 </thead>
+
                 <tbody>
-                    {alternatives.length > 0 ? (
-                        alternatives.map((a, i) => (
-                            <tr key={i}>
-                                <td>
-                                    {a.isEditing ? (
-                                        <input
-                                            className="form-control"
-                                            value={a.name}
-                                            onChange={(e) =>
-                                                handleChange(i, "name", e.target.value)
-                                            }
-                                        />
-                                    ) : (
-                                        a.name
-                                    )}
-                                </td>
+                    {alternatives.length > 0 ? alternatives.map((a, i) => (
 
-                                <td className="text-center">
-                                    {a.isEditing ? (
-                                        <input
-                                            type="checkbox"
-                                            checked={a.active}
-                                            onChange={(e) =>
-                                                handleChange(i, "active", e.target.checked)
-                                            }
-                                        />
-                                    ) : (
-                                        a.active ? "Sí" : "No"
-                                    )}
-                                </td>
+                        <tr key={i}>
 
-                                <td>
-                                    {a.isEditing ? (
-                                        <input
-                                            className="form-control"
-                                            value={a.state || ""}
-                                            onChange={(e) =>
-                                                handleChange(i, "state", e.target.value)
-                                            }
-                                        />
-                                    ) : (
-                                        a.state
-                                    )}
-                                </td>
+                            <td>
+                                {a.isEditing
+                                    ? <input className="form-control"
+                                        value={a.name}
+                                        onChange={e => handleChange(i, "name", e.target.value)}
+                                    />
+                                    : a.name}
+                            </td>
 
-                                <td>
-                                    {a.isEditing ? (
-                                        <>
-                                            <button
-                                                className="btn btn-success btn-sm me-2"
-                                                onClick={() => handleSave(i)}
-                                            >
-                                                Guardar
-                                            </button>
-                                            <button
-                                                className="btn btn-secondary btn-sm"
-                                                onClick={() => handleCancel(i)}
-                                            >
-                                                Cancelar
-                                            </button>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <button
-                                                className="btn btn-primary btn-sm me-2"
-                                                onClick={() => handleEdit(i)}
-                                            >
-                                                Editar
-                                            </button>
-                                            <button
-                                                className="btn btn-danger btn-sm"
-                                                onClick={() => handleDelete(a.id, i)}
-                                            >
-                                                Eliminar
-                                            </button>
-                                        </>
-                                    )}
-                                </td>
-                            </tr>
-                        ))
-                    ) : (
+                            <td className="text-center">
+                                {a.isEditing
+                                    ? <input type="checkbox"
+                                        checked={a.active}
+                                        onChange={e => handleChange(i, "active", e.target.checked)}
+                                    />
+                                    : a.active ? "Sí" : "No"}
+                            </td>
+
+                            <td>
+                                {a.isEditing
+                                    ? <input className="form-control"
+                                        value={a.state || ""}
+                                        onChange={e => handleChange(i, "state", e.target.value)}
+                                    />
+                                    : a.state}
+                            </td>
+
+                            <td>
+                                {a.isEditing ? (
+                                    <>
+                                        <button className="btn btn-success btn-sm me-2"
+                                            onClick={() => handleSave(i)}>
+                                            Guardar
+                                        </button>
+
+                                        <button className="btn btn-secondary btn-sm"
+                                            onClick={() => handleCancel(i)}>
+                                            Cancelar
+                                        </button>
+                                    </>
+                                ) : (
+                                    <>
+                                        <button className="btn btn-primary btn-sm me-2"
+                                            onClick={() => handleEdit(i)}>
+                                            Editar
+                                        </button>
+
+                                        <button className="btn btn-danger btn-sm"
+                                            onClick={() => handleDelete(a.id, i)}>
+                                            Eliminar
+                                        </button>
+                                    </>
+                                )}
+                            </td>
+
+                        </tr>
+
+                    )) : (
                         <tr>
                             <td colSpan="4" className="text-center">
                                 No hay alternativas registradas
@@ -310,16 +287,17 @@ function AlternativesGeneral({ projectId }) {
             </table>
 
             <div className="mt-4">
-                <button
-                    className="btn btn-secondary me-2"
-                    onClick={() => navigate("/projects")}
-                >
+                <button className="btn btn-secondary me-2"
+                    onClick={() => navigate("/projects")}>
                     Regresar
                 </button>
-                <button className="btn btn-primary" onClick={handleSubmit}>
+
+                <button className="btn btn-primary"
+                    onClick={handleSubmit}>
                     Guardar Cambios
                 </button>
             </div>
+
         </div>
     );
 }
