@@ -34,6 +34,15 @@ class Project(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, index=True)
     description = Column(String)
+    process = Column(String)
+    object_desc = Column(String) # 'objeto' es palabra reservada en algunos contextos, uso object_desc
+    region = Column(String)
+    department = Column(String)
+    municipality = Column(String)
+    intervention_type = Column(String)
+    project_typology = Column(String)
+    main_product = Column(String)
+    sector = Column(String)
 
     # Relación con Problems (CORREGIDO)
     problem = relationship(
@@ -144,10 +153,41 @@ class Project(Base):
 class ProjectBase(BaseModel):
     name: str
     description: Optional[str] = None
+    process: Optional[str] = ""
+    object_desc: Optional[str] = ""
+    region: Optional[str] = ""
+    department: Optional[str] = ""
+    municipality: Optional[str] = ""
+    intervention_type: Optional[str] = ""
+    project_typology: Optional[str] = ""
+    main_product: Optional[str] = ""
+    sector: Optional[str] = ""
 
 class ProjectCreate(BaseModel):
     name: str
     description: Optional[str] = None
+    process: Optional[str] = ""
+    object_desc: Optional[str] = ""
+    region: Optional[str] = ""
+    department: Optional[str] = ""
+    municipality: Optional[str] = ""
+    intervention_type: Optional[str] = ""
+    project_typology: Optional[str] = ""
+    main_product: Optional[str] = ""
+    sector: Optional[str] = ""
+
+class ProjectUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    process: Optional[str] = None
+    object_desc: Optional[str] = None
+    region: Optional[str] = None
+    department: Optional[str] = None
+    municipality: Optional[str] = None
+    intervention_type: Optional[str] = None
+    project_typology: Optional[str] = None
+    main_product: Optional[str] = None
+    sector: Optional[str] = None
 
 class ProjectResponse(ProjectBase):
     id: int
@@ -279,7 +319,7 @@ def update_project(project_id: int, updated_data: ProjectCreate, db: Session = D
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
 
-    for key, value in updated_data.model_dump().items():
+    for key, value in updated_data.model_dump(exclude_unset=True).items():
         setattr(project, key, value)
 
     db.commit()
