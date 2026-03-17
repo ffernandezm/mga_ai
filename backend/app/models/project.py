@@ -16,6 +16,7 @@ from app.models.requirements_general import RequirementsGeneral
 from app.models.technical_analysis import TechnicalAnalysis
 from app.models.localization_general import LocalizationGeneral
 from app.models.value_chain import ValueChain
+from app.models.development_plan import DevelopmentPlan
 # Conexión a la DB
 from app.core.database import Base, SessionLocal
 
@@ -129,6 +130,14 @@ class Project(Base):
         cascade="all, delete-orphan"
     )
 
+    # Relación con DevelopmentPlan
+    development_plan = relationship(
+        "DevelopmentPlan",
+        uselist=False,
+        back_populates="project",
+        cascade="all, delete-orphan"
+    )
+
 
 
 # Esquema Pydantic
@@ -172,7 +181,11 @@ def create_project(project: ProjectCreate, db: Session = Depends(get_db)):
     db.add(new_project)
     db.flush()
 
-    # 2. Crear automáticamente un registro en Problems
+    # Crear plan de desarrollo
+
+    development_plan = DevelopmentPlan(project_id=new_project.id)
+
+    #Crear automáticamente un registro en Problems
     problem = Problems(
         project_id=new_project.id,
         central_problem= "",
@@ -182,42 +195,50 @@ def create_project(project: ProjectCreate, db: Session = Depends(get_db)):
         direct_causes= [],
     )
     
-    # 2. Crear automáticamente un registro en ParticipantsGeneral asociado
+    # Crear automáticamente un registro en ParticipantsGeneral asociado
     participants_general = ParticipantsGeneral(
         participants_analisis="",
         project_id=new_project.id
     )
 
-    # 3. Crear automáticamente un registro en Population asociado
+    # Crear automáticamente un registro en Population asociado
     population = Population(
         project_id=new_project.id
     )
     
+    # Crear automáticamente un registro en Objectives asociado
     objectives = Objectives(
         project_id=new_project.id
     )
     
+    # Crear automáticamente un registro en AlternativesGeneral asociado
     alternatives_general = AlternativesGeneral(
         project_id=new_project.id
     )
 
+    # Crear automáticamente un registro en RequirementsGeneral asociado
     requirements_general = RequirementsGeneral(
         project_id=new_project.id
     )
 
+    # Crear automáticamente un registro en TechnicalAnalysis asociado
     technical_analysis = TechnicalAnalysis(
         project_id=new_project.id
     )
     
+    # Crear automáticamente un registro en LocalizationGeneral asociado
     localization_general = LocalizationGeneral(
         project_id=new_project.id
     )
 
+    # Crear automáticamente un registro en ValueChain asociado
     value_chains = ValueChain(
         project_id=new_project.id,
     )
 
-    db.add_all([problem,
+    db.add_all([
+                development_plan,
+                problem,
                 participants_general,
                 population,
                 objectives,

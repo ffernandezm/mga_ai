@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
+import DevelopmentPlan from "../components/DevelopmentPlan";
 import ProblemsTree from "../components/ProblemsTree";
 import Participants from "../components/Participants";
 import Population from "../components/Population";
@@ -20,7 +21,7 @@ function Formulation() {
     const navigate = useNavigate();
     const location = useLocation(); // 👈 Para leer query params
 
-    const [activeTab, setActiveTab] = useState("problems");
+    const [activeTab, setActiveTab] = useState("development_plan");
     const [project, setProject] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -56,6 +57,8 @@ function Formulation() {
 
     const renderContent = () => {
         switch (activeTab) {
+            case "development_plan":
+                return <DevelopmentPlan projectId={id} />;
             case "problems":
                 return (
                     <ProblemsTree
@@ -104,6 +107,13 @@ function Formulation() {
                 <main className="flex-grow-1 d-flex flex-column overflow-auto">
                     {/* Barra de navegación */}
                     <nav className="bg-white border-bottom px-4 py-2 d-flex gap-3 flex-wrap">
+                        <button
+                            className={`btn btn-sm ${activeTab === "development_plan" ? "btn-primary" : "btn-outline-primary"
+                                }`}
+                            onClick={() => handleTabChange("development_plan")}
+                        >
+                            Plan de Desarrollo
+                        </button>
                         <button
                             className={`btn btn-sm ${activeTab === "problems" ? "btn-primary" : "btn-outline-primary"
                                 }`}

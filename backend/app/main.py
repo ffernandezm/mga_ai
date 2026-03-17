@@ -53,6 +53,8 @@ from app.models.value_chain import router as value_chain_router
 from app.models.value_chain_objectives import router as value_chain_objectives_router
 from app.models.product import router as product_router
 from app.models.activity import router as activity_router
+from app.models.development_plan import router as development_plan_router
+from app.models.pnd import router as pnd_router
 
 from app.core.database import Base, engine
 from app.ai.llm_models.init_llm_database import init_langchain_tables
@@ -206,6 +208,8 @@ app.include_router(value_chain_router, prefix="/value_chains", tags=["ValueChain
 app.include_router(value_chain_objectives_router, prefix="/value_chain_objectives", tags=["ValueChainObjectives"])
 app.include_router(product_router, prefix="/products", tags=["Products"])
 app.include_router(activity_router, prefix="/activities", tags=["Activities"])
+app.include_router(development_plan_router, prefix="/development_plan", tags=["DevelopmentPlan"])
+app.include_router(pnd_router, prefix="/pnd", tags=["PND"])
 
 # Router de chat (ya tiene su prefijo incluido en el router)
 app.include_router(chat_history_router, tags=["ChatHistory"])

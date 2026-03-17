@@ -15,3 +15,16 @@ from .affected_population import AffectedPopulation
 from .intervention_population import InterventionPopulation
 from .characteristics_population import CharacteristicsPopulation
 from .technical_analysis import TechnicalAnalysis
+from .survey import Survey
+from .chat_history import ChatHistory
+from .product import Product
+from .activity import Activity
+from .development_plan import DevelopmentPlan
+from .pnd import Pnd
+from .value_chain import ValueChain
+from .value_chain_objectives import ValueChainObjectives
+from .problems import Problems
+from .direct_causes import DirectCause
+from .direct_effects import DirectEffect
+from .indirect_causes import IndirectCause
+from .indirect_effects import IndirectEffect
