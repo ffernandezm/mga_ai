@@ -77,6 +77,15 @@ class ChatBotModel:
         Returns:
             Respuesta del chatbot
         """
+        skip_invoke = str(os.getenv("SKIP_LLM_INVOKE", os.getenv("DEBUG_SKIP_LLM_INVOKE", "false"))).strip().lower() in {"1", "true", "yes", "on"}
+
+        if skip_invoke:
+            logger.info(f"⏭️ Gemini invoke omitido por SKIP_LLM_INVOKE para tab={tab}")
+            return (
+                "[DEBUG] Llamada a Gemini omitida (SKIP_LLM_INVOKE=true). "
+                "Desactiva esta variable para volver a consultar el LLM real."
+            )
+
         if not self.llm:
             return "❌ Gemini LLM no está disponible. Verifica tu GOOGLE_API_KEY."
         

@@ -507,25 +507,49 @@ def format_module_data_for_prompt(data: dict, max_items: int = 50) -> str:
                 return str(val)
             return str(val)[:200]  # Truncar valores muy largos
         
-        def format_record(record, indent=0):
-            """Formatea un registro de forma natural."""
+        def format_record(record, indent=0, depth=0):
+            """Formatea un registro de forma natural, incluyendo relaciones anidadas."""
             prefix = "  " * indent
             parts = []
-            
+
+            # 1) Campos simples
             for key, value in record.items():
-                # Saltar listas (subtablas) - se manejan de forma especial
                 if isinstance(value, list):
-                    if value:  # Solo mostrar si tiene contenido
-                        total_count = len(value)
-                        label = f"{key.replace('_', ' ').title()}: {total_count} registro{'s' if total_count > 1 else ''}"
-                        parts.append(f"{prefix}• {label}")
-                else:
-                    # Mostrar valores simples
-                    clean_key = key.replace('_', ' ').title()
-                    clean_val = format_value(value)
-                    if clean_val != "(sin información)":
-                        parts.append(f"{prefix}• {clean_key}: {clean_val}")
-            
+                    continue
+                clean_key = key.replace('_', ' ').title()
+                clean_val = format_value(value)
+                if clean_val != "(sin información)":
+                    parts.append(f"{prefix}• {clean_key}: {clean_val}")
+
+            # 2) Relaciones (listas) con detalle jerárquico
+            for key, value in record.items():
+                if not isinstance(value, list) or not value:
+                    continue
+
+                total_count = len(value)
+                list_label = key.replace('_', ' ').title()
+                shown_items = value[:max_items]
+                parts.append(f"{prefix}• {list_label}: {total_count} registro{'s' if total_count > 1 else ''}")
+
+                # Evitar recursión excesiva en estructuras muy profundas
+                if depth >= 3:
+                    continue
+
+                for idx, item in enumerate(shown_items, 1):
+                    item_prefix = "  " * (indent + 1)
+                    parts.append(f"{item_prefix}- {list_label[:-1] if list_label.endswith('s') else list_label} {idx}:")
+                    if isinstance(item, dict):
+                        nested = format_record(item, indent=indent + 2, depth=depth + 1)
+                        if nested:
+                            parts.append(nested)
+                    else:
+                        parts.append(f"{'  ' * (indent + 2)}• Valor: {format_value(item)}")
+
+                if total_count > len(shown_items):
+                    parts.append(
+                        f"{'  ' * (indent + 1)}(Mostrando {len(shown_items)} de {total_count} registros)"
+                    )
+
             return "\n".join(parts) if parts else f"{prefix}(sin información completa)"
         
         # Agregar registros formateados

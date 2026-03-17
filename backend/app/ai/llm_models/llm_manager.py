@@ -144,6 +144,11 @@ class LLMManager:
         
         return "\n".join(context_lines)
 
+    def _is_invoke_skipped(self) -> bool:
+        """Permite desactivar llamadas al LLM durante debug para evitar consumo de tokens."""
+        raw_value = os.getenv("SKIP_LLM_INVOKE", os.getenv("DEBUG_SKIP_LLM_INVOKE", "true"))
+        return str(raw_value).strip().lower() in {"1", "true", "yes", "on"}
+
 
     def ask(
         self,
@@ -167,6 +172,13 @@ class LLMManager:
             Respuesta del LLM
         """
         try:
+            if self._is_invoke_skipped():
+                logger.info(f"⏭️ LLM invoke omitido por SKIP_LLM_INVOKE para tab={tab}, session={session_id}")
+                return (
+                    "[DEBUG] Llamada al modelo omitida (SKIP_LLM_INVOKE=true). "
+                    "Desactiva esta variable para volver a consultar el LLM real."
+                )
+
             # Obtener template
             prompt = self.get_prompt_template(tab)
             
@@ -199,6 +211,10 @@ class LLMManager:
     def validate_configuration(self) -> bool:
         """Valida que el LLM esté correctamente configurado."""
         try:
+            if self._is_invoke_skipped():
+                logger.info("⏭️ Validación LLM omitida por SKIP_LLM_INVOKE")
+                return True
+
             # Probar una invocación simple
             test_response = self.ask(
                 question="Test",
