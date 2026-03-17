@@ -187,6 +187,7 @@ def get_comprehensive_module_data(db: Session, project_id: int, tab: str) -> dic
         
         # Configuración de relaciones jerárquicas (tabla padre -> [tabla hija, ...])
         relationship_map = {
+            'development_plans': ['pnds'],
             'problems': ['direct_effects', 'direct_causes'],
             'direct_effects': ['indirect_effects'],
             'direct_causes': ['indirect_causes'],
@@ -291,7 +292,7 @@ def get_comprehensive_module_data(db: Session, project_id: int, tab: str) -> dic
                 return []
         
         # PASO 1: Obtener registros de la tabla principal
-        if tab not in relationship_map and tab != 'problems' and tab != 'population' and tab != 'participants_general' and tab != 'objectives' and tab != 'alternatives_general':
+        if tab not in relationship_map and tab != 'development_plans' and tab != 'problems' and tab != 'population' and tab != 'participants_general' and tab != 'objectives' and tab != 'alternatives_general':
             # Es una tabla secundaria, obtener desde su relación
             parent_table = None
             for parent, children in relationship_map.items():

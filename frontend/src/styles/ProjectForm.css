@@ -1,121 +1,89 @@
 /* ===== CONTENEDOR PRINCIPAL ===== */
 
 .project-container {
-    max-width: 1100px;
-    margin: 40px auto;
-    padding: 32px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 20px;
+    background: #f5f7fa;
+    min-height: 100vh;
+    gap: 30px;
+}
+
+/* ===== FORMULARIO ===== */
+
+.project-form {
+    width: 100%;
+    max-width: 1000px;
+    /* antes 500px → muy estrecho */
     background: #ffffff;
+    padding: 32px;
     border-radius: 14px;
-    box-shadow: 0 10px 35px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.08);
+
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
 }
 
-/* ===== HEADER ===== */
-
-.form-header h2 {
-    margin: 0;
-    font-size: 28px;
-    font-weight: 700;
-    color: #1f2937;
-}
-
-.form-header p {
-    margin-top: 6px;
-    color: #6b7280;
-    font-size: 15px;
-}
-
-/* ===== SECCIONES ===== */
-
-.form-section {
-    margin-top: 32px;
-    padding: 24px;
-    background: #f9fafb;
-    border-radius: 12px;
-    border: 1px solid #e5e7eb;
-}
-
-.form-section h3 {
-    margin-bottom: 18px;
-    font-size: 18px;
-    font-weight: 600;
-    color: #111827;
-}
-
-/* ===== GRID ===== */
-
-.form-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    gap: 18px;
-}
-
-.full-width {
-    grid-column: 1 / -1;
-}
-
-/* ===== CAMPOS ===== */
+/* ===== GRUPOS ===== */
 
 .form-group {
     display: flex;
     flex-direction: column;
+    gap: 6px;
 }
 
+/* Etiquetas (si las usas) */
+
 .form-group label {
-    margin-bottom: 6px;
     font-size: 13px;
     font-weight: 600;
     color: #374151;
 }
 
-/* Inputs y textarea */
+/* ===== INPUTS ===== */
 
-.form-group input,
-.form-group textarea {
-    padding: 10px 12px;
-    font-size: 14px;
-    border-radius: 8px;
+input,
+textarea {
+    padding: 11px 12px;
     border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: inherit;
     background: #ffffff;
     transition: all 0.2s ease;
-    font-family: inherit;
-}
-
-.form-group textarea {
-    resize: vertical;
 }
 
 /* Hover */
 
-.form-group input:hover,
-.form-group textarea:hover {
+input:hover,
+textarea:hover {
     border-color: #9ca3af;
 }
 
-/* Focus */
+/* Focus moderno */
 
-.form-group input:focus,
-.form-group textarea:focus {
+input:focus,
+textarea:focus {
     outline: none;
     border-color: #2563eb;
     box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
 }
 
-/* ===== ACCIONES ===== */
+/* Textarea */
 
-.form-actions {
-    margin-top: 36px;
-    display: flex;
-    justify-content: flex-end;
-    gap: 12px;
+textarea {
+    resize: vertical;
+    min-height: 80px;
 }
 
-/* Botón primario */
+/* ===== BOTONES ===== */
 
-.btn-primary {
-    background: #2563eb;
-    color: white;
+.btn-primary,
+.btn-secondary {
+    padding: 11px 20px;
     border: none;
-    padding: 11px 22px;
     border-radius: 8px;
     font-weight: 600;
     font-size: 14px;
@@ -123,41 +91,80 @@
     transition: all 0.2s ease;
 }
 
+/* Primario */
+
+.btn-primary {
+    background: #2563eb;
+    color: white;
+}
+
 .btn-primary:hover {
     background: #1e40af;
+    transform: translateY(-1px);
 }
 
-.btn-primary:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
+.btn-primary:active {
+    transform: translateY(0);
 }
 
-/* Botón secundario */
+/* Secundario */
 
 .btn-secondary {
     background: #e5e7eb;
     color: #374151;
-    border: none;
-    padding: 11px 20px;
-    border-radius: 8px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s ease;
 }
 
 .btn-secondary:hover {
     background: #d1d5db;
 }
 
+/* ===== LAYOUT CONTENIDO EXTRA ===== */
+
+.content-wrapper {
+    display: flex;
+    width: 100%;
+    max-width: 1400px;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 24px;
+}
+
+/* Chat lateral */
+
+.chat-container {
+    flex: 1;
+    max-width: 320px;
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 18px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.06);
+}
+
+/* Árbol de problemas */
+
+.problems-tree-container {
+    flex: 2;
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.06);
+}
+
 /* ===== RESPONSIVE ===== */
 
-@media (max-width: 640px) {
-    .project-container {
-        padding: 20px;
-        margin: 20px;
+@media (max-width: 900px) {
+    .content-wrapper {
+        flex-direction: column;
+        align-items: center;
     }
 
-    .form-section {
-        padding: 18px;
+    .chat-container,
+    .problems-tree-container {
+        max-width: 100%;
+        width: 100%;
+    }
+
+    .project-form {
+        padding: 22px;
     }
 }

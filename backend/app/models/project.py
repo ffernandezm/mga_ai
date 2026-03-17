@@ -16,7 +16,7 @@ from app.models.requirements_general import RequirementsGeneral
 from app.models.technical_analysis import TechnicalAnalysis
 from app.models.localization_general import LocalizationGeneral
 from app.models.value_chain import ValueChain
-from app.models.development_plan import DevelopmentPlan
+from app.models.development_plans import DevelopmentPlans
 # Conexión a la DB
 from app.core.database import Base, SessionLocal
 
@@ -141,7 +141,7 @@ class Project(Base):
 
     # Relación con DevelopmentPlan
     development_plan = relationship(
-        "DevelopmentPlan",
+        "DevelopmentPlans",
         uselist=False,
         back_populates="project",
         cascade="all, delete-orphan"
@@ -223,7 +223,7 @@ def create_project(project: ProjectCreate, db: Session = Depends(get_db)):
 
     # Crear plan de desarrollo
 
-    development_plan = DevelopmentPlan(project_id=new_project.id)
+    development_plan = DevelopmentPlans(project_id=new_project.id)
 
     #Crear automáticamente un registro en Problems
     problem = Problems(

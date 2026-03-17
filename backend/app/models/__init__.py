@@ -19,7 +19,7 @@ from .survey import Survey
 from .chat_history import ChatHistory
 from .product import Product
 from .activity import Activity
-from .development_plan import DevelopmentPlan
+from .development_plans import DevelopmentPlans
 from .pnd import Pnd
 from .value_chain import ValueChain
 from .value_chain_objectives import ValueChainObjectives
