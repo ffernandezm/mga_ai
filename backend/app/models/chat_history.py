@@ -187,6 +187,7 @@ def get_comprehensive_module_data(db: Session, project_id: int, tab: str) -> dic
         
         # Configuración de relaciones jerárquicas (tabla padre -> [tabla hija, ...])
         relationship_map = {
+            'development_plans': ['pnds'],
             'problems': ['direct_effects', 'direct_causes'],
             'direct_effects': ['indirect_effects'],
             'direct_causes': ['indirect_causes'],
@@ -199,6 +200,15 @@ def get_comprehensive_module_data(db: Session, project_id: int, tab: str) -> dic
             'value_chains': ['value_chain_objectives'],
             'value_chain_objectives': ['products'],
             'products': ['activities'],
+            'technical_analysis': [],  # tabla plana, sin hijas
+        }
+
+        # Tablas cuyo módulo Python o clase difiere del nombre de la tabla en BD
+        module_name_overrides = {
+            'value_chains': 'value_chain',
+        }
+        class_name_overrides = {
+            'value_chains': 'ValueChain',
         }
         
         # Columnas a ignorar (JSON, timestamps, IDs internos)
@@ -291,7 +301,7 @@ def get_comprehensive_module_data(db: Session, project_id: int, tab: str) -> dic
                 return []
         
         # PASO 1: Obtener registros de la tabla principal
-        if tab not in relationship_map and tab != 'problems' and tab != 'population' and tab != 'participants_general' and tab != 'objectives' and tab != 'alternatives_general':
+        if tab not in relationship_map and tab != 'development_plans' and tab != 'problems' and tab != 'population' and tab != 'participants_general' and tab != 'objectives' and tab != 'alternatives_general':
             # Es una tabla secundaria, obtener desde su relación
             parent_table = None
             for parent, children in relationship_map.items():
@@ -309,11 +319,13 @@ def get_comprehensive_module_data(db: Session, project_id: int, tab: str) -> dic
         
         # Importar modelos dinámicamente
         try:
-            module = __import__(f'app.models.{tab}', fromlist=[tab.capitalize()])
-            # Convertir snake_case a CamelCase
-            class_name = ''.join(word.capitalize() for word in tab.split('_'))
+            module_file = module_name_overrides.get(tab, tab)
+            class_name = class_name_overrides.get(
+                tab, ''.join(word.capitalize() for word in tab.split('_'))
+            )
+            module = __import__(f'app.models.{module_file}', fromlist=[class_name])
             model_class = getattr(module, class_name, None)
-            
+
             if not model_class:
                 return {
                     "module": tab,
@@ -383,16 +395,28 @@ def get_comprehensive_module_data(db: Session, project_id: int, tab: str) -> dic
             
             elif tab == 'alternatives_general':
                 from app.models.alternatives_general import AlternativesGeneral
+                from app.models.alternatives import Alternatives
                 from sqlalchemy.orm import joinedload
-                
+
                 main_records = db.query(AlternativesGeneral).filter(
                     AlternativesGeneral.project_id == project_id
                 ).options(
                     joinedload(AlternativesGeneral.alternatives)
                 ).all()
-            
+
+            elif tab == 'value_chains':
+                from app.models.value_chain import ValueChain
+                from app.models.value_chain_objectives import ValueChainObjectives
+                from sqlalchemy.orm import joinedload
+
+                main_records = db.query(ValueChain).filter(
+                    ValueChain.project_id == project_id
+                ).options(
+                    joinedload(ValueChain.value_chain_objectives)
+                ).all()
+
             else:
-                # Tabla genérica sin relaciones especiales
+                # Tabla plana sin relaciones especiales (ej: technical_analysis)
                 main_records = db.query(model_class).filter(
                     model_class.project_id == project_id
                 ).all()
@@ -416,6 +440,27 @@ def get_comprehensive_module_data(db: Session, project_id: int, tab: str) -> dic
         
         for record in main_records:
             record_data = get_record_data(record, record)
+
+            if tab == 'alternatives_general':
+                # Fallback defensivo: si la relación viene vacía, consultar hijas directamente.
+                has_loaded_children = bool(getattr(record, 'alternatives', None))
+                if not has_loaded_children:
+                    try:
+                        direct_children = db.query(Alternatives).filter(
+                            Alternatives.alternative_id == record.id
+                        ).all()
+                        if direct_children:
+                            record_data['alternatives'] = [get_record_data(child, child) for child in direct_children]
+                    except Exception as fallback_error:
+                        logger.warning(f"⚠️ Fallback alternatives_general falló: {str(fallback_error)}")
+
+                logger.info(
+                    "🧪 alternatives_general context debug | project_id=%s record_id=%s keys=%s alternatives_count=%s",
+                    project_id,
+                    getattr(record, 'id', None),
+                    list(record_data.keys()),
+                    len(record_data.get('alternatives', [])) if isinstance(record_data.get('alternatives'), list) else 0,
+                )
             
             # Agregar datos de tablas hijas
             for child_table in children_tables:
@@ -506,25 +551,49 @@ def format_module_data_for_prompt(data: dict, max_items: int = 50) -> str:
                 return str(val)
             return str(val)[:200]  # Truncar valores muy largos
         
-        def format_record(record, indent=0):
-            """Formatea un registro de forma natural."""
+        def format_record(record, indent=0, depth=0):
+            """Formatea un registro de forma natural, incluyendo relaciones anidadas."""
             prefix = "  " * indent
             parts = []
-            
+
+            # 1) Campos simples
             for key, value in record.items():
-                # Saltar listas (subtablas) - se manejan de forma especial
                 if isinstance(value, list):
-                    if value:  # Solo mostrar si tiene contenido
-                        total_count = len(value)
-                        label = f"{key.replace('_', ' ').title()}: {total_count} registro{'s' if total_count > 1 else ''}"
-                        parts.append(f"{prefix}• {label}")
-                else:
-                    # Mostrar valores simples
-                    clean_key = key.replace('_', ' ').title()
-                    clean_val = format_value(value)
-                    if clean_val != "(sin información)":
-                        parts.append(f"{prefix}• {clean_key}: {clean_val}")
-            
+                    continue
+                clean_key = key.replace('_', ' ').title()
+                clean_val = format_value(value)
+                if clean_val != "(sin información)":
+                    parts.append(f"{prefix}• {clean_key}: {clean_val}")
+
+            # 2) Relaciones (listas) con detalle jerárquico
+            for key, value in record.items():
+                if not isinstance(value, list) or not value:
+                    continue
+
+                total_count = len(value)
+                list_label = key.replace('_', ' ').title()
+                shown_items = value[:max_items]
+                parts.append(f"{prefix}• {list_label}: {total_count} registro{'s' if total_count > 1 else ''}")
+
+                # Evitar recursión excesiva en estructuras muy profundas
+                if depth >= 3:
+                    continue
+
+                for idx, item in enumerate(shown_items, 1):
+                    item_prefix = "  " * (indent + 1)
+                    parts.append(f"{item_prefix}- {list_label[:-1] if list_label.endswith('s') else list_label} {idx}:")
+                    if isinstance(item, dict):
+                        nested = format_record(item, indent=indent + 2, depth=depth + 1)
+                        if nested:
+                            parts.append(nested)
+                    else:
+                        parts.append(f"{'  ' * (indent + 2)}• Valor: {format_value(item)}")
+
+                if total_count > len(shown_items):
+                    parts.append(
+                        f"{'  ' * (indent + 1)}(Mostrando {len(shown_items)} de {total_count} registros)"
+                    )
+
             return "\n".join(parts) if parts else f"{prefix}(sin información completa)"
         
         # Agregar registros formateados

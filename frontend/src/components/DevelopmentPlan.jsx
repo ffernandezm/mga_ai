@@ -38,7 +38,7 @@ function DevelopmentPlan({ projectId }) {
     // ---------- FETCH ----------
     const fetchDevelopmentPlan = async () => {
         try {
-            const res = await api.get(`/development_plan/${projectId}`);
+            const res = await api.get(`/development_plans/${projectId}`);
             if (res.data) {
                 setPlanId(res.data.id);
 
@@ -116,10 +116,10 @@ function DevelopmentPlan({ projectId }) {
         try {
             if (planId) {
                 // Actualizar (PUT)
-                await api.put(`/development_plan/${projectId}`, payload);
+                await api.put(`/development_plans/${projectId}`, payload);
             } else {
                 // Crear (POST)
-                const res = await api.post(`/development_plan/`, payload);
+                const res = await api.post(`/development_plans/`, payload);
                 setPlanId(res.data.id);
             }
             alert("Plan de desarrollo guardado exitosamente");

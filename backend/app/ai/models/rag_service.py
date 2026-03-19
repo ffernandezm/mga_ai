@@ -197,6 +197,15 @@ Caracteriza la población que se beneficiará:
 - Características demográficas: Edad, género, ubicación
 - Condiciones socioeconómicas: Ingresos, educación
             """,
+
+            "requirements_general": """
+REQUERIMIENTOS GENERALES
+Define los requerimientos clave para la intervención:
+- Bienes y servicios necesarios para la ejecución
+- Estimación inicial de cantidades y estándares de calidad
+- Relación oferta-demanda de los recursos requeridos
+- Priorización técnica según impacto y factibilidad
+            """,
             
             "objectives": """
 OBJETIVOS DEL PROYECTO
@@ -205,6 +214,15 @@ Especifica lo que se quiere lograr:
 - Objetivos específicos: Logros concretos y medibles
 - Indicadores: Cómo se medirá el logro
 - Metas: Valores esperados por período
+            """,
+
+            "value_chain": """
+CADENA DE VALOR
+Estructura la lógica operativa del proyecto:
+- Eslabones o etapas de transformación
+- Actividades e insumos necesarios por etapa
+- Productos o resultados intermedios y finales
+- Riesgos y cuellos de botella que afectan la ejecución
             """,
             
             "alternatives": """

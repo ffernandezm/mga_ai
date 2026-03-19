@@ -8,6 +8,7 @@ prompts dinámicos, historial de conversación y contexto del modelo.
 import os
 import json
 import logging
+import re
 from typing import Optional
 from dotenv import load_dotenv
 
@@ -107,14 +108,49 @@ class LLMManager:
         Returns:
             PromptTemplate configurado
         """
-        template_text = self.templates.get(tab.lower(), self.templates.get("default"))
-        
-        if not template_text:
-            template_text = self.templates.get("default", "Responde la siguiente pregunta: {question}")
+        def _strip_question_placeholder(template_value: str) -> str:
+            """Elimina placeholders heredados de pregunta para evitar duplicidades."""
+            if not template_value:
+                return ""
+            # Remueve líneas tipo: "Pregunta: {question}" o "Pregunta del usuario: {question}"
+            cleaned = re.sub(
+                r"(?im)^\s*Pregunta(?:\s+del\s+usuario)?\s*:\s*\{question\}\s*$",
+                "",
+                template_value,
+            )
+            return cleaned.strip()
+
+        tab_key = (tab or "general").lower()
+        general_template = _strip_question_placeholder(self.templates.get("general", ""))
+        module_template = _strip_question_placeholder(
+            self.templates.get(tab_key, self.templates.get("default"))
+        )
+
+        if not module_template:
+            module_template = _strip_question_placeholder(
+                self.templates.get("default", "Responde de forma clara y concisa.")
+            )
+
+        # Regla solicitada: el prompt final debe ser general + módulo.
+        # Si el módulo ya es "general", evitar duplicarlo.
+        if general_template and tab_key != "general":
+            instruction_block = f"{general_template}\n\n{module_template}"
+        else:
+            instruction_block = module_template or general_template or "Responde de forma clara y concisa."
+
+        template_text = (
+            f"{instruction_block}\n\n"
+            "Informacion del proyecto:\n"
+            "{project_context}\n\n"
+            "Contexto de la conversacion:\n"
+            "{chat_history}\n\n"
+            "Pregunta del usuario:\n"
+            "{question}"
+        )
         
         return PromptTemplate(
             template=template_text,
-            input_variables=["question"]
+            input_variables=["project_context", "chat_history", "question"]
         )
 
     def _build_chat_context(self, chat_history: list) -> str:
@@ -144,6 +180,12 @@ class LLMManager:
         
         return "\n".join(context_lines)
 
+    def _is_invoke_skipped(self) -> bool:
+        """Permite desactivar llamadas al LLM durante debug para evitar consumo de tokens."""
+        raw_value = os.getenv("SKIP_LLM_INVOKE", os.getenv("DEBUG_SKIP_LLM_INVOKE", "true"))
+        #raw_value = "false"
+        return str(raw_value).strip().lower() in {"1", "true", "yes", "on"}
+
 
     def ask(
         self,
@@ -167,26 +209,23 @@ class LLMManager:
             Respuesta del LLM
         """
         try:
+            if self._is_invoke_skipped():
+                logger.info(f"⏭️ LLM invoke omitido por SKIP_LLM_INVOKE para tab={tab}, session={session_id}")
+                return (
+                    "[DEBUG] Llamada al modelo omitida (SKIP_LLM_INVOKE=true). "
+                    "Desactiva esta variable para volver a consultar el LLM real."
+                )
+
             # Obtener template
             prompt = self.get_prompt_template(tab)
             
             # Crear cadena LLM
             chain = prompt | self.model | StrOutputParser()
             
-            # Construir pregunta con contexto completo
-            full_question = question
-            
-            # Agregar contexto de módulo PRIMERO (datos registrados)
-            if context:
-                full_question = f"{context}\n\n{full_question}"
-            
-            # Agregar historial de chat si está disponible
-            if chat_history:
-                history_context = self._build_chat_context(chat_history)
-                full_question = f"{history_context}\n\n{full_question}"
-            
             response = chain.invoke({
-                "question": full_question
+                "project_context": context or "",
+                "chat_history": self._build_chat_context(chat_history) if chat_history else "",
+                "question": question,
             })
             
             logger.info(f"✅ Respuesta generada para tab={tab}, session={session_id}, con historial={bool(chat_history)}, con datos={bool(context)}")
@@ -199,6 +238,10 @@ class LLMManager:
     def validate_configuration(self) -> bool:
         """Valida que el LLM esté correctamente configurado."""
         try:
+            if self._is_invoke_skipped():
+                logger.info("⏭️ Validación LLM omitida por SKIP_LLM_INVOKE")
+                return True
+
             # Probar una invocación simple
             test_response = self.ask(
                 question="Test",

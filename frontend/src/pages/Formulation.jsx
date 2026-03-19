@@ -21,7 +21,7 @@ function Formulation() {
     const navigate = useNavigate();
     const location = useLocation(); // 👈 Para leer query params
 
-    const [activeTab, setActiveTab] = useState("development_plan");
+    const [activeTab, setActiveTab] = useState("development_plans");
     const [project, setProject] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -57,7 +57,7 @@ function Formulation() {
 
     const renderContent = () => {
         switch (activeTab) {
-            case "development_plan":
+            case "development_plans":
                 return <DevelopmentPlan projectId={id} />;
             case "problems":
                 return (
@@ -73,7 +73,7 @@ function Formulation() {
                 return <Population projectId={id} />;
             case "objectives":
                 return <Objectives projectId={id} />;
-            case "alternatives":
+            case "alternatives_general":
                 return <AlternativesGeneral projectId={id} />;
             case "requirements_general":
                 return <RequirementsGeneral projectId={id} />;
@@ -108,9 +108,9 @@ function Formulation() {
                     {/* Barra de navegación */}
                     <nav className="bg-white border-bottom px-4 py-2 d-flex gap-3 flex-wrap">
                         <button
-                            className={`btn btn-sm ${activeTab === "development_plan" ? "btn-primary" : "btn-outline-primary"
+                            className={`btn btn-sm ${activeTab === "development_plans" ? "btn-primary" : "btn-outline-primary"
                                 }`}
-                            onClick={() => handleTabChange("development_plan")}
+                            onClick={() => handleTabChange("development_plans")}
                         >
                             Plan de Desarrollo
                         </button>
@@ -145,9 +145,9 @@ function Formulation() {
                             Objetivos
                         </button>
                         <button
-                            className={`btn btn-sm ${activeTab === "alternatives" ? "btn-primary" : "btn-outline-primary"
+                            className={`btn btn-sm ${activeTab === "alternatives_general" ? "btn-primary" : "btn-outline-primary"
                                 }`}
-                            onClick={() => handleTabChange("alternatives")}
+                            onClick={() => handleTabChange("alternatives_general")}
                         >
                             Alternativas
                         </button>

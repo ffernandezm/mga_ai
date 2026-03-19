@@ -29,7 +29,7 @@ class Pnd(Base):
     component = Column(String, nullable=True)
 
     development_plan_id = Column(Integer, ForeignKey("development_plans.id"), nullable=False)
-    development_plan = relationship("DevelopmentPlan", back_populates="pnds")
+    development_plan = relationship("DevelopmentPlans", back_populates="pnds")
 
 
 # ----------------------------

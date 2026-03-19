@@ -25,7 +25,7 @@ def get_db():
 # ----------------------------
 # Modelo SQLAlchemy
 # ----------------------------
-class DevelopmentPlan(Base):
+class DevelopmentPlans(Base):
     __tablename__ = "development_plans"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -132,7 +132,7 @@ def create_development_plan(plan: DevelopmentPlanCreate, db: Session = Depends(g
     plan_data = plan.dict()
     pnds_data = plan_data.pop('pnds', [])
     
-    db_plan = DevelopmentPlan(**plan_data)
+    db_plan = DevelopmentPlans(**plan_data)
     db.add(db_plan)
     db.flush()  # Para obtener el id
     
@@ -149,12 +149,12 @@ def create_development_plan(plan: DevelopmentPlanCreate, db: Session = Depends(g
 
 @router.get("/", response_model=List[DevelopmentPlanResponse])
 def get_development_plans(db: Session = Depends(get_db)):
-    return db.query(DevelopmentPlan).all()
+    return db.query(DevelopmentPlans).all()
 
 
 @router.get("/{project_id}", response_model=DevelopmentPlanResponse)
 def get_development_plan(project_id: int, db: Session = Depends(get_db)):
-    plan = db.query(DevelopmentPlan).filter(DevelopmentPlan.project_id == project_id).first()
+    plan = db.query(DevelopmentPlans).filter(DevelopmentPlans.project_id == project_id).first()
     if not plan:
         raise HTTPException(status_code=404, detail="Development plan not found")
     return plan
@@ -162,7 +162,7 @@ def get_development_plan(project_id: int, db: Session = Depends(get_db)):
 
 @router.put("/{project_id}", response_model=DevelopmentPlanResponse)
 def update_development_plan(project_id: int, updated: DevelopmentPlanUpdate, db: Session = Depends(get_db)):
-    plan = db.query(DevelopmentPlan).filter(DevelopmentPlan.project_id == project_id).first()
+    plan = db.query(DevelopmentPlans).filter(DevelopmentPlans.project_id == project_id).first()
     if not plan:
         raise HTTPException(status_code=404, detail="Development plan not found")
 
@@ -177,7 +177,7 @@ def update_development_plan(project_id: int, updated: DevelopmentPlanUpdate, db:
 
 @router.delete("/{project_id}")
 def delete_development_plan(project_id: int, db: Session = Depends(get_db)):
-    plan = db.query(DevelopmentPlan).filter(DevelopmentPlan.project_id == project_id).first()
+    plan = db.query(DevelopmentPlans).filter(DevelopmentPlans.project_id == project_id).first()
     if not plan:
         raise HTTPException(status_code=404, detail="Development plan not found")
 
