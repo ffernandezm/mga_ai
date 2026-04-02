@@ -1,0 +1,169 @@
+﻿codigo_sector;nombre_sector;codigo_programa;nombre_programa;ambito;codigo_subprograma;nombre_subprograma
+1;CONGRESO;0101;Mejoramiento de la eficiencia y la transparencia legislativa;NACIÓN;1000;Intersubsectorial Gobierno
+1;CONGRESO;0199;Fortalecimiento de la gestión y dirección del Sector Congreso de la República;NACIÓN;1000;Intersubsectorial Gobierno
+2;PRESIDENCIA DE LA REPÚBLICA;0201;Articulación y fortalecimiento de la respuesta del Estado en materia de Derechos Humanos desde el Sector Presidencia;NACIÓN;1000;Intersubsectorial Gobierno
+2;PRESIDENCIA DE LA REPÚBLICA;0202;Gestión de espacios para fortalecer el desarrollo integral de la primera infancia desde el sector Presidencia;NACIÓN;1000;Intersubsectorial Gobierno
+2;PRESIDENCIA DE LA REPÚBLICA;0203; Consolidación de la lucha contra la corrupción desde el sector Presidencia;NACIÓN;1000;Intersubsectorial Gobierno
+2;PRESIDENCIA DE LA REPÚBLICA;0204;Gestión para impulsar el desarrollo integral de los y las jóvenes desde el Sector Presidencia  ;NACIÓN;1000;Intersubsectorial Gobierno
+2;PRESIDENCIA DE LA REPÚBLICA;0205;Fortalecimiento de las capacidades institucionales en transversalización del enfoque de género dentro de las entidades de los niveles nacional y territorial desde el Sector Presidencia;NACIÓN;1000;Intersubsectorial Gobierno
+2;PRESIDENCIA DE LA REPÚBLICA;0206;Acción Integral contra minas antipersonal como mecanismo de transición hacia la paz territorial desde el Sector Presidencia;NACIÓN;1000;Intersubsectorial Gobierno
+2;PRESIDENCIA DE LA REPÚBLICA;0207;Prevención y mitigación del riesgo de desastres desde el sector Presidencia;NACIÓN;1000;Intersubsectorial Gobierno
+2;PRESIDENCIA DE LA REPÚBLICA;0208;Gestión de la cooperación internacional del sector Presidencia;NACIÓN;1000;Intersubsectorial Gobierno
+2;PRESIDENCIA DE LA REPÚBLICA;0209;Fortalecimiento de la infraestructura física de las entidades del Estado del nivel nacional desde el Sector Presidencia;NACIÓN;1000;Intersubsectorial Gobierno
+2;PRESIDENCIA DE LA REPÚBLICA;0210;Mecanismos de transición hacia la paz a nivel nacional y territorial desde el sector Presidencia;NACIÓN;1000;Intersubsectorial Gobierno
+2;PRESIDENCIA DE LA REPÚBLICA;0211;Reintegración de personas y grupos alzados en armas desde el Sector Presidencia;NACIÓN;1000;Intersubsectorial Gobierno
+2;PRESIDENCIA DE LA REPÚBLICA;0212;Renovación territorial para el desarrollo integral de las zonas rurales afectadas por el conflicto armado;NACIÓN;1000;Intersubsectorial Gobierno
+2;PRESIDENCIA DE LA REPÚBLICA;0213;Fortalecimiento a la garantía plena de derechos de las personas con discapacidad desde el Sector Presidencia de la República;NACIÓN;1000;Intersubsectorial Gobierno
+2;PRESIDENCIA DE LA REPÚBLICA;0214;Fortalecimiento de las capacidades de articulación estratégica, modernización, eficiencia administrativa, transparencia y acceso a la información desde el sector Presidencia;NACIÓN;1000;Intersubsectorial Gobierno
+2;PRESIDENCIA DE LA REPÚBLICA;0299;Fortalecimiento de la gestión y dirección del Sector Presidencia;NACIÓN;1000;Intersubsectorial Gobierno
+3;PLANEACIÓN;0301;Mejoramiento de la planeación territorial y sectorial;NACIÓN;1000;Intersubsectorial Gobierno
+3;PLANEACIÓN;0303;Promoción de la prestación eficiente de los servicios públicos domiciliarios;NACIÓN;1000;Intersubsectorial Gobierno
+3;PLANEACIÓN;0304;Fortalecimiento del sistema de compra pública;NACIÓN;1000;Intersubsectorial Gobierno
+3;PLANEACIÓN;0399;Fortalecimiento de la gestión y dirección del Sector Planeación;NACIÓN;1000;Intersubsectorial Gobierno
+4;INFORMACIÓN ESTADÍSTICA;0401;Levantamiento y actualización de información estadística de calidad;NACIÓN Y TERRITORIO;1003;Planificación y estadística
+4;INFORMACIÓN ESTADÍSTICA;0406;Generación de la información geográfica del territorio nacional;NACIÓN Y TERRITORIO;1003;Planificación y estadística
+4;INFORMACIÓN ESTADÍSTICA;0499;Fortalecimiento de la gestión y dirección del Sector Información Estadística;NACIÓN;1003;Planificación y estadística
+5;EMPLEO PÚBLICO;0503;Mejoramiento de la calidad educativa en gestión pública ;NACIÓN;1000;Intersubsectorial Gobierno
+5;EMPLEO PÚBLICO;0504;Administración y vigilancia de las carreras administrativas de los servidores públicos;NACIÓN;1000;Intersubsectorial Gobierno
+5;EMPLEO PÚBLICO;0505;Fortalecimiento de la Gestión Pública en las Entidades Nacionales y Territoriales;NACIÓN;1000;Intersubsectorial Gobierno
+5;EMPLEO PÚBLICO;0599;Fortalecimiento de la gestión y dirección del Sector Empleo Público;NACIÓN;1000;Intersubsectorial Gobierno
+11;RELACIONES EXTERIORES;1101;Fortalecimiento y diversificación de relaciones bilaterales;NACIÓN;1002;Relaciones exteriores
+11;RELACIONES EXTERIORES;1102;Posicionamiento en instancias globales, multilaterales, regionales y subregionales;NACIÓN;1002;Relaciones exteriores
+11;RELACIONES EXTERIORES;1103;Política migratoria y servicio al ciudadano;NACIÓN;1002;Relaciones exteriores
+11;RELACIONES EXTERIORES;1104;Soberanía territorial y desarrollo fronterizo;NACIÓN;1002;Relaciones exteriores
+11;RELACIONES EXTERIORES;1105;Cooperación internacional del sector relaciones exteriores;NACIÓN;1002;Relaciones exteriores
+11;RELACIONES EXTERIORES;1199;Fortalecimiento de la gestión y dirección del Sector Relaciones Exteriores;NACIÓN;1002;Relaciones exteriores
+12;JUSTICIA Y DEL DERECHO;1201; Fortalecimiento del principio de seguridad jurídica, divulgación y depuración del ordenamiento jurídico;NACIÓN;0800;Intersubsectorial Justicia
+12;JUSTICIA Y DEL DERECHO;1202; Promoción al acceso a la justicia;NACIÓN Y TERRITORIO;0800;Intersubsectorial Justicia
+12;JUSTICIA Y DEL DERECHO;1203; Promoción de los métodos de resolución de conflictos;NACIÓN Y TERRITORIO;0800;Intersubsectorial Justicia
+12;JUSTICIA Y DEL DERECHO;1204;Justicia transicional;NACIÓN Y TERRITORIO;0800;Intersubsectorial Justicia
+12;JUSTICIA Y DEL DERECHO;1205;Defensa jurídica del Estado;NACIÓN Y TERRITORIO;0800;Intersubsectorial Justicia
+12;JUSTICIA Y DEL DERECHO;1206;Sistema penitenciario y carcelario en el marco de los derechos humanos;NACIÓN Y TERRITORIO;0800;Intersubsectorial Justicia
+12;JUSTICIA Y DEL DERECHO;1207;Fortalecimiento de la política criminal del Estado colombiano;NACIÓN Y TERRITORIO;0800;Intersubsectorial Justicia
+12;JUSTICIA Y DEL DERECHO;1208;Formulación y coordinación de la política integral frente a las drogas y actividades relacionadas;NACIÓN;0800;Intersubsectorial Justicia
+12;JUSTICIA Y DEL DERECHO;1209;Modernización de la información inmobiliaria;NACIÓN;0800;Intersubsectorial Justicia
+12;JUSTICIA Y DEL DERECHO;1299;Fortalecimiento de la gestión y dirección del Sector Justicia y del Derecho;NACIÓN;0800;Intersubsectorial Justicia
+13;HACIENDA;1301;Política macroeconómica y fiscal;NACIÓN;1000;Intersubsectorial Gobierno
+13;HACIENDA;1302;Gestión de recursos públicos;NACIÓN;1000;Intersubsectorial Gobierno
+13;HACIENDA;1303;Reducción de la vulnerabilidad fiscal ante desastres y riesgos climáticos;NACIÓN;1000;Intersubsectorial Gobierno
+13;HACIENDA;1304;Inspección, control y vigilancia financiera, solidaria y de recursos públicos;NACIÓN;1000;Intersubsectorial Gobierno
+13;HACIENDA;1305;Fortalecimiento del recaudo y tributación;NACIÓN;1000;Intersubsectorial Gobierno
+13;HACIENDA;1399;Fortalecimiento de la gestión y dirección del Sector Hacienda;NACIÓN;1000;Intersubsectorial Gobierno
+15;DEFENSA Y POLICÍA;1501;Capacidades de la Policía Nacional en seguridad pública, prevención, convivencia y seguridad ciudadana;NACIÓN;0100;Intersubsectorial Defensa y Seguridad
+15;DEFENSA Y POLICÍA;1502;Capacidades de las Fuerzas Militares en seguridad pública y defensa en el territorio nacional;NACIÓN;0100;Intersubsectorial Defensa y Seguridad
+15;DEFENSA Y POLICÍA;1504;Desarrollo marítimo, fluvial y costero desde el sector defensa;NACIÓN;0100;Intersubsectorial Defensa y Seguridad
+15;DEFENSA Y POLICÍA;1505;Generación de bienestar para la Fuerza Pública y sus familias;NACIÓN;0100;Intersubsectorial Defensa y Seguridad
+15;DEFENSA Y POLICÍA;1506;Gestión del riesgo de desastres desde el sector defensa y seguridad;NACIÓN;0100;Intersubsectorial Defensa y Seguridad
+15;DEFENSA Y POLICÍA;1507;Grupo Social y Empresarial de la Defensa (GSED) Competitivo;NACIÓN;0100;Intersubsectorial Defensa y Seguridad
+15;DEFENSA Y POLICÍA;1599;Fortalecimiento de la gestión y dirección del Sector Defensa y Seguridad;NACIÓN;0100;Intersubsectorial Defensa y Seguridad
+17;AGRICULTURA Y DESARROLLO RURAL;1702;Inclusión productiva de pequeños productores rurales;NACIÓN Y TERRITORIO;1100;Intersubsectorial Agricultura y desarrollo rural
+17;AGRICULTURA Y DESARROLLO RURAL;1703;Servicios financieros y gestión del riesgo para las actividades agropecuarias y rurales;NACIÓN Y TERRITORIO;1100;Intersubsectorial Agricultura y desarrollo rural
+17;AGRICULTURA Y DESARROLLO RURAL;1704;Ordenamiento social y uso productivo del territorio rural;NACIÓN Y TERRITORIO;1100;Intersubsectorial Agricultura y desarrollo rural
+17;AGRICULTURA Y DESARROLLO RURAL;1705;Restitución de tierras a víctimas del conflicto armado;NACIÓN;1100;Intersubsectorial Agricultura y desarrollo rural
+17;AGRICULTURA Y DESARROLLO RURAL;1706; Aprovechamiento de mercados externos;NACIÓN Y TERRITORIO;1100;Intersubsectorial Agricultura y desarrollo rural
+17;AGRICULTURA Y DESARROLLO RURAL;1707;Sanidad agropecuaria e inocuidad agroalimentaria;NACIÓN Y TERRITORIO;1100;Intersubsectorial Agricultura y desarrollo rural
+17;AGRICULTURA Y DESARROLLO RURAL;1708;Ciencia, tecnología e innovación agropecuaria;NACIÓN Y TERRITORIO;1100;Intersubsectorial Agricultura y desarrollo rural
+17;AGRICULTURA Y DESARROLLO RURAL;1709;Infraestructura productiva y comercialización;NACIÓN Y TERRITORIO;1100;Intersubsectorial Agricultura y desarrollo rural
+17;AGRICULTURA Y DESARROLLO RURAL;1799;Fortalecimiento de la gestión y dirección del Sector Agropecuario;NACIÓN;1100;Intersubsectorial Agricultura y desarrollo rural
+19;SALUD Y PROTECCIÓN SOCIAL;1901;Salud pública y prestación de servicios  ;NACIÓN;0300;Intersubsectorial Salud
+19;SALUD Y PROTECCIÓN SOCIAL;1902;Aseguramiento y administración del Sistema General de la Seguridad Social en Salud - SGSSS;NACIÓN;0300;Intersubsectorial Salud
+19;SALUD Y PROTECCIÓN SOCIAL;1903;Inspección, vigilancia y control;NACIÓN Y TERRITORIO;0300;Intersubsectorial Salud
+19;SALUD Y PROTECCIÓN SOCIAL;1905;Salud Pública;TERRITORIO;0300;Intersubsectorial Salud
+19;SALUD Y PROTECCIÓN SOCIAL;1904;Sanidad Ambiental;TERRITORIO;0300;Intersubsectorial Salud
+19;SALUD Y PROTECCIÓN SOCIAL;1906;Aseguramiento y Prestación integral de servicios de salud;TERRITORIO;0300;Intersubsectorial Salud
+19;SALUD Y PROTECCIÓN SOCIAL;1999; Fortalecimiento de la gestión y dirección del Sector Salud y Protección Social;NACIÓN;0300;Intersubsectorial Salud
+21;MINAS Y ENERGÍA;2101;Acceso al servicio público domiciliario de gas combustible;NACIÓN Y TERRITORIO;1900;Intersubsectorial Minas y Energía
+21;MINAS Y ENERGÍA;2102;Consolidación productiva del sector de energía eléctrica;NACIÓN Y TERRITORIO;1900;Intersubsectorial Minas y Energía
+21;MINAS Y ENERGÍA;2103;Consolidación productiva del sector hidrocarburos;NACIÓN Y TERRITORIO;1900;Intersubsectorial Minas y Energía
+21;MINAS Y ENERGÍA;2104;Consolidación productiva del sector minero;NACIÓN Y TERRITORIO;1900;Intersubsectorial Minas y Energía
+21;MINAS Y ENERGÍA;2105; Desarrollo ambiental sostenible del sector minero energético;NACIÓN Y TERRITORIO;1900;Intersubsectorial Minas y Energía
+21;MINAS Y ENERGÍA;2106;Gestión de la información en el sector minero energético;NACIÓN Y TERRITORIO;1900;Intersubsectorial Minas y Energía
+21;MINAS Y ENERGÍA;2199;Fortalecimiento de la gestión y dirección del Sector Minas y Energía ;NACIÓN;1900;Intersubsectorial Minas y Energía
+22;EDUCACIÓN;2201;Calidad, cobertura y fortalecimiento de la educación inicial, prescolar, básica y media;NACIÓN Y TERRITORIO;0700;Intersubsectorial Educación
+22;EDUCACIÓN;2202;Calidad y fomento de la educación superior;NACIÓN Y TERRITORIO;0700;Intersubsectorial Educación
+22;EDUCACIÓN;2203;Cierre de brechas para el goce efectivo de derechos fundamentales de la población en condición de discapacidad;NACIÓN;0700;Intersubsectorial Educación
+22;EDUCACIÓN;2299;Fortalecimiento de la gestión y dirección del Sector Educación;NACIÓN;0700;Intersubsectorial Educación
+23;TECNOLOGÍAS DE LA INFORMACIÓN Y LAS COMUNICACIONES;2301;Facilitar el acceso y uso de las Tecnologías de la Información y las Comunicaciones (TIC) en todo el territorio nacional;NACIÓN Y TERRITORIO;0400;Intersubsectorial Comunicaciones
+23;TECNOLOGÍAS DE LA INFORMACIÓN Y LAS COMUNICACIONES;2302;Fomento del desarrollo de aplicaciones, software y contenidos para impulsar la apropiación de las Tecnologías de la Información y las Comunicaciones (TIC);NACIÓN Y TERRITORIO;0400;Intersubsectorial Comunicaciones
+23;TECNOLOGÍAS DE LA INFORMACIÓN Y LAS COMUNICACIONES;2399;Fortalecimiento de la gestión y dirección del Sector Comunicaciones;NACIÓN;0400;Intersubsectorial Comunicaciones
+24;TRANSPORTE;2401;Infraestructura red vial primaria;NACIÓN;0600;Intersubsectorial Transporte
+24;TRANSPORTE;2402;Infraestructura red vial regional;NACIÓN Y TERRITORIO;0600;Intersubsectorial Transporte
+24;TRANSPORTE;2403;Infraestructura y servicios de transporte aéreo;NACIÓN Y TERRITORIO;0600;Intersubsectorial Transporte
+24;TRANSPORTE;2404;Infraestructura de transporte férreo;NACIÓN Y TERRITORIO;0600;Intersubsectorial Transporte
+24;TRANSPORTE;2405;Infraestructura de transporte marítimo;NACIÓN;0600;Intersubsectorial Transporte
+24;TRANSPORTE;2406;Infraestructura de transporte fluvial;NACIÓN Y TERRITORIO;0600;Intersubsectorial Transporte
+24;TRANSPORTE;2407;Infraestructura y servicios de logística de transporte;NACIÓN Y TERRITORIO;0600;Intersubsectorial Transporte
+24;TRANSPORTE;2408;Prestación de servicios de transporte público de pasajeros;NACIÓN Y TERRITORIO;0600;Intersubsectorial Transporte
+24;TRANSPORTE;2409;Seguridad de transporte;NACIÓN Y TERRITORIO;0600;Intersubsectorial Transporte
+24;TRANSPORTE;2410;Regulación y supervisión de infraestructura y servicios de transporte;NACIÓN;0600;Intersubsectorial Transporte
+24;TRANSPORTE;2499;Fortalecimiento de la gestión y dirección del Sector Transporte;NACIÓN;0600;Intersubsectorial Transporte
+25;ORGANISMOS DE CONTROL;2501;Fortalecimiento del control y la vigilancia de la gestión fiscal y resarcimiento al daño del patrimonio público;NACIÓN Y TERRITORIO;1000;Intersubsectorial Gobierno
+25;ORGANISMOS DE CONTROL;2502;Promoción, protección y defensa de los Derechos Humanos y el Derecho Internacional Humanitario;NACIÓN Y TERRITORIO;1000;Intersubsectorial Gobierno
+25;ORGANISMOS DE CONTROL;2503;Lucha contra la corrupción;NACIÓN Y TERRITORIO;1000;Intersubsectorial Gobierno
+25;ORGANISMOS DE CONTROL;2504;Vigilancia de la gestión administrativa de los funcionarios del Estado;NACIÓN Y TERRITORIO;1000;Intersubsectorial Gobierno
+25;ORGANISMOS DE CONTROL;2599;Fortalecimiento de la gestión y dirección del Sector Organismos de Control;NACIÓN;1000;Intersubsectorial Gobierno
+27;RAMA JUDICIAL;2701;Mejoramiento a las competencias de la administración de justica;NACIÓN;0800;Intersubsectorial Justicia
+27;RAMA JUDICIAL;2799;Fortalecimiento de la gestión y dirección del Sector Rama Judicial;NACIÓN;0800;Intersubsectorial Justicia
+28;REGISTRADURÍA;2801;Procesos democráticos y asuntos electorales;NACIÓN;1000;Intersubsectorial Gobierno
+28;REGISTRADURÍA;2802;Identificación y registro del estado civil de la población;NACIÓN;1000;Intersubsectorial Gobierno
+28;REGISTRADURÍA;2899;Fortalecimiento de la gestión y dirección del Sector Registraduría;NACIÓN;1000;Intersubsectorial Gobierno
+29;FISCALÍA;2901;Efectividad de la investigación penal y técnico científica;NACIÓN;0800;Intersubsectorial Justicia
+29;FISCALÍA;2999;Fortalecimiento de la gestión y dirección del Sector Fiscalía ;NACIÓN;0800;Intersubsectorial Justicia
+29;AMBIENTE Y DESARROLLO SOSTENIBLE;3201;Fortalecimiento del desempeño ambiental de los sectores productivos;NACIÓN Y TERRITORIO;0900;Intersubsectorial Ambiente
+29;AMBIENTE Y DESARROLLO SOSTENIBLE;3202;Conservación de la biodiversidad y sus servicios ecosistémicos;NACIÓN Y TERRITORIO;0900;Intersubsectorial Ambiente
+29;AMBIENTE Y DESARROLLO SOSTENIBLE;3203;Gestión integral del recurso hídrico;NACIÓN Y TERRITORIO;0900;Intersubsectorial Ambiente
+29;AMBIENTE Y DESARROLLO SOSTENIBLE;3204;Gestión de la información y el conocimiento ambiental;NACIÓN Y TERRITORIO;0900;Intersubsectorial Ambiente
+29;AMBIENTE Y DESARROLLO SOSTENIBLE;3205;Ordenamiento ambiental territorial;NACIÓN Y TERRITORIO;0900;Intersubsectorial Ambiente
+29;AMBIENTE Y DESARROLLO SOSTENIBLE;3206;Gestión del cambio climático para un desarrollo bajo en carbono y resiliente al clima;NACIÓN Y TERRITORIO;0900;Intersubsectorial Ambiente
+29;AMBIENTE Y DESARROLLO SOSTENIBLE;3207;Gestión integral de mares, costas y recursos acuáticos;NACIÓN Y TERRITORIO;0900;Intersubsectorial Ambiente
+29;AMBIENTE Y DESARROLLO SOSTENIBLE;3208;Educación Ambiental ;NACIÓN Y TERRITORIO;0900;Intersubsectorial Ambiente
+29;AMBIENTE Y DESARROLLO SOSTENIBLE;3299;Fortalecimiento de la gestión y dirección del Sector Ambiente y Desarrollo Sostenible;NACIÓN;0900;Intersubsectorial Ambiente
+33;CULTURA;3301;Promoción y acceso efectivo a procesos culturales y artísticos;NACIÓN Y TERRITORIO;1603;Arte y cultura
+33;CULTURA;3302;Gestión, protección y salvaguardia del patrimonio cultural colombiano;NACIÓN Y TERRITORIO;1603;Arte y cultura
+33;CULTURA;3399;Fortalecimiento de la gestión y dirección del Sector Cultura;NACIÓN;1603;Arte y cultura
+35;COMERCIO, INDUSTRIA Y TURISMO;3501;Internacionalización de la economía;NACIÓN;0200;Intersubsectorial Industria y Comercio
+35;COMERCIO, INDUSTRIA Y TURISMO;3502;Productividad y competitividad de las empresas colombianas;NACIÓN Y TERRITORIO;0200;Intersubsectorial Industria y Comercio
+35;COMERCIO, INDUSTRIA Y TURISMO;3503;Ambiente regulatorio y económico para la competencia y la actividad empresarial;NACIÓN;0200;Intersubsectorial Industria y Comercio
+35;COMERCIO, INDUSTRIA Y TURISMO;3599;Fortalecimiento de la gestión y dirección del Sector Comercio, Industria y Turismo;NACIÓN;0200;Intersubsectorial Industria y Comercio
+36;TRABAJO;3601;Protección Social;NACIÓN Y TERRITORIO;1300;Intersubsectorial Trabajo y Bienestar Social
+36;TRABAJO;3602;Generación y formalización del empleo;NACIÓN Y TERRITORIO;1300;Intersubsectorial Trabajo y Bienestar Social
+36;TRABAJO;3603;Formación para el trabajo;NACIÓN Y TERRITORIO;1300;Intersubsectorial Trabajo y Bienestar Social
+36;TRABAJO;3604;Derechos fundamentales del trabajo y fortalecimiento del diálogo social;NACIÓN Y TERRITORIO;1300;Intersubsectorial Trabajo y Bienestar Social
+36;TRABAJO;3605;Fomento de la investigación, desarrollo tecnológico e innovación del sector trabajo;NACIÓN Y TERRITORIO;1300;Intersubsectorial Trabajo y Bienestar Social
+36;TRABAJO;3699;Fortalecimiento de la gestión y dirección del Sector Trabajo;NACIÓN;1300;Intersubsectorial Trabajo y Bienestar Social
+37;INTERIOR;3701;"Fortalecimiento institucional a los procesos organizativos de concertación; garantía, prevención y respeto de los derechos humanos como fundamentos para la paz";NACIÓN;1000;Intersubsectorial Gobierno
+37;INTERIOR;3702;Fortalecimiento a la gobernabilidad territorial para la seguridad, convivencia ciudadana, paz y post-conflicto;NACIÓN;1000;Intersubsectorial Gobierno
+37;INTERIOR;3703;Política pública de víctimas del conflicto armado y postconflicto;NACIÓN;1000;Intersubsectorial Gobierno
+37;INTERIOR;3704;Participación Ciudadana, Política y diversidad de creencias;NACIÓN;1000;Intersubsectorial Gobierno
+37;INTERIOR;3705;Protección de personas, grupos y comunidades en riesgo extraordinario y extremo UNP;NACIÓN;1000;Intersubsectorial Gobierno
+37;INTERIOR;3706;Protección, promoción y difusión del derecho de autor y los derechos conexos;NACIÓN;1000;Intersubsectorial Gobierno
+37;INTERIOR;3707;Gestión del riesgo de desastres naturales y antrópicos en la zona de influencia del Volcán Nevado del Huila;NACIÓN;1000;Intersubsectorial Gobierno
+37;INTERIOR;3708;Fortalecimiento institucional y operativo de los Bomberos de Colombia;NACIÓN;1000;Intersubsectorial Gobierno
+37;INTERIOR;3799;Fortalecimiento de la gestión y dirección del Sector Interior;NACIÓN;1000;Intersubsectorial Gobierno
+39;CIENCIA, TECNOLOGÍA E INNOVACIÓN;3901;Consolidación de una institucionalidad habilitante para la Ciencia Tecnología e Innovación (CTI) ;NACIÓN Y TERRITORIO;1000;Intersubsectorial Gobierno
+39;CIENCIA, TECNOLOGÍA E INNOVACIÓN;3902;Investigación con calidad e impacto;NACIÓN Y TERRITORIO;1000;Intersubsectorial Gobierno
+39;CIENCIA, TECNOLOGÍA E INNOVACIÓN;3903;Desarrollo tecnológico e innovación para crecimiento empresarial;NACIÓN Y TERRITORIO;1000;Intersubsectorial Gobierno
+39;CIENCIA, TECNOLOGÍA E INNOVACIÓN;3904;Generación de una cultura que valora y gestiona el conocimiento y la innovación;NACIÓN Y TERRITORIO;1000;Intersubsectorial Gobierno
+39;CIENCIA, TECNOLOGÍA E INNOVACIÓN;3999;Fortalecimiento de la gestión y dirección del Sector Ciencia y Tecnología;NACIÓN;1000;Intersubsectorial Gobierno
+40;VIVIENDA, CIUDAD Y TERRITORIO;4001;Acceso a soluciones de vivienda;NACIÓN Y TERRITORIO;1400;Intersubsectorial Vivienda y Desarrollo territorial
+40;VIVIENDA, CIUDAD Y TERRITORIO;4002;Ordenamiento territorial y desarrollo urbano;NACIÓN Y TERRITORIO;1400;Intersubsectorial Vivienda y Desarrollo territorial
+40;VIVIENDA, CIUDAD Y TERRITORIO;4003;Acceso de la población a los servicios de agua potable y saneamiento básico;NACIÓN Y TERRITORIO;1400;Intersubsectorial Vivienda y Desarrollo territorial
+40;VIVIENDA, CIUDAD Y TERRITORIO;4099;Fortalecimiento de la gestión y dirección del Sector Vivienda, Ciudad y Territorio;NACIÓN;1400;Intersubsectorial Vivienda y Desarrollo territorial
+41;INCLUSIÓN SOCIAL Y RECONCILIACIÓN;4101;Atención, asistencia  y reparación integral a las víctimas;NACIÓN Y TERRITORIO;1500;Intersubsectorial Desarrollo Social
+41;INCLUSIÓN SOCIAL Y RECONCILIACIÓN;4102;Desarrollo integral de la primera infancia a la juventud, y fortalecimiento de las capacidades de las familias de niñas, niños y adolescentes;NACIÓN Y TERRITORIO;1500;Intersubsectorial Desarrollo Social
+41;INCLUSIÓN SOCIAL Y RECONCILIACIÓN;4103;Inclusión social y productiva para la población en situación de vulnerabilidad;NACIÓN Y TERRITORIO;1500;Intersubsectorial Desarrollo Social
+41;INCLUSIÓN SOCIAL Y RECONCILIACIÓN;4104;Atención integral de población en situación permanente de desprotección social y/o familiar;NACIÓN Y TERRITORIO;1500;Intersubsectorial Desarrollo Social
+41;INCLUSIÓN SOCIAL Y RECONCILIACIÓN;4199;Fortalecimiento de la gestión y dirección del Sector Inclusión Social y Reconciliación ;NACIÓN;1500;Intersubsectorial Desarrollo Social
+42;INTELIGENCIA;4201;Desarrollo de Inteligencia Estratégica y Contrainteligencia de Estado;NACIÓN;0100;Intersubsectorial Defensa y Seguridad
+42;INTELIGENCIA;4299;Fortalecimiento de la gestión y dirección del Sector Inteligencia;NACIÓN;0100;Intersubsectorial Defensa y Seguridad
+43;DEPORTE Y RECREACIÓN;4301;Fomento a la recreación, la actividad física y el deporte para desarrollar entornos de convivencia y paz;NACIÓN Y TERRITORIO;1604;Recreación y deporte
+43;DEPORTE Y RECREACIÓN;4302;Formación y preparación de deportistas;NACIÓN Y TERRITORIO;1604;Recreación y deporte
+43;DEPORTE Y RECREACIÓN;4399;Fortalecimiento de la gestión y dirección del Sector Deporte y Recreación ;NACIÓN;1604;Recreación y deporte
+44;JUSTICIA ESPECIAL PARA LA PAZ;4401;Jurisdicción especial para la paz;NACIÓN;1000;Intersubsectorial Gobierno
+44;JUSTICIA ESPECIAL PARA LA PAZ;4402;"Esclarecimiento de la verdad, la convivencia y la no repetición.";NACIÓN;1000;Intersubsectorial Gobierno
+44;JUSTICIA ESPECIAL PARA LA PAZ;4403;"Búsqueda humanitaria de personas dadas por desaparecidas en el contexto y en razón del conflicto armado en Colombia";NACIÓN;1000;Intersubsectorial Gobierno
+44;JUSTICIA ESPECIAL PARA LA PAZ;4499;Fortalecimiento de la gestión y dirección del Sector Sistema Integral de Verdad , Justicia, Reparación y No Repetición;NACIÓN;1000;Intersubsectorial Gobierno
+45;GOBIERNO TERRITORIAL;4501;Fortalecimiento de la convivencia y la seguridad ciudadana;TERRITORIO;1000;Intersubsectorial Gobierno
+45;GOBIERNO TERRITORIAL;4502;Fortalecimiento del buen gobierno para el respeto y garantía de los derechos humanos.;TERRITORIO;1000;Intersubsectorial Gobierno
+45;GOBIERNO TERRITORIAL;4503;Gestión del riesgo de desastres y emergencias;TERRITORIO;1000;Intersubsectorial Gobierno
+45;GOBIERNO TERRITORIAL;4599;Fortalecimiento a la gestión y dirección de la administración pública territorial;TERRITORIO;1000;Intersubsectorial Gobierno

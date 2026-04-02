@@ -27,6 +27,7 @@ function App() {
           <Routes>
             <Route path="/projects" element={<ProjectList />} />
             <Route path="/create-project" element={<CreateProject />} />
+            <Route path="/projects/:id/edit" element={<CreateProject />} />
 
             {/* Ruta antigua (si aún la usas) */}
             <Route path="/edit-project/:id" element={<Formulation />} />

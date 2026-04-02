@@ -42,38 +42,56 @@
     color: #374151;
 }
 
-/* ===== INPUTS ===== */
+/* ===== CAMPOS ===== */
 
-input,
-textarea {
+.project-form input,
+.project-form select,
+.project-form textarea {
     padding: 11px 12px;
     border: 1px solid #d1d5db;
     border-radius: 8px;
     font-size: 14px;
     font-family: inherit;
     background: #ffffff;
+    color: #111827;
     transition: all 0.2s ease;
+}
+
+.project-form select {
+    appearance: none;
+    min-height: 42px;
 }
 
 /* Hover */
 
-input:hover,
-textarea:hover {
+.project-form input:hover,
+.project-form select:hover,
+.project-form textarea:hover {
     border-color: #9ca3af;
 }
 
 /* Focus moderno */
 
-input:focus,
-textarea:focus {
+.project-form input:focus,
+.project-form select:focus,
+.project-form textarea:focus {
     outline: none;
     border-color: #2563eb;
     box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
 }
 
+.project-form input:disabled,
+.project-form select:disabled,
+.project-form textarea:disabled {
+    background: #f3f4f6;
+    color: #6b7280;
+    cursor: not-allowed;
+    border-color: #d1d5db;
+}
+
 /* Textarea */
 
-textarea {
+.project-form textarea {
     resize: vertical;
     min-height: 80px;
 }
@@ -166,5 +184,144 @@ textarea {
 
     .project-form {
         padding: 22px;
+    }
+}
+
+/* ===== LOCALIZACIÓN MÚLTIPLE ===== */
+
+.loc-add-row {
+    display: flex;
+    gap: 12px;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+}
+
+.loc-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+    min-width: 180px;
+}
+
+.loc-field label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #374151;
+}
+
+.loc-field select,
+.loc-field input {
+    padding: 9px 10px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 13px;
+    font-family: inherit;
+    background: #ffffff;
+    color: #111827;
+    min-height: 40px;
+    transition: all 0.2s ease;
+}
+
+.loc-field select:focus,
+.loc-field input:focus {
+    outline: none;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+.loc-field select:disabled,
+.loc-field input:disabled {
+    background: #f3f4f6;
+    color: #6b7280;
+    cursor: not-allowed;
+}
+
+.btn-add-loc {
+    padding: 9px 18px;
+    background: #10b981;
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    min-height: 40px;
+    transition: all 0.15s ease;
+}
+
+.btn-add-loc:hover:not(:disabled) {
+    background: #059669;
+}
+
+.btn-add-loc:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+/* Tabla de localizaciones */
+
+.loc-table-container {
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.loc-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.loc-table thead th {
+    background: #f9fafb;
+    padding: 10px 14px;
+    text-align: left;
+    font-weight: 600;
+    color: #374151;
+    border-bottom: 2px solid #e5e7eb;
+}
+
+.loc-table tbody td {
+    padding: 10px 14px;
+    border-bottom: 1px solid #f3f4f6;
+    color: #374151;
+}
+
+.loc-table tbody tr:hover {
+    background: #f9fafb;
+}
+
+.loc-table thead th:last-child,
+.loc-table tbody td:last-child {
+    text-align: center;
+    width: 80px;
+}
+
+.btn-remove-loc {
+    background: none;
+    border: 1px solid #fca5a5;
+    color: #dc2626;
+    border-radius: 6px;
+    padding: 4px 10px;
+    cursor: pointer;
+    font-size: 13px;
+    transition: all 0.15s ease;
+}
+
+.btn-remove-loc:hover {
+    background: #fef2f2;
+    border-color: #dc2626;
+}
+
+@media (max-width: 700px) {
+    .loc-add-row {
+        flex-direction: column;
+    }
+
+    .loc-field {
+        min-width: 100%;
     }
 }

@@ -55,6 +55,8 @@ from app.models.product import router as product_router
 from app.models.activity import router as activity_router
 from app.models.development_plans import router as development_plan_router
 from app.models.pnd import router as pnd_router
+from app.models.product_catalog import router as product_catalog_router
+from app.models.project_localization import router as project_localization_router
 
 from app.core.database import Base, engine
 from app.ai.llm_models.init_llm_database import init_langchain_tables
@@ -76,6 +78,11 @@ async def lifespan(app: FastAPI):
         # Inicializar tablas de LangChain
         init_langchain_tables()
         logger.info("✅ Tablas de LangChain inicializadas")
+        
+        # Cargar catálogo de productos desde CSV
+        from app.models.product_catalog import seed_product_catalogs
+        seed_product_catalogs()
+        logger.info("✅ Catálogo de productos cargado/verificado")
         
         # Validar LLM
         llm_provider = os.getenv("LLM_PROVIDER", "groq").lower()
@@ -210,6 +217,8 @@ app.include_router(product_router, prefix="/products", tags=["Products"])
 app.include_router(activity_router, prefix="/activities", tags=["Activities"])
 app.include_router(development_plan_router, prefix="/development_plans", tags=["DevelopmentPlans"])
 app.include_router(pnd_router, prefix="/pnd", tags=["PND"])
+app.include_router(product_catalog_router, prefix="/product_catalogs", tags=["ProductCatalogs"])
+app.include_router(project_localization_router, prefix="/project_localizations", tags=["ProjectLocalizations"])
 
 # Router de chat (ya tiene su prefijo incluido en el router)
 app.include_router(chat_history_router, tags=["ChatHistory"])
