@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../services/api";
+import { useNotification } from "../context/NotificationContext";
 
 function TechnicalAnalysis({ projectId }) {
 
     const navigate = useNavigate();
+    const { showSuccess, showError, showConfirmation } = useNotification();
 
     const [technicalAnalysisId, setTechnicalAnalysisId] = useState(null);
     const [analysis, setAnalysis] = useState("");
@@ -57,7 +59,7 @@ function TechnicalAnalysis({ projectId }) {
     const handleSubmit = async () => {
 
         if (!analysis.trim()) {
-            alert("El análisis no puede estar vacío");
+            showError("El análisis no puede estar vacío");
             return;
         }
 
@@ -85,12 +87,12 @@ function TechnicalAnalysis({ projectId }) {
                 setTechnicalAnalysisId(res.data.id);
             }
 
-            alert("Análisis técnico guardado");
+            showSuccess("Análisis técnico guardado");
 
         } catch (error) {
 
             console.error(error);
-            alert("Error guardando análisis técnico");
+            showError("Error guardando análisis técnico");
 
         }
     };
@@ -104,7 +106,12 @@ function TechnicalAnalysis({ projectId }) {
 
         if (!technicalAnalysisId) return;
 
-        if (!window.confirm("Limpiar análisis técnico?")) return;
+        const confirmed = await showConfirmation({
+            title: "Limpiar Análisis",
+            message: "¿Limpiar análisis técnico?",
+            confirmText: "Limpiar"
+        });
+        if (!confirmed) return;
 
         try {
 
@@ -115,12 +122,12 @@ function TechnicalAnalysis({ projectId }) {
             setTechnicalAnalysisId(null);
             setAnalysis("");
 
-            alert("Análisis eliminado");
+            showSuccess("Análisis eliminado");
 
         } catch (error) {
 
             console.error(error);
-            alert("Error eliminando");
+            showError("Error eliminando");
 
         }
     };

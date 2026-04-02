@@ -152,6 +152,13 @@ class Project(Base):
         cascade="all, delete-orphan"
     )
 
+    # Relación con ChatHistory
+    chat_history = relationship(
+        "ChatHistory",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+    )
+
 
 
 # Esquema Pydantic

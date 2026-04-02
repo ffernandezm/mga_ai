@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import "../styles/successMessage.css";
 
-function SuccessMessage({ message, isVisible, onHide }) {
+function SuccessMessage({ message, isVisible, onHide, type = "success" }) {
     useEffect(() => {
         if (isVisible) {
             const timer = setTimeout(() => {
@@ -13,12 +13,16 @@ function SuccessMessage({ message, isVisible, onHide }) {
 
     if (!isVisible) return null;
 
+    const isError = type === "error";
+
     return (
         <div className="success-message-overlay">
-            <div className="success-message">
-                <div className="success-icon">✓</div>
+            <div className={`success-message ${isError ? "error-type" : ""}`}>
+                <div className={`success-icon ${isError ? "error-icon-bg" : ""}`}>
+                    {isError ? "✕" : "✓"}
+                </div>
                 <div className="success-content">
-                    <h4>¡Éxito!</h4>
+                    <h4>{isError ? "Error" : "¡Éxito!"}</h4>
                     <p>{message}</p>
                 </div>
                 <button className="success-close" onClick={onHide}>×</button>

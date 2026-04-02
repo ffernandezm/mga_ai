@@ -2,10 +2,12 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import api from "../services/api";
 import participantOptions from "../data/participantOptions";
+import { useNotification } from "../context/NotificationContext";
 
 function EditParticipant() {
     const { projectId, participantId } = useParams();
     const navigate = useNavigate();
+    const { showError } = useNotification();
     const location = useLocation();
 
     // 👇 Leer parámetro activeTab desde la URL
@@ -62,7 +64,7 @@ function EditParticipant() {
             navigate(`/projects/${projectId}/formulation?tab=${activeTab}`);
         } catch (error) {
             console.error("Error al actualizar participante:", error);
-            alert("Hubo un error al actualizar el participante.");
+            showError("Hubo un error al actualizar el participante.");
         }
     };
 

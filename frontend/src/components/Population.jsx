@@ -2,8 +2,10 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../services/api";
 import populationOptions from "../data/populationOptions";
+import { useNotification } from "../context/NotificationContext";
 
 function Population({ projectId }) {
+    const { showSuccess, showError, showConfirmation } = useNotification();
     const [affectedPopulation, setAffectedPopulation] = useState([]);
     const [interventionPopulation, setInterventionPopulation] = useState([]);
     const [characteristicsPopulation, setCharacteristicsPopulation] = useState([]);
@@ -67,7 +69,7 @@ function Population({ projectId }) {
     }, [projectId]);
 
     const handleSubmit = async () => {
-        if (!projectId) return alert("No hay proyecto seleccionado.");
+        if (!projectId) return showError("No hay proyecto seleccionado.");
 
         const payload = {
             project_id: projectId,
@@ -84,17 +86,21 @@ function Population({ projectId }) {
                 const res = await api.post(`/population`, payload);
                 setPopulationId(res.data.id);
             }
-            alert("Población actualizada correctamente.");
+            showSuccess("Población actualizada correctamente.");
             fetchPopulation();
         } catch (err) {
             console.error("Error al guardar la información:", err);
-            alert("Error al guardar la información.");
+            showError("Error al guardar la información.");
         }
     };
 
     const handleDelete = async (id, type) => {
         if (!id) return;
-        if (window.confirm("¿Eliminar este registro?")) {
+        const confirmed = await showConfirmation({
+            title: "Eliminar Registro",
+            message: "¿Eliminar este registro?"
+        });
+        if (confirmed) {
             try {
                 const endpoint =
                     type === "affected"
@@ -112,9 +118,10 @@ function Population({ projectId }) {
                 } else {
                     setCharacteristicsPopulation(prev => prev.filter(item => item.id !== id));
                 }
+                showSuccess("Registro eliminado correctamente.");
             } catch (error) {
                 console.error("Error al eliminar registro:", error);
-                alert("Error al eliminar registro.");
+                showError("Error al eliminar registro.");
             }
         }
     };
@@ -172,10 +179,10 @@ function Population({ projectId }) {
 
             setEditingAffectedId(null);
             setEditedAffected({});
-            alert("Población afectada actualizada correctamente.");
+            showSuccess("Población afectada actualizada correctamente.");
         } catch (error) {
             console.error("Error al actualizar población afectada:", error);
-            alert("Error al actualizar población afectada.");
+            showError("Error al actualizar población afectada.");
         }
     };
 
@@ -191,10 +198,10 @@ function Population({ projectId }) {
 
             setEditingInterventionId(null);
             setEditedIntervention({});
-            alert("Población de intervención actualizada correctamente.");
+            showSuccess("Población de intervención actualizada correctamente.");
         } catch (error) {
             console.error("Error al actualizar población de intervención:", error);
-            alert("Error al actualizar población de intervención.");
+            showError("Error al actualizar población de intervención.");
         }
     };
 
@@ -210,10 +217,10 @@ function Population({ projectId }) {
 
             setEditingCharacteristicId(null);
             setEditedCharacteristic({});
-            alert("Característica de población actualizada correctamente.");
+            showSuccess("Característica de población actualizada correctamente.");
         } catch (error) {
             console.error("Error al actualizar característica de población:", error);
-            alert("Error al actualizar característica de población.");
+            showError("Error al actualizar característica de población.");
         }
     };
 
@@ -282,10 +289,10 @@ function Population({ projectId }) {
                 population_center: "",
                 location_entity: "",
             });
-            alert("Registro de población afectada creado correctamente.");
+            showSuccess("Registro de población afectada creado correctamente.");
         } catch (error) {
             console.error("Error al crear registro afectado:", error);
-            alert("Hubo un error al crear el registro.");
+            showError("Hubo un error al crear el registro.");
         }
     };
 
@@ -302,10 +309,10 @@ function Population({ projectId }) {
                 population_center: "",
                 location_entity: "",
             });
-            alert("Registro de población de intervención creado correctamente.");
+            showSuccess("Registro de población de intervención creado correctamente.");
         } catch (error) {
             console.error("Error al crear registro de intervención:", error);
-            alert("Hubo un error al crear el registro.");
+            showError("Hubo un error al crear el registro.");
         }
     };
 
@@ -318,6 +325,14 @@ function Population({ projectId }) {
             {/* Affected Population */}
             <div>
                 <h2 className="mb-3">Población Afectada</h2>
+
+                <button
+                    className="btn btn-success btn-sm mb-3"
+                    onClick={handleCreateAffected}
+                    disabled={creatingAffected}
+                >
+                    Crear Registro de Afectados
+                </button>
 
                 <div className="table-responsive">
                     <table className="table table-striped table-bordered">
@@ -544,18 +559,20 @@ function Population({ projectId }) {
                         </tbody>
                     </table>
                 </div>
-                <button
-                    className="btn btn-success mb-3"
-                    onClick={handleCreateAffected}
-                    disabled={creatingAffected}
-                >
-                    Crear Registro de Afectados
-                </button>
             </div>
 
             {/* Intervention Population */}
             <div className="mt-5">
                 <h2 className="mb-3">Población de Intervención</h2>
+
+                <button
+                    className="btn btn-success btn-sm mb-3"
+                    onClick={handleCreateIntervention}
+                    disabled={creatingIntervention}
+                >
+                    Crear Registro de Intervención
+                </button>
+
                 <div className="table-responsive">
                     <table className="table table-striped table-bordered">
                         <thead className="table-dark">
@@ -781,13 +798,6 @@ function Population({ projectId }) {
                         </tbody>
                     </table>
                 </div>
-                <button
-                    className="btn btn-success mb-3"
-                    onClick={handleCreateIntervention}
-                    disabled={creatingIntervention}
-                >
-                    Crear Registro de Intervención
-                </button>
             </div>
 
             {/* Characteristics Population */}

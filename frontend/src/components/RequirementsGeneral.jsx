@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../services/api";
+import { useNotification } from "../context/NotificationContext";
 
 function RequirementsGeneral({ projectId }) {
     const navigate = useNavigate();
+    const { showSuccess, showError, showConfirmation } = useNotification();
     const [requirementsGeneralId, setRequirementsGeneralId] = useState(null);
     const [requirementsAnalysis, setRequirementsAnalysis] = useState("");
     const [requirements, setRequirements] = useState([]);
@@ -123,7 +125,7 @@ function RequirementsGeneral({ projectId }) {
             }
 
 
-            alert("Necesidades guardadas");
+            showSuccess("Necesidades guardadas");
 
             fetchRequirements();
 
@@ -132,7 +134,7 @@ function RequirementsGeneral({ projectId }) {
 
             console.error(err);
 
-            alert("Error guardando");
+            showError("Error guardando");
 
         }
 
@@ -144,8 +146,11 @@ function RequirementsGeneral({ projectId }) {
 
     const handleDelete = async (id) => {
 
-        if (!window.confirm("Eliminar registro?"))
-
+        const confirmed = await showConfirmation({
+            title: "Eliminar Registro",
+            message: "¿Eliminar este registro?"
+        });
+        if (!confirmed)
             return;
 
 
@@ -301,65 +306,412 @@ function RequirementsGeneral({ projectId }) {
             <h2>Necesidades</h2>
 
 
-            <table className="table table-bordered">
+            <div className="table-responsive">
+                <table className="table table-striped table-bordered">
 
 
-                <thead className="table-dark">
+                    <thead className="table-dark">
 
-                    <tr>
+                        <tr>
 
-                        <th>ID</th>
+                            <th>ID</th>
 
-                        <th>Bien o Servicio</th>
+                            <th>Bien o Servicio</th>
 
-                        <th>Descripción</th>
+                            <th>Descripción</th>
 
-                        <th>Oferta</th>
+                            <th>Oferta</th>
 
-                        <th>Demanda</th>
+                            <th>Demanda</th>
 
-                        <th>Unidad</th>
+                            <th>Unidad</th>
 
-                        <th>Año Inicio</th>
+                            <th>Año Inicio</th>
 
-                        <th>Año Final</th>
+                            <th>Año Final</th>
 
-                        <th>Último Año</th>
+                            <th>Último Año</th>
 
-                        <th>Acciones</th>
+                            <th>Acciones</th>
 
-                    </tr>
+                        </tr>
 
-                </thead>
-
-
-
-                <tbody>
+                    </thead>
 
 
-                    {requirements.map(r => (
 
-                        <tr key={r.id}>
-
-
-                            <td>{r.id}</td>
+                    <tbody>
 
 
-                            <td>
+                        {requirements.map(r => (
 
-                                {editingRequirementId === r.id ?
+                            <tr key={r.id}>
+
+
+                                <td>{r.id}</td>
+
+
+                                <td>
+
+                                    {editingRequirementId === r.id ?
+
+                                        <input
+
+                                            className="form-control form-control-sm"
+
+                                            value={editedRequirement.good_service_name || ""}
+
+                                            onChange={e =>
+
+                                                setEditedRequirement({
+
+                                                    ...editedRequirement,
+
+                                                    good_service_name: e.target.value
+
+                                                })
+
+                                            }
+
+                                        />
+
+                                        :
+
+                                        r.good_service_name}
+
+                                </td>
+
+
+
+                                <td>
+
+                                    {editingRequirementId === r.id ?
+
+                                        <textarea
+
+                                            className="form-control form-control-sm"
+
+                                            value={editedRequirement.good_service_description || ""}
+
+                                            onChange={e =>
+
+                                                setEditedRequirement({
+
+                                                    ...editedRequirement,
+
+                                                    good_service_description: e.target.value
+
+                                                })
+
+                                            }
+
+                                        />
+
+                                        :
+
+                                        r.good_service_description}
+
+                                </td>
+
+
+
+                                <td>
+
+                                    {editingRequirementId === r.id ?
+
+                                        <textarea
+
+                                            className="form-control form-control-sm"
+
+                                            value={editedRequirement.supply_description || ""}
+
+                                            onChange={e =>
+
+                                                setEditedRequirement({
+
+                                                    ...editedRequirement,
+
+                                                    supply_description: e.target.value
+
+                                                })
+
+                                            }
+
+                                        />
+
+                                        :
+
+                                        r.supply_description}
+
+                                </td>
+
+
+
+                                <td>
+
+                                    {editingRequirementId === r.id ?
+
+                                        <textarea
+
+                                            className="form-control form-control-sm"
+
+                                            value={editedRequirement.demand_description || ""}
+
+                                            onChange={e =>
+
+                                                setEditedRequirement({
+
+                                                    ...editedRequirement,
+
+                                                    demand_description: e.target.value
+
+                                                })
+
+                                            }
+
+                                        />
+
+                                        :
+
+                                        r.demand_description}
+
+                                </td>
+
+
+
+                                <td>
+
+                                    {editingRequirementId === r.id ?
+
+                                        <input
+
+                                            className="form-control form-control-sm"
+
+                                            value={editedRequirement.unit_of_measure || ""}
+
+                                            onChange={e =>
+
+                                                setEditedRequirement({
+
+                                                    ...editedRequirement,
+
+                                                    unit_of_measure: e.target.value
+
+                                                })
+
+                                            }
+
+                                        />
+
+                                        :
+
+                                        r.unit_of_measure}
+
+                                </td>
+
+
+
+                                <td>
+
+                                    {editingRequirementId === r.id ?
+
+                                        <input
+
+                                            type="number"
+
+                                            className="form-control form-control-sm"
+
+                                            value={editedRequirement.start_year || ""}
+
+                                            onChange={e =>
+
+                                                setEditedRequirement({
+
+                                                    ...editedRequirement,
+
+                                                    start_year: e.target.value
+
+                                                })
+
+                                            }
+
+                                        />
+
+                                        :
+
+                                        r.start_year}
+
+                                </td>
+
+
+
+                                <td>
+
+                                    {editingRequirementId === r.id ?
+
+                                        <input
+
+                                            type="number"
+
+                                            className="form-control form-control-sm"
+
+                                            value={editedRequirement.end_year || ""}
+
+                                            onChange={e =>
+
+                                                setEditedRequirement({
+
+                                                    ...editedRequirement,
+
+                                                    end_year: e.target.value
+
+                                                })
+
+                                            }
+
+                                        />
+
+                                        :
+
+                                        r.end_year}
+
+                                </td>
+
+
+
+                                <td>
+
+                                    {editingRequirementId === r.id ?
+
+                                        <input
+
+                                            type="number"
+
+                                            className="form-control form-control-sm"
+
+                                            value={editedRequirement.last_projected_year || ""}
+
+                                            onChange={e =>
+
+                                                setEditedRequirement({
+
+                                                    ...editedRequirement,
+
+                                                    last_projected_year: e.target.value
+
+                                                })
+
+                                            }
+
+                                        />
+
+                                        :
+
+                                        r.last_projected_year}
+
+                                </td>
+
+
+
+                                <td>
+
+                                    {editingRequirementId === r.id ?
+
+                                        <>
+
+                                            <button
+
+                                                className="btn btn-sm btn-success me-2"
+
+                                                onClick={handleSave}
+
+                                            >
+
+                                                Guardar
+
+                                            </button>
+
+
+                                            <button
+
+                                                className="btn btn-sm btn-secondary"
+
+                                                onClick={cancelEdit}
+
+                                            >
+
+                                                Cancelar
+
+                                            </button>
+
+                                        </>
+
+                                        :
+
+                                        <>
+
+                                            <button
+
+                                                className="btn btn-sm btn-primary me-2"
+
+                                                onClick={() => handleEdit(r)}
+
+                                            >
+
+                                                Editar
+
+                                            </button>
+
+
+                                            <button
+
+                                                className="btn btn-sm btn-danger"
+
+                                                onClick={() => handleDelete(r.id)}
+
+                                            >
+
+                                                Eliminar
+
+                                            </button>
+
+                                        </>
+
+                                    }
+
+                                </td>
+
+
+                            </tr>
+
+                        ))}
+
+
+
+                        {/* NUEVO */}
+
+
+                        {creatingRequirement && (
+
+                            <tr>
+
+
+                                <td>Nuevo</td>
+
+
+                                <td>
 
                                     <input
 
                                         className="form-control form-control-sm"
 
-                                        value={editedRequirement.good_service_name || ""}
+                                        value={newRequirement.good_service_name}
 
                                         onChange={e =>
 
-                                            setEditedRequirement({
+                                            setNewRequirement({
 
-                                                ...editedRequirement,
+                                                ...newRequirement,
 
                                                 good_service_name: e.target.value
 
@@ -369,29 +721,22 @@ function RequirementsGeneral({ projectId }) {
 
                                     />
 
-                                    :
-
-                                    r.good_service_name}
-
-                            </td>
+                                </td>
 
 
-
-                            <td>
-
-                                {editingRequirementId === r.id ?
+                                <td>
 
                                     <textarea
 
                                         className="form-control form-control-sm"
 
-                                        value={editedRequirement.good_service_description || ""}
+                                        value={newRequirement.good_service_description}
 
                                         onChange={e =>
 
-                                            setEditedRequirement({
+                                            setNewRequirement({
 
-                                                ...editedRequirement,
+                                                ...newRequirement,
 
                                                 good_service_description: e.target.value
 
@@ -401,29 +746,22 @@ function RequirementsGeneral({ projectId }) {
 
                                     />
 
-                                    :
-
-                                    r.good_service_description}
-
-                            </td>
+                                </td>
 
 
-
-                            <td>
-
-                                {editingRequirementId === r.id ?
+                                <td>
 
                                     <textarea
 
                                         className="form-control form-control-sm"
 
-                                        value={editedRequirement.supply_description || ""}
+                                        value={newRequirement.supply_description}
 
                                         onChange={e =>
 
-                                            setEditedRequirement({
+                                            setNewRequirement({
 
-                                                ...editedRequirement,
+                                                ...newRequirement,
 
                                                 supply_description: e.target.value
 
@@ -433,29 +771,22 @@ function RequirementsGeneral({ projectId }) {
 
                                     />
 
-                                    :
-
-                                    r.supply_description}
-
-                            </td>
+                                </td>
 
 
-
-                            <td>
-
-                                {editingRequirementId === r.id ?
+                                <td>
 
                                     <textarea
 
                                         className="form-control form-control-sm"
 
-                                        value={editedRequirement.demand_description || ""}
+                                        value={newRequirement.demand_description}
 
                                         onChange={e =>
 
-                                            setEditedRequirement({
+                                            setNewRequirement({
 
-                                                ...editedRequirement,
+                                                ...newRequirement,
 
                                                 demand_description: e.target.value
 
@@ -465,29 +796,22 @@ function RequirementsGeneral({ projectId }) {
 
                                     />
 
-                                    :
-
-                                    r.demand_description}
-
-                            </td>
+                                </td>
 
 
-
-                            <td>
-
-                                {editingRequirementId === r.id ?
+                                <td>
 
                                     <input
 
                                         className="form-control form-control-sm"
 
-                                        value={editedRequirement.unit_of_measure || ""}
+                                        value={newRequirement.unit_of_measure}
 
                                         onChange={e =>
 
-                                            setEditedRequirement({
+                                            setNewRequirement({
 
-                                                ...editedRequirement,
+                                                ...newRequirement,
 
                                                 unit_of_measure: e.target.value
 
@@ -497,17 +821,10 @@ function RequirementsGeneral({ projectId }) {
 
                                     />
 
-                                    :
-
-                                    r.unit_of_measure}
-
-                            </td>
+                                </td>
 
 
-
-                            <td>
-
-                                {editingRequirementId === r.id ?
+                                <td>
 
                                     <input
 
@@ -515,13 +832,13 @@ function RequirementsGeneral({ projectId }) {
 
                                         className="form-control form-control-sm"
 
-                                        value={editedRequirement.start_year || ""}
+                                        value={newRequirement.start_year}
 
                                         onChange={e =>
 
-                                            setEditedRequirement({
+                                            setNewRequirement({
 
-                                                ...editedRequirement,
+                                                ...newRequirement,
 
                                                 start_year: e.target.value
 
@@ -531,17 +848,10 @@ function RequirementsGeneral({ projectId }) {
 
                                     />
 
-                                    :
-
-                                    r.start_year}
-
-                            </td>
+                                </td>
 
 
-
-                            <td>
-
-                                {editingRequirementId === r.id ?
+                                <td>
 
                                     <input
 
@@ -549,13 +859,13 @@ function RequirementsGeneral({ projectId }) {
 
                                         className="form-control form-control-sm"
 
-                                        value={editedRequirement.end_year || ""}
+                                        value={newRequirement.end_year}
 
                                         onChange={e =>
 
-                                            setEditedRequirement({
+                                            setNewRequirement({
 
-                                                ...editedRequirement,
+                                                ...newRequirement,
 
                                                 end_year: e.target.value
 
@@ -565,17 +875,10 @@ function RequirementsGeneral({ projectId }) {
 
                                     />
 
-                                    :
-
-                                    r.end_year}
-
-                            </td>
+                                </td>
 
 
-
-                            <td>
-
-                                {editingRequirementId === r.id ?
+                                <td>
 
                                     <input
 
@@ -583,13 +886,13 @@ function RequirementsGeneral({ projectId }) {
 
                                         className="form-control form-control-sm"
 
-                                        value={editedRequirement.last_projected_year || ""}
+                                        value={newRequirement.last_projected_year}
 
                                         onChange={e =>
 
-                                            setEditedRequirement({
+                                            setNewRequirement({
 
-                                                ...editedRequirement,
+                                                ...newRequirement,
 
                                                 last_projected_year: e.target.value
 
@@ -599,354 +902,57 @@ function RequirementsGeneral({ projectId }) {
 
                                     />
 
-                                    :
+                                </td>
 
-                                    r.last_projected_year}
 
-                            </td>
+                                <td>
 
+                                    <button
 
+                                        className="btn btn-sm btn-success me-2"
 
-                            <td>
+                                        onClick={saveNewRequirement}
 
-                                {editingRequirementId === r.id ?
+                                    >
 
-                                    <>
+                                        Guardar
 
-                                        <button
+                                    </button>
 
-                                            className="btn btn-sm btn-success me-2"
 
-                                            onClick={handleSave}
+                                    <button
 
-                                        >
+                                        className="btn btn-sm btn-secondary"
 
-                                            Guardar
+                                        onClick={() =>
 
-                                        </button>
+                                            setCreatingRequirement(false)
 
+                                        }
 
-                                        <button
+                                    >
 
-                                            className="btn btn-sm btn-secondary"
+                                        Cancelar
 
-                                            onClick={cancelEdit}
+                                    </button>
 
-                                        >
+                                </td>
 
-                                            Cancelar
 
-                                        </button>
+                            </tr>
 
-                                    </>
+                        )}
 
-                                    :
 
-                                    <>
+                    </tbody>
 
-                                        <button
+                </table>
 
-                                            className="btn btn-sm btn-primary me-2"
-
-                                            onClick={() => handleEdit(r)}
-
-                                        >
-
-                                            Editar
-
-                                        </button>
-
-
-                                        <button
-
-                                            className="btn btn-sm btn-danger"
-
-                                            onClick={() => handleDelete(r.id)}
-
-                                        >
-
-                                            Eliminar
-
-                                        </button>
-
-                                    </>
-
-                                }
-
-                            </td>
-
-
-                        </tr>
-
-                    ))}
-
-
-
-                    {/* NUEVO */}
-
-
-                    {creatingRequirement && (
-
-                        <tr>
-
-
-                            <td>Nuevo</td>
-
-
-                            <td>
-
-                                <input
-
-                                    className="form-control form-control-sm"
-
-                                    value={newRequirement.good_service_name}
-
-                                    onChange={e =>
-
-                                        setNewRequirement({
-
-                                            ...newRequirement,
-
-                                            good_service_name: e.target.value
-
-                                        })
-
-                                    }
-
-                                />
-
-                            </td>
-
-
-                            <td>
-
-                                <textarea
-
-                                    className="form-control form-control-sm"
-
-                                    value={newRequirement.good_service_description}
-
-                                    onChange={e =>
-
-                                        setNewRequirement({
-
-                                            ...newRequirement,
-
-                                            good_service_description: e.target.value
-
-                                        })
-
-                                    }
-
-                                />
-
-                            </td>
-
-
-                            <td>
-
-                                <textarea
-
-                                    className="form-control form-control-sm"
-
-                                    value={newRequirement.supply_description}
-
-                                    onChange={e =>
-
-                                        setNewRequirement({
-
-                                            ...newRequirement,
-
-                                            supply_description: e.target.value
-
-                                        })
-
-                                    }
-
-                                />
-
-                            </td>
-
-
-                            <td>
-
-                                <textarea
-
-                                    className="form-control form-control-sm"
-
-                                    value={newRequirement.demand_description}
-
-                                    onChange={e =>
-
-                                        setNewRequirement({
-
-                                            ...newRequirement,
-
-                                            demand_description: e.target.value
-
-                                        })
-
-                                    }
-
-                                />
-
-                            </td>
-
-
-                            <td>
-
-                                <input
-
-                                    className="form-control form-control-sm"
-
-                                    value={newRequirement.unit_of_measure}
-
-                                    onChange={e =>
-
-                                        setNewRequirement({
-
-                                            ...newRequirement,
-
-                                            unit_of_measure: e.target.value
-
-                                        })
-
-                                    }
-
-                                />
-
-                            </td>
-
-
-                            <td>
-
-                                <input
-
-                                    type="number"
-
-                                    className="form-control form-control-sm"
-
-                                    value={newRequirement.start_year}
-
-                                    onChange={e =>
-
-                                        setNewRequirement({
-
-                                            ...newRequirement,
-
-                                            start_year: e.target.value
-
-                                        })
-
-                                    }
-
-                                />
-
-                            </td>
-
-
-                            <td>
-
-                                <input
-
-                                    type="number"
-
-                                    className="form-control form-control-sm"
-
-                                    value={newRequirement.end_year}
-
-                                    onChange={e =>
-
-                                        setNewRequirement({
-
-                                            ...newRequirement,
-
-                                            end_year: e.target.value
-
-                                        })
-
-                                    }
-
-                                />
-
-                            </td>
-
-
-                            <td>
-
-                                <input
-
-                                    type="number"
-
-                                    className="form-control form-control-sm"
-
-                                    value={newRequirement.last_projected_year}
-
-                                    onChange={e =>
-
-                                        setNewRequirement({
-
-                                            ...newRequirement,
-
-                                            last_projected_year: e.target.value
-
-                                        })
-
-                                    }
-
-                                />
-
-                            </td>
-
-
-                            <td>
-
-                                <button
-
-                                    className="btn btn-sm btn-success me-2"
-
-                                    onClick={saveNewRequirement}
-
-                                >
-
-                                    Guardar
-
-                                </button>
-
-
-                                <button
-
-                                    className="btn btn-sm btn-secondary"
-
-                                    onClick={() =>
-
-                                        setCreatingRequirement(false)
-
-                                    }
-
-                                >
-
-                                    Cancelar
-
-                                </button>
-
-                            </td>
-
-
-                        </tr>
-
-                    )}
-
-
-                </tbody>
-
-            </table>
-
-
+            </div>
 
             <button
 
-                className="btn btn-success mb-4"
+                className="btn btn-success btn-sm mb-3"
 
                 onClick={() => setCreatingRequirement(true)}
 

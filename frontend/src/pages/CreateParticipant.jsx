@@ -2,10 +2,12 @@ import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import api from "../services/api";
 import participantOptions from "../data/participantOptions";
+import { useNotification } from "../context/NotificationContext";
 
 function CreateParticipant() {
     const { projectId, generalId } = useParams(); // ✅ generalId viene de ParticipantsGeneral
     const navigate = useNavigate();
+    const { showError } = useNotification();
 
     const [formData, setFormData] = useState({
         participant_actor: "",
@@ -47,7 +49,7 @@ function CreateParticipant() {
             navigate(`/projects/${projectId}/formulation?tab=participants_general`);
         } catch (error) {
             console.error("Error al crear participante:", error);
-            alert("Hubo un error al crear el participante.");
+            showError("Hubo un error al crear el participante.");
         }
     };
 

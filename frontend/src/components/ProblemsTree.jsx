@@ -2,10 +2,10 @@ import { useState, useEffect } from "react";
 import { FaPlus, FaTrash, FaExclamationTriangle } from "react-icons/fa";
 import "../styles/problemsTree.css";
 import api from "../services/api";
-import ConfirmationPopup from "./ConfirmationPopup";
-import SuccessMessage from "./SuccessMessage";
+import { useNotification } from "../context/NotificationContext";
 
 function ProblemsTree({ projectId, projectName, ProjectDescription }) {
+    const { showSuccess: showSuccessMessage, showError, showConfirmation } = useNotification();
     const [problem, setProblem] = useState("");
     const [causes, setCauses] = useState([]);
     const [effects, setEffects] = useState([]);
@@ -15,12 +15,6 @@ function ProblemsTree({ projectId, projectName, ProjectDescription }) {
     const [currentDescription, setCurrentDescription] = useState("");
     const [magnitudeProblem, setMagnitudeProblem] = useState("");
     const [refreshTrigger, setRefreshTrigger] = useState(0);
-
-    // Estados para los nuevos componentes
-    const [showConfirmation, setShowConfirmation] = useState(false);
-    const [confirmationConfig, setConfirmationConfig] = useState({});
-    const [showSuccess, setShowSuccess] = useState(false);
-    const [successMessage, setSuccessMessage] = useState("");
 
     // Cargar el árbol de problemas
     useEffect(() => {
@@ -85,11 +79,6 @@ function ProblemsTree({ projectId, projectName, ProjectDescription }) {
         };
     };
 
-    const showSuccessMessage = (message) => {
-        setSuccessMessage(message);
-        setShowSuccess(true);
-    };
-
     const addEffect = (type, parentIndex = null) => {
         const newEffect = {
             text: "",
@@ -121,9 +110,14 @@ function ProblemsTree({ projectId, projectName, ProjectDescription }) {
     };
 
     // Función para mostrar confirmación de eliminación
-    const confirmDelete = (config) => {
-        setConfirmationConfig(config);
-        setShowConfirmation(true);
+    const confirmDelete = async (config) => {
+        const confirmed = await showConfirmation({
+            title: config.title,
+            message: config.message
+        });
+        if (confirmed) {
+            config.action();
+        }
     };
 
     const removeEffect = async (type, index, parentIndex = null, effectId = null, effectText = "") => {
@@ -463,23 +457,7 @@ function ProblemsTree({ projectId, projectName, ProjectDescription }) {
                 </div>
             </div>
 
-            {/* Componentes de Confirmación y Éxito */}
-            <ConfirmationPopup
-                isOpen={showConfirmation}
-                onConfirm={() => {
-                    confirmationConfig.action();
-                    setShowConfirmation(false);
-                }}
-                onCancel={() => setShowConfirmation(false)}
-                title={confirmationConfig.title}
-                message={confirmationConfig.message}
-            />
-
-            <SuccessMessage
-                message={successMessage}
-                isVisible={showSuccess}
-                onHide={() => setShowSuccess(false)}
-            />
+            {/* Componentes de Confirmación y Éxito se manejan vía NotificationContext */}
         </div>
     );
 }
