@@ -1,0 +1,319 @@
+/* ===== OVERLAY ===== */
+.wizard-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 20px;
+}
+
+/* ===== MODAL ===== */
+.wizard-modal {
+    background: #ffffff;
+    border-radius: 14px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+    width: 95%;
+    max-width: 1100px;
+    max-height: 85vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* ===== HEADER ===== */
+.wizard-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 24px;
+    border-bottom: 1px solid #e5e7eb;
+    background: #f9fafb;
+}
+
+.wizard-header h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 700;
+    color: #111827;
+}
+
+.wizard-close-btn {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #6b7280;
+    line-height: 1;
+    padding: 4px 8px;
+    border-radius: 6px;
+    transition: all 0.15s ease;
+}
+
+.wizard-close-btn:hover {
+    background: #f3f4f6;
+    color: #111827;
+}
+
+/* ===== BODY ===== */
+.wizard-body {
+    padding: 24px;
+    overflow-y: auto;
+    flex: 1;
+}
+
+/* ===== ERROR ===== */
+.wizard-error {
+    padding: 10px 14px;
+    margin-bottom: 16px;
+    background: #fef2f2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+    border-radius: 8px;
+    font-size: 13px;
+}
+
+/* ===== SECTOR SELECT ===== */
+.wizard-sector-select {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 20px;
+    max-width: 400px;
+}
+
+.wizard-sector-select label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #374151;
+}
+
+.wizard-sector-select select {
+    padding: 11px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: inherit;
+    background: #ffffff;
+    color: #111827;
+    appearance: none;
+    min-height: 42px;
+    transition: all 0.2s ease;
+}
+
+.wizard-sector-select select:hover {
+    border-color: #9ca3af;
+}
+
+.wizard-sector-select select:focus {
+    outline: none;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+/* ===== TABLE CONTAINER ===== */
+.wizard-table-container {
+    overflow-x: auto;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+}
+
+/* ===== TABLE ===== */
+.wizard-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.wizard-table thead tr:first-child th {
+    background: #f9fafb;
+    padding: 12px 14px;
+    text-align: left;
+    font-weight: 600;
+    color: #374151;
+    border-bottom: 1px solid #e5e7eb;
+    white-space: nowrap;
+}
+
+/* ===== FILTER ROW ===== */
+.wizard-filter-row th {
+    background: #f3f4f6;
+    padding: 6px 8px;
+    border-bottom: 2px solid #d1d5db;
+}
+
+.wizard-filter-row input {
+    width: 100%;
+    padding: 7px 10px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 12px;
+    font-family: inherit;
+    background: #ffffff;
+    color: #111827;
+    transition: all 0.2s ease;
+    box-sizing: border-box;
+}
+
+.wizard-filter-row input:focus {
+    outline: none;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.12);
+}
+
+/* ===== TABLE BODY ===== */
+.wizard-table tbody td {
+    padding: 10px 14px;
+    border-bottom: 1px solid #f3f4f6;
+    color: #374151;
+    vertical-align: top;
+    max-width: 280px;
+}
+
+.wizard-table tbody td:nth-child(2) {
+    max-width: 320px;
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+.wizard-row-selectable {
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.wizard-row-selectable:hover {
+    background: #eff6ff;
+}
+
+.wizard-row-selected {
+    background: #dbeafe !important;
+    outline: 2px solid #2563eb;
+    outline-offset: -2px;
+}
+
+.wizard-no-results {
+    text-align: center;
+    padding: 24px 14px !important;
+    color: #9ca3af;
+    font-style: italic;
+}
+
+/* ===== CATALOG BUTTON ===== */
+.btn-catalog {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 9px 16px;
+    background: #2563eb;
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-top: 4px;
+}
+
+.btn-catalog:hover {
+    background: #1d4ed8;
+}
+
+/* ===== PAGINATION ===== */
+.wizard-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 4px;
+    margin-top: 12px;
+    font-size: 13px;
+    color: #6b7280;
+}
+
+.wizard-pagination-info {
+    white-space: nowrap;
+}
+
+.wizard-pagination-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.wizard-pagination-controls button {
+    padding: 6px 14px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    background: #ffffff;
+    color: #374151;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.wizard-pagination-controls button:hover:not(:disabled) {
+    background: #f3f4f6;
+    border-color: #9ca3af;
+}
+
+.wizard-pagination-controls button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.wizard-page-number {
+    font-weight: 500;
+    color: #374151;
+    white-space: nowrap;
+}
+
+/* ===== FOOTER ===== */
+.wizard-footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 16px 24px;
+    border-top: 1px solid #e5e7eb;
+    background: #f9fafb;
+}
+
+.wizard-btn-cancel {
+    padding: 9px 20px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    background: #ffffff;
+    color: #374151;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.wizard-btn-cancel:hover {
+    background: #f3f4f6;
+    border-color: #9ca3af;
+}
+
+.wizard-btn-accept {
+    padding: 9px 20px;
+    border: none;
+    border-radius: 8px;
+    background: #2563eb;
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.wizard-btn-accept:hover:not(:disabled) {
+    background: #1d4ed8;
+}
+
+.wizard-btn-accept:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}

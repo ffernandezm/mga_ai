@@ -1,0 +1,351 @@
+@startuml MGA_Backend_Class_Diagram
+
+hide empty members
+skinparam classAttributeIconSize 0
+skinparam packageStyle rectangle
+
+title MGA Backend - UML de Clases
+
+package "API Layer" {
+  class FastAPIApp {
+    +lifespan(app)
+    +read_root()
+    +health_check()
+  }
+
+  class ProjectRouter
+  class ProblemsRouter
+  class ParticipantsRouter
+  class PopulationRouter
+  class ObjectivesRouter
+  class AlternativesRouter
+  class RequirementsRouter
+  class LocalizationRouter
+  class ValueChainRouter
+  class DevelopmentPlansRouter
+  class ChatHistoryRouter
+  class GetTableDataRouter
+}
+
+package "Core Layer" {
+  class DatabaseConfig {
+    +DATABASE_URL: str
+    +engine
+    +SessionLocal
+    +Base
+  }
+
+  class Config {
+    +APP_NAME: str
+    +ENVIRONMENT: str
+    +DATABASE_URL: str
+    +LLM_PROVIDER: str
+    +get_allowed_origins()
+  }
+}
+
+package "AI Layer" {
+  class LLMManager {
+    -llm_provider: str
+    -templates: dict
+    -model
+    +get_prompt_template(tab)
+    +ask(question, tab, context, chat_history, session_id)
+    +validate_configuration()
+  }
+
+  class ChatBotModel {
+    -llm
+    +ask(question, info_json, project_id, tab)
+  }
+
+  class GroqLLM {
+    -model
+    +get_model()
+  }
+
+  class OllamaLLM {
+    -model
+    +get_model()
+  }
+
+  class DocumentRAG {
+    -pdf_path: str
+    -vectorstore
+    +retrieve_context(query, k, component)
+  }
+
+  class QueryProcessor {
+    -llm_model
+    -context: str
+    +ask(query)
+  }
+
+  class Document {
+    -file_path: str
+    +get_text()
+  }
+
+  class BaseLLM {
+    +generate_response(context, query)
+  }
+}
+
+package "Domain Layer" {
+  class Project {
+    +id: int
+    +name: str
+    +description: str
+    +process: str
+    +object_desc: str
+    +region: str
+    +department: str
+    +municipality: str
+    +intervention_type: str
+    +project_typology: str
+    +main_product: str
+    +sector: str
+  }
+
+  class Problems {
+    +id: int
+    +project_id: int
+    +central_problem: text
+    +current_description: text
+    +magnitude_problem: text
+    +problem_tree_json: json
+  }
+
+  class DirectEffect {
+    +id: int
+    +problem_id: int
+    +description: text
+  }
+
+  class IndirectEffect {
+    +id: int
+    +direct_effect_id: int
+    +description: text
+  }
+
+  class DirectCause {
+    +id: int
+    +problem_id: int
+    +description: text
+  }
+
+  class IndirectCause {
+    +id: int
+    +direct_cause_id: int
+    +description: text
+  }
+
+  class ParticipantsGeneral {
+    +id: int
+    +project_id: int
+    +participants_analisis: text
+  }
+
+  class Participants {
+    +id: int
+    +participants_general_id: int
+  }
+
+  class Population {
+    +id: int
+    +project_id: int
+    +population_json: json
+  }
+
+  class AffectedPopulation {
+    +id: int
+    +population_id: int
+  }
+
+  class InterventionPopulation {
+    +id: int
+    +population_id: int
+  }
+
+  class CharacteristicsPopulation {
+    +id: int
+    +population_id: int
+    +classification: str
+    +detail: str
+    +people_number: int
+    +information: str
+  }
+
+  class Objectives {
+    +id: int
+    +project_id: int
+    +general_problem: str
+  }
+
+  class ObjectivesIndicator {
+    +id: int
+    +objective_id: int
+  }
+
+  class ObjectivesCauses {
+    +id: int
+    +objective_id: int
+    +value_chain_objective_id: int
+  }
+
+  class AlternativesGeneral {
+    +id: int
+    +project_id: int
+  }
+
+  class Alternatives {
+    +id: int
+    +alternative_id: int
+  }
+
+  class RequirementsGeneral {
+    +id: int
+    +project_id: int
+  }
+
+  class Requirement {
+    +id: int
+    +requirements_general_id: int
+  }
+
+  class TechnicalAnalysis {
+    +id: int
+    +project_id: int
+  }
+
+  class LocalizationGeneral {
+    +id: int
+    +project_id: int
+  }
+
+  class Localization {
+    +id: int
+    +localization_general_id: int
+  }
+
+  class Survey {
+    +id: int
+    +project_id: int
+  }
+
+  class ValueChain {
+    +id: int
+    +project_id: int
+    +name: str
+  }
+
+  class ValueChainObjectives {
+    +id: int
+    +project_id: int
+    +value_chain_id: int
+    +name: str
+  }
+
+  class Product {
+    +id: int
+    +project_id: int
+    +value_chain_objective_id: int
+  }
+
+  class Activity {
+    +id: int
+    +project_id: int
+    +product_id: int
+  }
+
+  class DevelopmentPlans {
+    +id: int
+    +project_id: int
+  }
+
+  class Pnd {
+    +id: int
+    +development_plan_id: int
+  }
+
+  class ChatHistory {
+    +id: int
+    +project_id: int
+    +tab: str
+    +session_id: str
+    +sender: str
+    +message: text
+    +timestamp: datetime
+  }
+}
+
+' API -> Core
+FastAPIApp ..> DatabaseConfig : uses
+FastAPIApp ..> Config : reads
+
+ProjectRouter ..> Project : CRUD
+ProblemsRouter ..> Problems : CRUD
+ParticipantsRouter ..> ParticipantsGeneral : CRUD
+PopulationRouter ..> Population : CRUD
+ObjectivesRouter ..> Objectives : CRUD
+AlternativesRouter ..> AlternativesGeneral : CRUD
+RequirementsRouter ..> RequirementsGeneral : CRUD
+LocalizationRouter ..> LocalizationGeneral : CRUD
+ValueChainRouter ..> ValueChain : CRUD
+DevelopmentPlansRouter ..> DevelopmentPlans : CRUD
+ChatHistoryRouter ..> ChatHistory : CRUD
+GetTableDataRouter ..> Project : dynamic query
+
+ChatHistoryRouter ..> LLMManager : ask()
+ProblemsRouter ..> ChatBotModel : response_ai
+
+' AI relations
+LLMManager ..> DocumentRAG : optional context
+QueryProcessor ..> Document : extract text
+QueryProcessor ..> ChatBotModel : invoke
+GroqLLM ..|> BaseLLM
+OllamaLLM ..|> BaseLLM
+
+' Dominio: agregados y relaciones
+Project "1" *-- "0..1" Problems
+Project "1" *-- "0..1" ParticipantsGeneral
+Project "1" *-- "0..1" Population
+Project "1" *-- "0..1" Objectives
+Project "1" *-- "0..1" AlternativesGeneral
+Project "1" *-- "0..1" RequirementsGeneral
+Project "1" *-- "0..1" TechnicalAnalysis
+Project "1" *-- "0..1" LocalizationGeneral
+Project "1" *-- "0..1" Survey
+Project "1" *-- "0..*" ValueChain
+Project "1" *-- "0..*" ValueChainObjectives
+Project "1" *-- "0..*" Product
+Project "1" *-- "0..*" Activity
+Project "1" *-- "0..1" DevelopmentPlans
+Project "1" *-- "0..*" ChatHistory
+
+Problems "1" *-- "0..*" DirectEffect
+Problems "1" *-- "0..*" DirectCause
+DirectEffect "1" *-- "0..*" IndirectEffect
+DirectCause "1" *-- "0..*" IndirectCause
+
+ParticipantsGeneral "1" *-- "0..*" Participants
+
+Population "1" *-- "0..*" AffectedPopulation
+Population "1" *-- "0..*" InterventionPopulation
+Population "1" *-- "0..*" CharacteristicsPopulation
+
+Objectives "1" *-- "0..*" ObjectivesIndicator
+Objectives "1" *-- "0..*" ObjectivesCauses
+
+AlternativesGeneral "1" *-- "0..*" Alternatives
+RequirementsGeneral "1" *-- "0..*" Requirement
+LocalizationGeneral "1" *-- "0..*" Localization
+
+ValueChain "1" *-- "0..*" ValueChainObjectives
+ValueChainObjectives "1" *-- "0..*" Product
+Product "1" *-- "0..*" Activity
+ValueChainObjectives "1" -- "0..*" ObjectivesCauses
+
+DevelopmentPlans "1" *-- "0..*" Pnd
+
+@enduml

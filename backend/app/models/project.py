@@ -3,7 +3,7 @@ import csv
 import os
 from sqlalchemy.orm import Session, relationship
 from sqlalchemy import Column, Integer, String, ForeignKey
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 from typing import List, Optional
 
 from app.models.problems import Problems
@@ -36,13 +36,11 @@ class Project(Base):
     description = Column(String)
     process = Column(String)
     object_desc = Column(String) # 'objeto' es palabra reservada en algunos contextos, uso object_desc
-    region = Column(String)
-    department = Column(String)
-    municipality = Column(String)
     intervention_type = Column(String)
     project_typology = Column(String)
     main_product = Column(String)
     sector = Column(String)
+    indicator_code = Column(String)
 
     # Relación con Problems (CORREGIDO)
     problem = relationship(
@@ -147,6 +145,13 @@ class Project(Base):
         cascade="all, delete-orphan"
     )
 
+    # Relación con ProjectLocalizations
+    project_localizations = relationship(
+        "ProjectLocalization",
+        back_populates="project",
+        cascade="all, delete-orphan"
+    )
+
 
 
 # Esquema Pydantic
@@ -155,40 +160,40 @@ class ProjectBase(BaseModel):
     description: Optional[str] = None
     process: Optional[str] = ""
     object_desc: Optional[str] = ""
-    region: Optional[str] = ""
-    department: Optional[str] = ""
-    municipality: Optional[str] = ""
     intervention_type: Optional[str] = ""
     project_typology: Optional[str] = ""
     main_product: Optional[str] = ""
     sector: Optional[str] = ""
+    indicator_code: Optional[str] = ""
 
 class ProjectCreate(BaseModel):
     name: str
     description: Optional[str] = None
     process: Optional[str] = ""
     object_desc: Optional[str] = ""
-    region: Optional[str] = ""
-    department: Optional[str] = ""
-    municipality: Optional[str] = ""
     intervention_type: Optional[str] = ""
     project_typology: Optional[str] = ""
     main_product: Optional[str] = ""
     sector: Optional[str] = ""
+    indicator_code: Optional[str] = ""
+
+    @field_validator('indicator_code', mode='before')
+    @classmethod
+    def coerce_indicator_code(cls, v):
+        if v is not None:
+            return str(v)
+        return v
 
 class ProjectUpdate(BaseModel):
     name: Optional[str] = None
     description: Optional[str] = None
     process: Optional[str] = None
     object_desc: Optional[str] = None
-    region: Optional[str] = None
-    department: Optional[str] = None
-    municipality: Optional[str] = None
     intervention_type: Optional[str] = None
     project_typology: Optional[str] = None
     main_product: Optional[str] = None
     sector: Optional[str] = None
-
+    indicator_code: Optional[str] = None
 class ProjectResponse(ProjectBase):
     id: int
 

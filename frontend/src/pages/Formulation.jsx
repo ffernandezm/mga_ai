@@ -93,7 +93,13 @@ function Formulation() {
             {/* Columna izquierda */}
             <div className="flex-grow-1 d-flex flex-column overflow-auto">
                 <div className="px-4 pt-3">
-                    <div className="text-end mt-3">
+                    <div className="text-end mt-3 d-flex justify-content-end gap-2">
+                        <button
+                            className="btn btn-outline-primary"
+                            onClick={() => navigate(`/projects/${id}/edit`)}
+                        >
+                            ✏️ Editar Proyecto
+                        </button>
                         <button
                             className="btn btn-success"
                             onClick={() => navigate(`/projects/${id}/survey`)}
