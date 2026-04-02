@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../services/api";
+import { useNotification } from "../context/NotificationContext";
 
 function DevelopmentPlan({ projectId }) {
     const navigate = useNavigate();
+    const { showSuccess, showError } = useNotification();
 
     // Estado para saber si ya existe el registro (PUT) o es nuevo (POST)
     const [planId, setPlanId] = useState(null);
@@ -122,10 +124,10 @@ function DevelopmentPlan({ projectId }) {
                 const res = await api.post(`/development_plans/`, payload);
                 setPlanId(res.data.id);
             }
-            alert("Plan de desarrollo guardado exitosamente");
+            showSuccess("Plan de desarrollo guardado exitosamente");
         } catch (err) {
             console.error(err);
-            alert("Error al guardar el plan de desarrollo");
+            showError("Error al guardar el plan de desarrollo");
         }
     };
 
@@ -163,8 +165,8 @@ function DevelopmentPlan({ projectId }) {
                         <div className="col-12 mt-4">
                             <h6 className="mb-3">Detalle PND</h6>
                             <div className="table-responsive">
-                                <table className="table table-bordered table-sm">
-                                    <thead className="table-light">
+                                <table className="table table-striped table-bordered">
+                                    <thead className="table-dark">
                                         <tr>
                                             <th>Transformación</th>
                                             <th>Pilar</th>
@@ -189,8 +191,8 @@ function DevelopmentPlan({ projectId }) {
                                                     <input type="text" className="form-control form-control-sm" value={pnd.component} onChange={(e) => handlePndChange(index, "component", e.target.value)} />
                                                 </td>
                                                 <td className="text-center">
-                                                    <button type="button" className="btn btn-danger btn-sm" onClick={() => removePndRow(index)}>
-                                                        X
+                                                    <button type="button" className="btn btn-sm btn-danger" onClick={() => removePndRow(index)}>
+                                                        Eliminar
                                                     </button>
                                                 </td>
                                             </tr>
@@ -203,7 +205,7 @@ function DevelopmentPlan({ projectId }) {
                                     </tbody>
                                 </table>
                             </div>
-                            <button type="button" className="btn btn-outline-primary btn-sm" onClick={addPndRow}>
+                            <button type="button" className="btn btn-success btn-sm" onClick={addPndRow}>
                                 + Agregar Fila
                             </button>
                         </div>

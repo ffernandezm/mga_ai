@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../services/api";
+import { useNotification } from "../context/NotificationContext";
 
 function AlternativesGeneral({ projectId }) {
+    const { showSuccess, showError, showConfirmation } = useNotification();
     const [alternativesGeneral, setAlternativesGeneral] = useState(null);
     const [alternatives, setAlternatives] = useState([]);
     const [solutionAlternatives, setSolutionAlternatives] = useState(false);
@@ -45,7 +47,7 @@ function AlternativesGeneral({ projectId }) {
 
     const handleAddAlternative = () => {
         if (!alternativesGeneral) {
-            alert("Primero debes guardar las alternativas generales");
+            showError("Primero debes guardar las alternativas generales");
             return;
         }
 
@@ -115,21 +117,25 @@ function AlternativesGeneral({ projectId }) {
 
         } catch (err) {
             console.error(err);
-            alert("Error guardando alternativa");
+            showError("Error guardando alternativa");
         }
     };
 
     const handleDelete = async (id, index) => {
-        if (!window.confirm("¿Eliminar esta alternativa?")) return;
+        const confirmed = await showConfirmation({
+            title: "Eliminar Alternativa",
+            message: "¿Eliminar esta alternativa?"
+        });
+        if (!confirmed) return;
 
         try {
             await api.delete(`/alternatives/${id}`);
             const copy = [...alternatives];
             copy.splice(index, 1);
             setAlternatives(copy);
-
+            showSuccess("Alternativa eliminada correctamente.");
         } catch (err) {
-            alert("Error eliminando alternativa");
+            showError("Error eliminando alternativa");
         }
     };
 
@@ -149,17 +155,17 @@ function AlternativesGeneral({ projectId }) {
             if (alternativesGeneral) {
 
                 await api.put(`/alternatives_general/${projectId}`, payload);
-                alert("Actualizado");
+                showSuccess("Actualizado correctamente.");
 
             } else {
 
                 const res = await api.post("/alternatives_general/", payload);
                 setAlternativesGeneral(res.data);
-                alert("Creado");
+                showSuccess("Creado correctamente.");
             }
 
         } catch (err) {
-            alert("Error guardando");
+            showError("Error guardando");
         }
     };
 
@@ -199,92 +205,94 @@ function AlternativesGeneral({ projectId }) {
 
             <h3>Alternativas</h3>
 
-            <button className="btn btn-success mb-3"
+            <button className="btn btn-success btn-sm mb-3"
                 onClick={handleAddAlternative}>
                 Crear Alternativa
             </button>
 
-            <table className="table table-bordered">
-                <thead className="table-dark">
-                    <tr>
-                        <th>Nombre</th>
-                        <th>Activo</th>
-                        <th>Estado</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
-
-                <tbody>
-                    {alternatives.length > 0 ? alternatives.map((a, i) => (
-
-                        <tr key={i}>
-
-                            <td>
-                                {a.isEditing
-                                    ? <input className="form-control"
-                                        value={a.name}
-                                        onChange={e => handleChange(i, "name", e.target.value)}
-                                    />
-                                    : a.name}
-                            </td>
-
-                            <td className="text-center">
-                                {a.isEditing
-                                    ? <input type="checkbox"
-                                        checked={a.active}
-                                        onChange={e => handleChange(i, "active", e.target.checked)}
-                                    />
-                                    : a.active ? "Sí" : "No"}
-                            </td>
-
-                            <td>
-                                {a.isEditing
-                                    ? <input className="form-control"
-                                        value={a.state || ""}
-                                        onChange={e => handleChange(i, "state", e.target.value)}
-                                    />
-                                    : a.state}
-                            </td>
-
-                            <td>
-                                {a.isEditing ? (
-                                    <>
-                                        <button className="btn btn-success btn-sm me-2"
-                                            onClick={() => handleSave(i)}>
-                                            Guardar
-                                        </button>
-
-                                        <button className="btn btn-secondary btn-sm"
-                                            onClick={() => handleCancel(i)}>
-                                            Cancelar
-                                        </button>
-                                    </>
-                                ) : (
-                                    <>
-                                        <button className="btn btn-primary btn-sm me-2"
-                                            onClick={() => handleEdit(i)}>
-                                            Editar
-                                        </button>
-
-                                        <button className="btn btn-danger btn-sm"
-                                            onClick={() => handleDelete(a.id, i)}>
-                                            Eliminar
-                                        </button>
-                                    </>
-                                )}
-                            </td>
-
-                        </tr>
-
-                    )) : (
+            <div className="table-responsive">
+                <table className="table table-striped table-bordered">
+                    <thead className="table-dark">
                         <tr>
-                            <td colSpan="4" className="text-center">
-                                No hay alternativas registradas
-                            </td>
+                            <th>Nombre</th>
+                            <th>Activo</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
                         </tr>
-                    )}
-                </tbody>
-            </table>
+                    </thead>
+
+                    <tbody>
+                        {alternatives.length > 0 ? alternatives.map((a, i) => (
+
+                            <tr key={i}>
+
+                                <td>
+                                    {a.isEditing
+                                        ? <input className="form-control"
+                                            value={a.name}
+                                            onChange={e => handleChange(i, "name", e.target.value)}
+                                        />
+                                        : a.name}
+                                </td>
+
+                                <td className="text-center">
+                                    {a.isEditing
+                                        ? <input type="checkbox"
+                                            checked={a.active}
+                                            onChange={e => handleChange(i, "active", e.target.checked)}
+                                        />
+                                        : a.active ? "Sí" : "No"}
+                                </td>
+
+                                <td>
+                                    {a.isEditing
+                                        ? <input className="form-control"
+                                            value={a.state || ""}
+                                            onChange={e => handleChange(i, "state", e.target.value)}
+                                        />
+                                        : a.state}
+                                </td>
+
+                                <td>
+                                    {a.isEditing ? (
+                                        <>
+                                            <button className="btn btn-success btn-sm me-2"
+                                                onClick={() => handleSave(i)}>
+                                                Guardar
+                                            </button>
+
+                                            <button className="btn btn-secondary btn-sm"
+                                                onClick={() => handleCancel(i)}>
+                                                Cancelar
+                                            </button>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <button className="btn btn-primary btn-sm me-2"
+                                                onClick={() => handleEdit(i)}>
+                                                Editar
+                                            </button>
+
+                                            <button className="btn btn-danger btn-sm"
+                                                onClick={() => handleDelete(a.id, i)}>
+                                                Eliminar
+                                            </button>
+                                        </>
+                                    )}
+                                </td>
+
+                            </tr>
+
+                        )) : (
+                            <tr>
+                                <td colSpan="4" className="text-center">
+                                    No hay alternativas registradas
+                                </td>
+                            </tr>
+                        )}
+                    </tbody>
+                </table>
+            </div>
 
             <div className="mt-4">
                 <button className="btn btn-secondary me-2"

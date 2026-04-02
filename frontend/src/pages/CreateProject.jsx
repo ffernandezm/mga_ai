@@ -5,11 +5,13 @@ import processCsv from "../data/proceso.csv?raw";
 import territorialEntitiesCsv from "../data/entidades_territoriales.csv?raw";
 import investmentTypologyCsv from "../data/inversion_tipologia.csv?raw";
 import ProductCatalogWizard from "../components/ProductCatalogWizard";
+import { useNotification } from "../context/NotificationContext";
 import "../styles/ProjectForm.css";
 
 function CreateProject() {
     const { id } = useParams();
     const navigate = useNavigate();
+    const { showSuccess, showError } = useNotification();
 
     // Estado del proyecto (sin region/department/municipality)
     const [project, setProject] = useState({
@@ -302,6 +304,7 @@ function CreateProject() {
             navigate("/projects");
         } catch (error) {
             console.error("Error saving project", error);
+            showError("Error al guardar el proyecto.");
         } finally {
             setLoading(false);
         }
@@ -532,10 +535,10 @@ function CreateProject() {
                 </section>
 
                 <div className="form-actions">
-                    <button type="submit" className="btn-primary" disabled={loading}>
+                    <button type="submit" className="btn-submit" disabled={loading}>
                         {loading ? "Guardando..." : id ? "Actualizar Proyecto" : "Crear Proyecto"}
                     </button>
-                    <button type="button" className="btn-secondary" onClick={() => navigate("/projects")}>
+                    <button type="button" className="btn-cancel" onClick={() => navigate("/projects")}>
                         Cancelar
                     </button>
                 </div>

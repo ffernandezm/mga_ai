@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import api from "../services/api";
+import { useNotification } from "../context/NotificationContext";
 
 function ParticipantsGeneral({ projectId }) {
+    const { showSuccess, showError, showConfirmation } = useNotification();
     const [participantsGeneral, setParticipantsGeneral] = useState([]);
     const navigate = useNavigate();
     const [analysis, setAnalysis] = useState("");
@@ -29,7 +31,7 @@ function ParticipantsGeneral({ projectId }) {
     }, [projectId]);
 
     const handleSubmit = async () => {
-        if (!projectId) return alert("No hay proyecto seleccionado.");
+        if (!projectId) return showError("No hay proyecto seleccionado.");
         const payload = {
             project_id: projectId,
             participants_analisis: analysis,
@@ -43,25 +45,30 @@ function ParticipantsGeneral({ projectId }) {
                 const res = await api.post(`/participants_general`, payload);
                 setGeneralId(res.data.id);
             }
-            alert("Participantes actualizados correctamente.");
+            showSuccess("Participantes actualizados correctamente.");
             fetchParticipantsGeneral();
         } catch (err) {
             console.error("Error:", err);
-            alert("Error al guardar la información.");
+            showError("Error al guardar la información.");
         }
     };
 
     const handleDeleteParticipant = async (participantId) => {
         if (!participantId) return;
-        if (window.confirm("¿Estás seguro de eliminar este participante?")) {
+        const confirmed = await showConfirmation({
+            title: "Eliminar Participante",
+            message: "¿Estás seguro de eliminar este participante?"
+        });
+        if (confirmed) {
             try {
                 await api.delete(`/participants/${participantId}`);
                 setParticipantsGeneral((prev) =>
                     prev.filter((p) => p.id !== participantId)
                 );
+                showSuccess("Participante eliminado correctamente.");
             } catch (error) {
                 console.error("Error al eliminar participante:", error);
-                alert("Error al eliminar el participante.");
+                showError("Error al eliminar el participante.");
             }
         }
     };
@@ -72,7 +79,7 @@ function ParticipantsGeneral({ projectId }) {
 
             <Link
                 to={`/projects/${projectId}/create-participant/${generalId}`}
-                className="btn btn-success mb-3"
+                className="btn btn-success btn-sm mb-3"
             >
                 Crear participante
             </Link>
@@ -124,7 +131,7 @@ function ParticipantsGeneral({ projectId }) {
                     </tbody>
                 </table>
             </div>
-            
+
 
             <div className="mb-3">
                 <label className="form-label">Análisis de los participantes</label>

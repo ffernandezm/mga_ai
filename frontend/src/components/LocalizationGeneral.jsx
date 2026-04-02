@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../services/api";
+import { useNotification } from "../context/NotificationContext";
 
 function LocalizationGeneral({ projectId }) {
 
     const navigate = useNavigate();
+    const { showSuccess, showError } = useNotification();
 
     const fields = [
         { key: "administrative_political_factors", label: "Aspectos administrativos y políticos" },
@@ -85,7 +87,7 @@ function LocalizationGeneral({ projectId }) {
 
     const saveGeneral = async () => {
         await api.put(`/localization_general/project/${projectId}`, form);
-        alert("Saved");
+        showSuccess("Factores guardados correctamente.");
     };
 
     // ==========================
@@ -139,7 +141,7 @@ function LocalizationGeneral({ projectId }) {
     return (
         <div className="container mt-4">
 
-            <h2>Localization Factors</h2>
+            <h2>Factores de Localización</h2>
 
             <div className="row">
                 {fields.map(field => (
@@ -165,211 +167,213 @@ function LocalizationGeneral({ projectId }) {
             </div>
 
             <button className="btn btn-primary mt-3" onClick={saveGeneral}>
-                Save Factors
+                Guardar Factores
             </button>
 
             <hr />
 
-            <h3>Localization Records</h3>
+            <h3>Registros de Localización</h3>
 
-            <table className="table table-bordered">
-                <thead className="table-dark">
-                    <tr>
-                        <th>ID</th>
-                        <th>Region</th>
-                        <th>Department</th>
-                        <th>City</th>
-                        <th>Type Group</th>
-                        <th>Group</th>
-                        <th>Entity</th>
-                        <th>Geo</th>
-                        <th>Lat</th>
-                        <th>Lng</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
+            <div className="table-responsive">
+                <table className="table table-striped table-bordered">
+                    <thead className="table-dark">
+                        <tr>
+                            <th>ID</th>
+                            <th>Región</th>
+                            <th>Departamento</th>
+                            <th>Ciudad</th>
+                            <th>Tipo Grupo</th>
+                            <th>Grupo</th>
+                            <th>Entidad</th>
+                            <th>Geo</th>
+                            <th>Lat</th>
+                            <th>Lng</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
 
-                    {localizations.map(loc => (
-                        <tr key={loc.id}>
-                            <td>{loc.id}</td>
+                        {localizations.map(loc => (
+                            <tr key={loc.id}>
+                                <td>{loc.id}</td>
 
-                            {editingId === loc.id ? (
-                                <>
-                                    {["region", "department", "city", "type_group", "group", "entity"].map(field => (
-                                        <td key={field}>
+                                {editingId === loc.id ? (
+                                    <>
+                                        {["region", "department", "city", "type_group", "group", "entity"].map(field => (
+                                            <td key={field}>
+                                                <input
+                                                    className="form-control"
+                                                    value={editedLoc[field] || ""}
+                                                    onChange={(e) =>
+                                                        setEditedLoc({
+                                                            ...editedLoc,
+                                                            [field]: e.target.value
+                                                        })
+                                                    }
+                                                />
+                                            </td>
+                                        ))}
+
+                                        <td>
                                             <input
-                                                className="form-control"
-                                                value={editedLoc[field] || ""}
+                                                type="checkbox"
+                                                checked={editedLoc.georeferencing || false}
                                                 onChange={(e) =>
                                                     setEditedLoc({
                                                         ...editedLoc,
-                                                        [field]: e.target.value
+                                                        georeferencing: e.target.checked
                                                     })
                                                 }
                                             />
                                         </td>
-                                    ))}
 
-                                    <td>
-                                        <input
-                                            type="checkbox"
-                                            checked={editedLoc.georeferencing || false}
-                                            onChange={(e) =>
-                                                setEditedLoc({
-                                                    ...editedLoc,
-                                                    georeferencing: e.target.checked
-                                                })
-                                            }
-                                        />
-                                    </td>
+                                        <td>
+                                            <input
+                                                type="number"
+                                                className="form-control"
+                                                value={editedLoc.latitude || ""}
+                                                disabled={!editedLoc.georeferencing}
+                                                onChange={(e) =>
+                                                    setEditedLoc({
+                                                        ...editedLoc,
+                                                        latitude: e.target.value
+                                                    })
+                                                }
+                                            />
+                                        </td>
 
-                                    <td>
+                                        <td>
+                                            <input
+                                                type="number"
+                                                className="form-control"
+                                                value={editedLoc.longitude || ""}
+                                                disabled={!editedLoc.georeferencing}
+                                                onChange={(e) =>
+                                                    setEditedLoc({
+                                                        ...editedLoc,
+                                                        longitude: e.target.value
+                                                    })
+                                                }
+                                            />
+                                        </td>
+
+                                        <td>
+                                            <button className="btn btn-success btn-sm me-2" onClick={saveEdit}>Guardar</button>
+                                            <button className="btn btn-secondary btn-sm" onClick={() => setEditingId(null)}>Cancelar</button>
+                                        </td>
+                                    </>
+                                ) : (
+                                    <>
+                                        <td>{loc.region}</td>
+                                        <td>{loc.department}</td>
+                                        <td>{loc.city}</td>
+                                        <td>{loc.type_group}</td>
+                                        <td>{loc.group}</td>
+                                        <td>{loc.entity}</td>
+                                        <td>{loc.georeferencing ? "Sí" : "No"}</td>
+                                        <td>{loc.latitude}</td>
+                                        <td>{loc.longitude}</td>
+                                        <td>
+                                            <button
+                                                className="btn btn-primary btn-sm me-2"
+                                                onClick={() => {
+                                                    setEditingId(loc.id);
+                                                    setEditedLoc(loc);
+                                                }}
+                                            >
+                                                Editar
+                                            </button>
+                                            <button
+                                                className="btn btn-danger btn-sm"
+                                                onClick={() => handleDelete(loc.id)}
+                                            >
+                                                Eliminar
+                                            </button>
+                                        </td>
+                                    </>
+                                )}
+                            </tr>
+                        ))}
+
+                        {creating && (
+                            <tr>
+                                <td>Nuevo</td>
+
+                                {["region", "department", "city", "type_group", "group", "entity"].map(field => (
+                                    <td key={field}>
                                         <input
-                                            type="number"
                                             className="form-control"
-                                            value={editedLoc.latitude || ""}
-                                            disabled={!editedLoc.georeferencing}
+                                            value={newLoc[field]}
                                             onChange={(e) =>
-                                                setEditedLoc({
-                                                    ...editedLoc,
-                                                    latitude: e.target.value
+                                                setNewLoc({
+                                                    ...newLoc,
+                                                    [field]: e.target.value
                                                 })
                                             }
                                         />
                                     </td>
+                                ))}
 
-                                    <td>
-                                        <input
-                                            type="number"
-                                            className="form-control"
-                                            value={editedLoc.longitude || ""}
-                                            disabled={!editedLoc.georeferencing}
-                                            onChange={(e) =>
-                                                setEditedLoc({
-                                                    ...editedLoc,
-                                                    longitude: e.target.value
-                                                })
-                                            }
-                                        />
-                                    </td>
-
-                                    <td>
-                                        <button className="btn btn-success btn-sm me-2" onClick={saveEdit}>Save</button>
-                                        <button className="btn btn-secondary btn-sm" onClick={() => setEditingId(null)}>Cancel</button>
-                                    </td>
-                                </>
-                            ) : (
-                                <>
-                                    <td>{loc.region}</td>
-                                    <td>{loc.department}</td>
-                                    <td>{loc.city}</td>
-                                    <td>{loc.type_group}</td>
-                                    <td>{loc.group}</td>
-                                    <td>{loc.entity}</td>
-                                    <td>{loc.georeferencing ? "Yes" : "No"}</td>
-                                    <td>{loc.latitude}</td>
-                                    <td>{loc.longitude}</td>
-                                    <td>
-                                        <button
-                                            className="btn btn-primary btn-sm me-2"
-                                            onClick={() => {
-                                                setEditingId(loc.id);
-                                                setEditedLoc(loc);
-                                            }}
-                                        >
-                                            Edit
-                                        </button>
-                                        <button
-                                            className="btn btn-danger btn-sm"
-                                            onClick={() => handleDelete(loc.id)}
-                                        >
-                                            Delete
-                                        </button>
-                                    </td>
-                                </>
-                            )}
-                        </tr>
-                    ))}
-
-                    {creating && (
-                        <tr>
-                            <td>New</td>
-
-                            {["region", "department", "city", "type_group", "group", "entity"].map(field => (
-                                <td key={field}>
+                                <td>
                                     <input
-                                        className="form-control"
-                                        value={newLoc[field]}
+                                        type="checkbox"
+                                        checked={newLoc.georeferencing}
                                         onChange={(e) =>
                                             setNewLoc({
                                                 ...newLoc,
-                                                [field]: e.target.value
+                                                georeferencing: e.target.checked
                                             })
                                         }
                                     />
                                 </td>
-                            ))}
 
-                            <td>
-                                <input
-                                    type="checkbox"
-                                    checked={newLoc.georeferencing}
-                                    onChange={(e) =>
-                                        setNewLoc({
-                                            ...newLoc,
-                                            georeferencing: e.target.checked
-                                        })
-                                    }
-                                />
-                            </td>
+                                <td>
+                                    <input
+                                        type="number"
+                                        className="form-control"
+                                        value={newLoc.latitude}
+                                        disabled={!newLoc.georeferencing}
+                                        onChange={(e) =>
+                                            setNewLoc({
+                                                ...newLoc,
+                                                latitude: e.target.value
+                                            })
+                                        }
+                                    />
+                                </td>
 
-                            <td>
-                                <input
-                                    type="number"
-                                    className="form-control"
-                                    value={newLoc.latitude}
-                                    disabled={!newLoc.georeferencing}
-                                    onChange={(e) =>
-                                        setNewLoc({
-                                            ...newLoc,
-                                            latitude: e.target.value
-                                        })
-                                    }
-                                />
-                            </td>
+                                <td>
+                                    <input
+                                        type="number"
+                                        className="form-control"
+                                        value={newLoc.longitude}
+                                        disabled={!newLoc.georeferencing}
+                                        onChange={(e) =>
+                                            setNewLoc({
+                                                ...newLoc,
+                                                longitude: e.target.value
+                                            })
+                                        }
+                                    />
+                                </td>
 
-                            <td>
-                                <input
-                                    type="number"
-                                    className="form-control"
-                                    value={newLoc.longitude}
-                                    disabled={!newLoc.georeferencing}
-                                    onChange={(e) =>
-                                        setNewLoc({
-                                            ...newLoc,
-                                            longitude: e.target.value
-                                        })
-                                    }
-                                />
-                            </td>
+                                <td>
+                                    <button className="btn btn-success btn-sm me-2" onClick={saveNewLocalization}>Guardar</button>
+                                    <button className="btn btn-secondary btn-sm" onClick={() => setCreating(false)}>Cancelar</button>
+                                </td>
+                            </tr>
+                        )}
 
-                            <td>
-                                <button className="btn btn-success btn-sm me-2" onClick={saveNewLocalization}>Save</button>
-                                <button className="btn btn-secondary btn-sm" onClick={() => setCreating(false)}>Cancel</button>
-                            </td>
-                        </tr>
-                    )}
-
-                </tbody>
-            </table>
+                    </tbody>
+                </table>
+            </div>
 
             <button
-                className="btn btn-success"
+                className="btn btn-success btn-sm mb-3"
                 onClick={() => setCreating(true)}
                 disabled={!generalId}
             >
-                Add Record
+                Crear Registro
             </button>
 
             <div className="mt-4">
@@ -377,7 +381,7 @@ function LocalizationGeneral({ projectId }) {
                     className="btn btn-secondary"
                     onClick={() => navigate("/projects")}
                 >
-                    Back
+                    Regresar
                 </button>
             </div>
 

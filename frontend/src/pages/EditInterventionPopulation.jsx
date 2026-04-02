@@ -2,10 +2,12 @@ import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import api from "../services/api";
 import populationOptions from "../data/populationOptions";
+import { useNotification } from "../context/NotificationContext";
 
 function EditInterventionPopulation() {
     const { projectId, InterventionPopulationId } = useParams();
     const navigate = useNavigate();
+    const { showError } = useNotification();
 
     const [formData, setFormData] = useState({
         region: "",
@@ -70,7 +72,7 @@ function EditInterventionPopulation() {
             navigate(`/projects/${projectId}`);
         } catch (error) {
             console.error("Error al actualizar registro:", error);
-            alert("Hubo un error al actualizar el registro.");
+            showError("Hubo un error al actualizar el registro.");
         }
     };
 

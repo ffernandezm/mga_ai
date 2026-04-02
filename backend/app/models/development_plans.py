@@ -167,8 +167,19 @@ def update_development_plan(project_id: int, updated: DevelopmentPlanUpdate, db:
         raise HTTPException(status_code=404, detail="Development plan not found")
 
     updated_data = updated.dict(exclude_unset=True)
+    pnds_data = updated_data.pop("pnds", None)
+
     for key, value in updated_data.items():
         setattr(plan, key, value)
+
+    if pnds_data is not None:
+        # Eliminar PNDs existentes y recrear
+        for existing_pnd in plan.pnds:
+            db.delete(existing_pnd)
+        db.flush()
+        for pnd_item in pnds_data:
+            pnd_item["development_plan_id"] = plan.id
+            db.add(Pnd(**pnd_item))
 
     db.commit()
     db.refresh(plan)

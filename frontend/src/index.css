@@ -58,9 +58,8 @@ button {
   font-size: 1em;
   font-weight: 500;
   font-family: inherit;
-  background-color: #1a1a1a;
   cursor: pointer;
-  transition: border-color 0.25s;
+  transition: all 0.2s ease;
 }
 
 button:hover {
@@ -72,6 +71,149 @@ button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
 }
 
+/* ===== DESIGN SYSTEM - Form Layout ===== */
+
+.form-header {
+  text-align: left;
+  width: 100%;
+  max-width: 1000px;
+}
+
+.form-header h2 {
+  font-size: 1.6rem;
+  color: #1e293b;
+  margin-bottom: 4px;
+}
+
+.form-header p {
+  color: #64748b;
+  font-size: 0.95rem;
+}
+
+.form-section {
+  margin-bottom: 8px;
+}
+
+.form-section h3 {
+  font-size: 1.1rem;
+  color: #1e293b;
+  border-bottom: 2px solid #e2e8f0;
+  padding-bottom: 8px;
+  margin-bottom: 16px;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.form-grid .full-width {
+  grid-column: 1 / -1;
+}
+
+.form-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  padding-top: 16px;
+  border-top: 1px solid #e5e7eb;
+}
+
+/* ===== DESIGN SYSTEM - Tables ===== */
+
+.table {
+  border-radius: 8px;
+  overflow: hidden;
+  font-size: 0.9rem;
+}
+
+.table thead th {
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  padding: 12px 14px;
+  white-space: nowrap;
+}
+
+.table tbody td {
+  padding: 10px 14px;
+  vertical-align: middle;
+}
+
+.table-striped>tbody>tr:nth-of-type(odd)>td {
+  background-color: rgba(0, 0, 0, 0.02);
+}
+
+.table-bordered {
+  border: 1px solid #dee2e6;
+}
+
+.table>tbody>tr:hover>td {
+  background-color: rgba(37, 99, 235, 0.04);
+  transition: background-color 0.15s ease;
+}
+
+/* ===== DESIGN SYSTEM - Buttons ===== */
+
+.btn {
+  font-weight: 500;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.btn:active {
+  transform: translateY(0);
+}
+
+.btn-sm {
+  font-size: 0.8rem;
+  padding: 4px 10px;
+}
+
+/* ===== DESIGN SYSTEM - Forms ===== */
+
+.form-control:focus,
+.form-select:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+.form-label {
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: #374151;
+}
+
+textarea.form-control {
+  resize: vertical;
+  min-height: 80px;
+}
+
+/* ===== DESIGN SYSTEM - Cards ===== */
+
+.card {
+  border-radius: 10px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.card-header {
+  border-radius: 10px 10px 0 0 !important;
+}
+
+/* ===== DESIGN SYSTEM - Section titles ===== */
+
+h2 {
+  font-size: 1.4rem;
+  color: #1e293b;
+  font-weight: 700;
+}
+
 @media (prefers-color-scheme: light) {
   :root {
     color: #213547;
@@ -80,9 +222,5 @@ button:focus-visible {
 
   a:hover {
     color: #747bff;
-  }
-
-  button {
-    background-color: #f9f9f9;
   }
 }

@@ -34,7 +34,7 @@ class ParticipantsGeneral(Base):
         foreign_keys=[project_id]
     )
 
-    participants = relationship("Participants", back_populates="participants_general")
+    participants = relationship("Participants", back_populates="participants_general", cascade="all, delete-orphan")
 
     participants_json = Column(JSON, nullable=True)
 

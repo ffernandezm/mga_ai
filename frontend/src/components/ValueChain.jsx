@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from "react";
 import api from "../services/api";
+import { useNotification } from "../context/NotificationContext";
 
 const ValueChain = ({ projectId }) => {
+    const { showSuccess, showError, showConfirmation } = useNotification();
     const [objectives, setObjectives] = useState([]);
     const [loading, setLoading] = useState(true);
     const [savingId, setSavingId] = useState(null);
@@ -17,11 +19,11 @@ const ValueChain = ({ projectId }) => {
             setLoading(true);
             const resObjectives = await api.get(`/value_chain_objectives/`);
             const projectObjectives = resObjectives.data.filter(obj => obj.project_id === parseInt(projectId));
-            
+
             const fullData = await Promise.all(projectObjectives.map(async (obj) => {
                 const resProducts = await api.get(`/products/`);
                 const products = resProducts.data.filter(p => p.value_chain_objective_id === obj.id);
-                
+
                 const productsWithActivities = await Promise.all(products.map(async (prod) => {
                     const resActs = await api.get(`/activities/`);
                     const activities = resActs.data.filter(a => a.product_id === prod.id);
@@ -44,7 +46,7 @@ const ValueChain = ({ projectId }) => {
             if (obj.id !== objId) return obj;
             return {
                 ...obj,
-                products: obj.products.map(p => 
+                products: obj.products.map(p =>
                     p.id === prodId ? { ...p, [field]: value } : p
                 )
             };
@@ -60,7 +62,7 @@ const ValueChain = ({ projectId }) => {
                     if (p.id !== prodId) return p;
                     return {
                         ...p,
-                        activities: p.activities.map(a => 
+                        activities: p.activities.map(a =>
                             a.id === actId ? { ...a, [field]: value } : a
                         )
                     };
@@ -95,10 +97,10 @@ const ValueChain = ({ projectId }) => {
             });
 
             await Promise.all(activityPromises);
-            alert("¡Cambios guardados con éxito!");
+            showSuccess("¡Cambios guardados con éxito!");
         } catch (error) {
             console.error("Error al guardar:", error);
-            alert("Error al actualizar los datos.");
+            showError("Error al actualizar los datos.");
         } finally {
             setSavingId(null);
         }
@@ -127,9 +129,14 @@ const ValueChain = ({ projectId }) => {
     };
 
     const handleDeleteProduct = async (id) => {
-        if (window.confirm("¿Eliminar este producto y sus actividades?")) {
+        const confirmed = await showConfirmation({
+            title: "Eliminar Producto",
+            message: "¿Eliminar este producto y sus actividades?"
+        });
+        if (confirmed) {
             await api.delete(`/products/${id}`);
             fetchData();
+            showSuccess("Producto eliminado.");
         }
     };
 
@@ -145,11 +152,11 @@ const ValueChain = ({ projectId }) => {
             {/* Header del Componente */}
             <div className="d-flex justify-content-between align-items-center mb-4 bg-white p-3 rounded shadow-sm border">
                 <div>
-                    <h4 className="text-primary mb-0 fw-bold">🔗 Cadena de Valor</h4>
+                    <h4 className="text-primary mb-0 fw-bold">Cadena de Valor</h4>
                     <small className="text-muted">Gestión de productos y actividades por objetivo</small>
                 </div>
-                <button className="btn btn-outline-primary btn-sm" onClick={fetchData}>
-                    🔄 Sincronizar
+                <button className="btn btn-sm btn-primary" onClick={fetchData}>
+                    Sincronizar
                 </button>
             </div>
 
@@ -159,10 +166,10 @@ const ValueChain = ({ projectId }) => {
                     <div className="card-header bg-dark text-white p-3">
                         <div className="d-flex justify-content-between align-items-center">
                             <h5 className="mb-0 small fw-bold text-uppercase">
-                                📋 Objetivo: {obj.name}
+                                Objetivo: {obj.name}
                             </h5>
-                            <button className="btn btn-warning btn-sm fw-bold" onClick={() => handleAddProduct(obj.id)}>
-                                ➕ Nuevo Producto
+                            <button className="btn btn-success btn-sm fw-bold" onClick={() => handleAddProduct(obj.id)}>
+                                Nuevo Producto
                             </button>
                         </div>
                     </div>
@@ -170,15 +177,15 @@ const ValueChain = ({ projectId }) => {
                     <div className="card-body p-4 bg-light">
                         {obj.products.map((prod) => (
                             <div key={prod.id} className="row mb-4 bg-white rounded-3 shadow-sm mx-0 border overflow-hidden">
-                                
+
                                 {/* COLUMNA IZQUIERDA: PRODUCTO */}
                                 <div className="col-md-5 p-4 border-end">
                                     <div className="d-flex justify-content-between align-items-start mb-2">
                                         <div className="flex-grow-1">
-                                            <label className="text-uppercase fw-bold text-success d-block mb-1" style={{fontSize: '0.7rem'}}>
+                                            <label className="text-uppercase fw-bold text-success d-block mb-1 small">
                                                 Descripción del Producto
                                             </label>
-                                            <textarea 
+                                            <textarea
                                                 className="form-control border-0 ps-0 fw-bold"
                                                 rows="2"
                                                 placeholder="Ej: Construcción de alcantarillado..."
@@ -187,40 +194,40 @@ const ValueChain = ({ projectId }) => {
                                                 onChange={(e) => handleProductChange(obj.id, prod.id, 'description', e.target.value)}
                                             />
                                         </div>
-                                        <button className="btn btn-link text-danger p-0" onClick={() => handleDeleteProduct(prod.id)}>
-                                            🗑️
+                                        <button className="btn btn-sm btn-danger" onClick={() => handleDeleteProduct(prod.id)}>
+                                            Eliminar
                                         </button>
                                     </div>
 
                                     <div className="row g-2 p-3 rounded bg-light border">
                                         <div className="col-12">
                                             <label className="small text-muted fw-bold mb-1">Medido a través de:</label>
-                                            <input 
-                                                type="text" className="form-control form-control-sm" 
-                                                value={prod.measured_through || ""} 
+                                            <input
+                                                type="text" className="form-control form-control-sm"
+                                                value={prod.measured_through || ""}
                                                 onChange={(e) => handleProductChange(obj.id, prod.id, 'measured_through', e.target.value)}
                                             />
                                         </div>
                                         <div className="col-6">
                                             <label className="small text-muted fw-bold mb-1">Cantidad</label>
-                                            <input 
-                                                type="number" className="form-control form-control-sm" 
+                                            <input
+                                                type="number" className="form-control form-control-sm"
                                                 value={prod.quantity || 0}
                                                 onChange={(e) => handleProductChange(obj.id, prod.id, 'quantity', e.target.value)}
                                             />
                                         </div>
                                         <div className="col-6">
                                             <label className="small text-muted fw-bold mb-1">Costo Unitario</label>
-                                            <input 
-                                                type="number" className="form-control form-control-sm" 
+                                            <input
+                                                type="number" className="form-control form-control-sm"
                                                 value={prod.cost || 0}
                                                 onChange={(e) => handleProductChange(obj.id, prod.id, 'cost', e.target.value)}
                                             />
                                         </div>
                                         <div className="col-12">
                                             <label className="small text-muted fw-bold mb-1">Etapa</label>
-                                            <select 
-                                                className="form-select form-select-sm" 
+                                            <select
+                                                className="form-select form-select-sm"
                                                 value={prod.stage || "Preinversión"}
                                                 onChange={(e) => handleProductChange(obj.id, prod.id, 'stage', e.target.value)}
                                             >
@@ -235,29 +242,29 @@ const ValueChain = ({ projectId }) => {
                                 {/* COLUMNA DERECHA: ACTIVIDADES */}
                                 <div className="col-md-7 p-4 bg-white">
                                     <div className="d-flex justify-content-between align-items-center mb-3">
-                                        <h6 className="text-secondary fw-bold mb-0" style={{fontSize: '0.9rem'}}>
-                                            🛠️ Actividades Relacionadas
+                                        <h6 className="text-secondary fw-bold mb-0">
+                                            Actividades Relacionadas
                                         </h6>
-                                        <button className="btn btn-outline-secondary btn-sm" onClick={() => handleAddActivity(prod.id)}>
-                                            ➕ Actividad
+                                        <button className="btn btn-success btn-sm" onClick={() => handleAddActivity(prod.id)}>
+                                            Agregar Actividad
                                         </button>
                                     </div>
-                                    
-                                    <div className="table-responsive border rounded bg-white">
-                                        <table className="table table-sm table-hover mb-0">
-                                            <thead className="table-light">
-                                                <tr style={{fontSize: '0.75rem'}}>
+
+                                    <div className="table-responsive">
+                                        <table className="table table-striped table-bordered mb-0">
+                                            <thead className="table-dark">
+                                                <tr>
                                                     <th className="ps-2">Descripción de Actividad</th>
                                                     <th>Costo</th>
                                                     <th>Etapa</th>
-                                                    <th style={{ width: "40px" }}></th>
+                                                    <th style={{ width: "60px" }}>Acciones</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
                                                 {prod.activities.map((act) => (
-                                                    <tr key={act.id} className="align-middle" style={{fontSize: '0.85rem'}}>
+                                                    <tr key={act.id} className="align-middle">
                                                         <td>
-                                                            <input 
+                                                            <input
                                                                 type="text" className="form-control form-control-sm border-0 bg-transparent"
                                                                 placeholder="Nombre de la actividad..."
                                                                 value={act.description || ""}
@@ -265,16 +272,16 @@ const ValueChain = ({ projectId }) => {
                                                             />
                                                         </td>
                                                         <td>
-                                                            <input 
-                                                                type="number" className="form-control form-control-sm border-0 bg-transparent" 
+                                                            <input
+                                                                type="number" className="form-control form-control-sm border-0 bg-transparent"
                                                                 style={{ width: "90px" }}
                                                                 value={act.cost || 0}
                                                                 onChange={(e) => handleActivityChange(obj.id, prod.id, act.id, 'cost', e.target.value)}
                                                             />
                                                         </td>
                                                         <td>
-                                                            <select 
-                                                                className="form-select form-select-sm border-0 bg-transparent" 
+                                                            <select
+                                                                className="form-select form-select-sm border-0 bg-transparent"
                                                                 value={act.stage || "Ejecución"}
                                                                 onChange={(e) => handleActivityChange(obj.id, prod.id, act.id, 'stage', e.target.value)}
                                                             >
@@ -283,8 +290,8 @@ const ValueChain = ({ projectId }) => {
                                                             </select>
                                                         </td>
                                                         <td className="text-center">
-                                                            <button className="btn btn-link text-danger p-0" onClick={() => handleDeleteActivity(act.id)}>
-                                                                🗑️
+                                                            <button className="btn btn-sm btn-danger" onClick={() => handleDeleteActivity(act.id)}>
+                                                                Eliminar
                                                             </button>
                                                         </td>
                                                     </tr>
@@ -302,12 +309,12 @@ const ValueChain = ({ projectId }) => {
 
                                     {/* Botón Guardar Bloque */}
                                     <div className="mt-3 text-end">
-                                        <button 
-                                            className="btn btn-success fw-bold px-4"
+                                        <button
+                                            className="btn btn-primary btn-sm fw-bold px-4"
                                             onClick={() => handleSaveEverything(prod)}
                                             disabled={savingId === prod.id}
                                         >
-                                            {savingId === prod.id ? "⌛ Guardando..." : "💾 Guardar Cambios"}
+                                            {savingId === prod.id ? "Guardando..." : "Guardar Cambios"}
                                         </button>
                                     </div>
                                 </div>

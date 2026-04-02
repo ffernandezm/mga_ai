@@ -74,3 +74,19 @@
     background: #c3e6cb;
     border-radius: 50%;
 }
+
+/* Error variant */
+.success-message.error-type {
+    background: #f8d7da;
+    border-color: #f5c6cb;
+}
+
+.success-message.error-type .success-content h4,
+.success-message.error-type .success-content p,
+.success-message.error-type .success-close {
+    color: #721c24;
+}
+
+.error-icon-bg {
+    background: #dc3545 !important;
+}

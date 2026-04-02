@@ -43,7 +43,8 @@ class RequirementsGeneral(Base):
 
     requirements = relationship(
         "Requirement",
-        back_populates="requirements_general"
+        back_populates="requirements_general",
+        cascade="all, delete-orphan"
     )
 
 

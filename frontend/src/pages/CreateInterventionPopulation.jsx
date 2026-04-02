@@ -2,10 +2,11 @@ import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import api from "../services/api";
 import populationOptions from "../data/populationOptions";
+import { useNotification } from "../context/NotificationContext";
 
 function CreateInterventionPopulation() {
     const { projectId, InterventionPopulationId } = useParams();
-
+    const { showError } = useNotification();
     const navigate = useNavigate();
 
     const [formData, setFormData] = useState({
@@ -41,7 +42,7 @@ function CreateInterventionPopulation() {
             navigate(`/projects/${projectId}/formulation?tab=population`);
         } catch (error) {
             console.error("Error al crear registro afectado:", error);
-            alert("Hubo un error al crear el registro.");
+            showError("Hubo un error al crear el registro.");
         }
     };
 
