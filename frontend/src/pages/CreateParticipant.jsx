@@ -1,8 +1,31 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import api from "../services/api";
-import participantOptions from "../data/participantOptions";
+import participantesCsv from "../data/participantes.csv?raw";
 import { useNotification } from "../context/NotificationContext";
+
+function buildParticipantOptions(csv) {
+    const lines = csv.split("\n").slice(1).filter((l) => l.trim());
+    const actorSet = new Set();
+    const entidad = {};
+
+    for (const line of lines) {
+        const [actor, entity] = line.split(";").map((s) => s.trim().replace(/^"|"$/g, ""));
+        if (!actor) continue;
+        actorSet.add(actor);
+        if (!entity || entity === "Seleccione" || entity === "Departamento") continue;
+        if (!entidad[actor]) entidad[actor] = [];
+        entidad[actor].push(entity);
+    }
+
+    return {
+        actor: [...actorSet].sort(),
+        entidad,
+        rol: ["A favor", "En contra", "Neutral", "No definida"],
+    };
+}
+
+const participantOptions = buildParticipantOptions(participantesCsv);
 
 function CreateParticipant() {
     const { projectId, generalId } = useParams(); // ✅ generalId viene de ParticipantsGeneral

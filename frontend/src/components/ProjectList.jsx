@@ -37,8 +37,12 @@ function ProjectList() {
     };
 
     return (
-        <div className="container mt-4">
-            <h2 className="mb-3">Proyectos</h2>
+        <section className="app-page container mt-4">
+            <h2 className="app-page-title">Proyectos</h2>
+            <p className="app-page-subtitle">
+                Gestione los proyectos registrados en la plataforma MGA IA.
+            </p>
+
             <Link to="/create-project" className="btn btn-success btn-sm mb-3">
                 Crear Proyecto
             </Link>
@@ -72,7 +76,7 @@ function ProjectList() {
                     </tbody>
                 </table>
             </div>
-        </div>
+        </section>
     );
 }
 

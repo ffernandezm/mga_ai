@@ -1,8 +1,20 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../services/api";
-import ObjectivesOptions from "../data/ObjectivesOptions";
+import unidadesCsv from "../data/unidades.csv?raw";
+import encuestasCsv from "../data/encuestas.csv?raw";
 import { useNotification } from "../context/NotificationContext";
+
+const unitOptions = unidadesCsv
+    .split("\n")
+    .slice(1)
+    .map((line) => line.split(";")[0].trim())
+    .filter(Boolean);
+
+const sourceTypeOptions = encuestasCsv
+    .split("\n")
+    .map((line) => line.split(";")[0].trim())
+    .filter(Boolean);
 
 function Objectives({ projectId }) {
     const { showSuccess, showError, showConfirmation } = useNotification();
@@ -311,7 +323,7 @@ function Objectives({ projectId }) {
                                             onChange={e => setEditedIndicator({ ...editedIndicator, unit: e.target.value })}
                                         >
                                             <option value="">Seleccione unidad</option>
-                                            {ObjectivesOptions.Unit.map(u => (
+                                            {unitOptions.map(u => (
                                                 <option key={u} value={u}>{u}</option>
                                             ))}
                                         </select>
@@ -342,7 +354,7 @@ function Objectives({ projectId }) {
                                             onChange={e => setEditedIndicator({ ...editedIndicator, source_type: e.target.value })}
                                         >
                                             <option value="">Seleccione fuente</option>
-                                            {ObjectivesOptions.Source_type.map(s => (
+                                            {sourceTypeOptions.map(s => (
                                                 <option key={s} value={s}>{s}</option>
                                             ))}
                                         </select>
@@ -388,7 +400,7 @@ function Objectives({ projectId }) {
                                         value={newIndicator.unit}
                                         onChange={e => setNewIndicator({ ...newIndicator, unit: e.target.value })}>
                                         <option value="">Seleccione unidad</option>
-                                        {ObjectivesOptions.Unit.map(u => (
+                                        {unitOptions.map(u => (
                                             <option key={u} value={u}>{u}</option>
                                         ))}
                                     </select>
@@ -403,7 +415,7 @@ function Objectives({ projectId }) {
                                         value={newIndicator.source_type}
                                         onChange={e => setNewIndicator({ ...newIndicator, source_type: e.target.value })}>
                                         <option value="">Seleccione fuente</option>
-                                        {ObjectivesOptions.Source_type.map(s => (
+                                        {sourceTypeOptions.map(s => (
                                             <option key={s} value={s}>{s}</option>
                                         ))}
                                     </select>

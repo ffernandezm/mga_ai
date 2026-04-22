@@ -95,7 +95,7 @@ const Chatbot = ({ projectId, activeTab }) => {
     };
 
     return (
-        <div className="chat-container">
+        <div className="chatbot-panel">
             <div className="chat-header">
                 <div className="chat-title">💬 Asistente Virtual</div>
                 <button
