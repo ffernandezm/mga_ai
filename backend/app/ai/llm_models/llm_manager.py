@@ -182,8 +182,8 @@ class LLMManager:
 
     def _is_invoke_skipped(self) -> bool:
         """Permite desactivar llamadas al LLM durante debug para evitar consumo de tokens."""
-        raw_value = os.getenv("SKIP_LLM_INVOKE", os.getenv("DEBUG_SKIP_LLM_INVOKE", "true"))
-        #raw_value = "false"
+        #raw_value = os.getenv("SKIP_LLM_INVOKE", os.getenv("DEBUG_SKIP_LLM_INVOKE", "true"))
+        raw_value = True
         return str(raw_value).strip().lower() in {"1", "true", "yes", "on"}
 
 

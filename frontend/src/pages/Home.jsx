@@ -1,29 +1,63 @@
 import { Link } from "react-router-dom";
+import "./Home.css";
 
 function Home() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-blue-500 to-indigo-600 p-6">
-      <div className="bg-white p-10 rounded-2xl shadow-lg text-center max-w-2xl">
-        <h1 className="text-4xl font-bold text-blue-600">Bienvenido a MGA con IA Generativa</h1>
-        <p className="mt-4 text-lg text-gray-700">
-          Optimiza la gestión de proyectos con la Metodología General Ajustable (MGA)
-          y el poder de la inteligencia artificial generativa. Simplifica procesos,
-          mejora la toma de decisiones y potencia tu productividad.
+    <section className="home-page">
+      <div className="home-bg-shape home-bg-shape-top" />
+      <div className="home-bg-shape home-bg-shape-bottom" />
+
+      <article className="home-hero-card">
+        <p className="home-badge">MGA WEB + IA Generativa</p>
+        <h1>
+          Prototipo de apoyo inteligente para la formulacion de proyectos de
+          inversion publica
+        </h1>
+
+        <p className="home-lead">
+          Esta herramienta esta basada en <strong>MGA Web</strong> del
+          <strong> Departamento Nacional de Planeacion de Colombia</strong> y
+          fue concebida como un prototipo para fortalecer el proceso de registro
+          y analisis de informacion de proyectos.
         </p>
-        <div className="mt-6 flex justify-center space-x-4">
-          <Link to="/projects">
-            <button className="px-6 py-3 border border-blue-600 text-blue-600 rounded-lg shadow-md hover:bg-blue-100 transition">
-              Iniciar
-            </button>
-          </Link>
 
+        <div className="home-feature-grid">
+          <div className="home-feature-item">
+            <h2>Base metodologica oficial</h2>
+            <p>
+              Conserva la estructura y el enfoque de MGA Web para mantener
+              consistencia tecnica durante la formulacion.
+            </p>
+          </div>
 
+          <div className="home-feature-item">
+            <h2>LLM + RAG para chatbot</h2>
+            <p>
+              Integra un modelo de lenguaje con recuperacion aumentada para
+              brindar respuestas contextualizadas y asistencia oportuna.
+            </p>
+          </div>
+
+          <div className="home-feature-item">
+            <h2>Apoyo durante el registro</h2>
+            <p>
+              El chatbot orienta la captura de datos y ayuda a mejorar claridad,
+              calidad y coherencia de la informacion diligenciada.
+            </p>
+          </div>
         </div>
-        <br />
-        <br />
-      </div>
 
-    </div>
+        <div className="home-footer-row">
+          <p className="home-author">
+            Desarrollado por <strong>Nelson Fernando Fernandez Maje</strong>
+          </p>
+
+          <Link to="/projects" className="home-primary-action">
+            Comenzar ahora
+          </Link>
+        </div>
+      </article>
+    </section>
   );
 }
 

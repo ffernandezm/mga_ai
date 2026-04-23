@@ -2,6 +2,35 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../services/api";
 import { useNotification } from "../context/NotificationContext";
+import entidadesCsv from "../data/entidades_territoriales.csv?raw";
+
+function buildLocationOptions(csv) {
+    const lines = csv.split("\n").slice(1).filter((l) => l.trim());
+    const regionsSet = new Set();
+    const departments = {};
+    const cities = {};
+
+    for (const line of lines) {
+        const [region, department, city] = line.split(";").map((s) => s.trim());
+        if (!region || !department) continue;
+        regionsSet.add(region);
+        if (!departments[region]) departments[region] = new Set();
+        departments[region].add(department);
+        if (city) {
+            if (!cities[department]) cities[department] = new Set();
+            cities[department].add(city);
+        }
+    }
+
+    const regions = [...regionsSet].sort();
+    const deptObj = {};
+    for (const [r, s] of Object.entries(departments)) deptObj[r] = [...s].sort();
+    const cityObj = {};
+    for (const [d, s] of Object.entries(cities)) cityObj[d] = [...s].sort();
+    return { regions, departments: deptObj, cities: cityObj };
+}
+
+const locOptions = buildLocationOptions(entidadesCsv);
 
 function LocalizationGeneral({ projectId }) {
 
@@ -199,7 +228,28 @@ function LocalizationGeneral({ projectId }) {
 
                                 {editingId === loc.id ? (
                                     <>
-                                        {["region", "department", "city", "type_group", "group", "entity"].map(field => (
+                                        <td>
+                                            <select className="form-control" value={editedLoc.region || ""}
+                                                onChange={(e) => setEditedLoc({ ...editedLoc, region: e.target.value, department: "", city: "" })}>
+                                                <option value="">Seleccione región</option>
+                                                {locOptions.regions.map(r => <option key={r} value={r}>{r}</option>)}
+                                            </select>
+                                        </td>
+                                        <td>
+                                            <select className="form-control" value={editedLoc.department || ""}
+                                                onChange={(e) => setEditedLoc({ ...editedLoc, department: e.target.value, city: "" })}>
+                                                <option value="">Seleccione departamento</option>
+                                                {(locOptions.departments[editedLoc.region] || []).map(d => <option key={d} value={d}>{d}</option>)}
+                                            </select>
+                                        </td>
+                                        <td>
+                                            <select className="form-control" value={editedLoc.city || ""}
+                                                onChange={(e) => setEditedLoc({ ...editedLoc, city: e.target.value })}>
+                                                <option value="">Seleccione ciudad</option>
+                                                {(locOptions.cities[editedLoc.department] || []).map(c => <option key={c} value={c}>{c}</option>)}
+                                            </select>
+                                        </td>
+                                        {["type_group", "group", "entity"].map(field => (
                                             <td key={field}>
                                                 <input
                                                     className="form-control"
@@ -299,7 +349,28 @@ function LocalizationGeneral({ projectId }) {
                             <tr>
                                 <td>Nuevo</td>
 
-                                {["region", "department", "city", "type_group", "group", "entity"].map(field => (
+                                <td>
+                                    <select className="form-control" value={newLoc.region}
+                                        onChange={(e) => setNewLoc({ ...newLoc, region: e.target.value, department: "", city: "" })}>
+                                        <option value="">Seleccione región</option>
+                                        {locOptions.regions.map(r => <option key={r} value={r}>{r}</option>)}
+                                    </select>
+                                </td>
+                                <td>
+                                    <select className="form-control" value={newLoc.department}
+                                        onChange={(e) => setNewLoc({ ...newLoc, department: e.target.value, city: "" })}>
+                                        <option value="">Seleccione departamento</option>
+                                        {(locOptions.departments[newLoc.region] || []).map(d => <option key={d} value={d}>{d}</option>)}
+                                    </select>
+                                </td>
+                                <td>
+                                    <select className="form-control" value={newLoc.city}
+                                        onChange={(e) => setNewLoc({ ...newLoc, city: e.target.value })}>
+                                        <option value="">Seleccione ciudad</option>
+                                        {(locOptions.cities[newLoc.department] || []).map(c => <option key={c} value={c}>{c}</option>)}
+                                    </select>
+                                </td>
+                                {["type_group", "group", "entity"].map(field => (
                                     <td key={field}>
                                         <input
                                             className="form-control"

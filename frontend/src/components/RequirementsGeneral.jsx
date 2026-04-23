@@ -2,6 +2,13 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../services/api";
 import { useNotification } from "../context/NotificationContext";
+import unidadesCsv from "../data/unidades.csv?raw";
+
+const unitOptions = unidadesCsv
+    .split("\n")
+    .slice(1)
+    .map((line) => line.split(";")[0].trim())
+    .filter(Boolean);
 
 function RequirementsGeneral({ projectId }) {
     const navigate = useNavigate();
@@ -483,7 +490,7 @@ function RequirementsGeneral({ projectId }) {
 
                                     {editingRequirementId === r.id ?
 
-                                        <input
+                                        <select
 
                                             className="form-control form-control-sm"
 
@@ -501,7 +508,12 @@ function RequirementsGeneral({ projectId }) {
 
                                             }
 
-                                        />
+                                        >
+                                            <option value="">Seleccione unidad</option>
+                                            {unitOptions.map(u => (
+                                                <option key={u} value={u}>{u}</option>
+                                            ))}
+                                        </select>
 
                                         :
 
@@ -801,7 +813,7 @@ function RequirementsGeneral({ projectId }) {
 
                                 <td>
 
-                                    <input
+                                    <select
 
                                         className="form-control form-control-sm"
 
@@ -819,7 +831,12 @@ function RequirementsGeneral({ projectId }) {
 
                                         }
 
-                                    />
+                                    >
+                                        <option value="">Seleccione unidad</option>
+                                        {unitOptions.map(u => (
+                                            <option key={u} value={u}>{u}</option>
+                                        ))}
+                                    </select>
 
                                 </td>
 

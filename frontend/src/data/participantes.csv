@@ -1,0 +1,1597 @@
+﻿Actor;Entidad
+Departamental;Departamento
+Departamental;Seleccione
+Departamental;Amazonas
+Departamental;Antioquia
+Departamental;Arauca
+Departamental;Archipiélago de San Andrés, Providencia y Santa Catalina
+Departamental;Atlántico
+Departamental;Bolívar
+Departamental;Boyacá
+Departamental;Caldas
+Departamental;Caquetá
+Departamental;Casanare
+Departamental;Cauca
+Departamental;Cesar
+Departamental;Chocó
+Departamental;Córdoba
+Departamental;Cundinamarca
+Departamental;Guainía
+Departamental;Guaviare
+Departamental;Huila
+Departamental;La Guajira
+Departamental;Magdalena
+Departamental;Meta
+Departamental;Nariño
+Departamental;Norte de Santander
+Departamental;Putumayo
+Departamental;Quindio
+Departamental;Risaralda
+Departamental;Santander
+Departamental;Sucre
+Departamental;Tolima
+Departamental;Valle del Cauca
+Departamental;Vaupés
+Departamental;Vichada
+Embajada;ALEMANIA
+Embajada;ARGELIA
+Embajada;ARGENTINA
+Embajada;AUSTRALIA, Nueva Zelandia
+Embajada;AUSTRIA, República Checa, Eslovenia, Eslovaquia, Hungría, Serbia, Montenegro y Croacia
+Embajada;AZERBAIYÁN
+Embajada;"""BÉLGICA, Luxemburgo"""
+Embajada;BOLIVIA
+Embajada;BRASIL
+Embajada;CANADA
+Embajada;CHILE
+Embajada;CHINA
+Embajada;COREA
+Embajada;COSTA RICA
+Embajada;CUBA, Bahamas
+Embajada;ECUADOR
+Embajada;EGIPTO, Reino de Arabia Saudita, Chad, Eritrea, Libia, Sudán Y Yibuti
+Embajada;EL SALVADOR, Belice
+Embajada;EMIRATOS ARABES UNIDOS, Qatar, Kuwait, Bahréin, Yemen
+Embajada;ESPAÑA
+Embajada;ESTADOS UNIDOS
+Embajada;FINLANDIA
+Embajada;FRANCIA
+Embajada;GHANA
+Embajada;GRAN BRETAÑA, República de Irlanda
+Embajada;GUATEMALA
+Embajada;HONDURAS
+Embajada;INDIA, Nepal, Bután, Bangladesh, Sri Lanka
+Embajada;INDONESIA
+Embajada;ISRAEL
+Embajada;ITALIA, Malta, Grecia, Albania, San Marino
+Embajada;JAMAICA, Antigua y Barbuda, Dominica, Saint Kitts y Nevis, Santa Lucia
+Embajada;JAPÓN
+Embajada;KENIA
+Embajada;LÍBANO
+Embajada;MALASIA
+Embajada;MARRUECOS
+Embajada;MEXICO
+Embajada;NICARAGUA
+Embajada;PAÍSES BAJOS
+Embajada;PANAMÁ
+Embajada;PARAGUAY
+Embajada;PERÚ
+Embajada;POLONIA, Estonia, Letonia, Lituania, Rumania, Bulgaria, Moldavia, Ucrania
+Embajada;PORTUGAL
+Embajada;REPÚBLICA DOMINICANA, Haití
+Embajada;RUSIA
+Embajada;SANTA SEDE
+Embajada;SINGAPUR
+Embajada;SUDÁFRICA
+Embajada;SUECIA
+Embajada;SUIZA
+Embajada;TAILANDIA, Myanmar, Camboya, República Democrática Popular Lao
+Embajada;TRINIDAD Y TOBAGO, Granada, Barbados, San Vicente y las Granadinas
+Embajada;TURQUIA
+Embajada;URUGUAY
+Embajada;VENEZUELA
+Embajada;VIETNAM
+Empresas Industriales y comerciales del Estado (EICE);Artesanias de Colombia
+Empresas Industriales y comerciales del Estado (EICE);Cenabastos S.A.
+Empresas Industriales y comerciales del Estado (EICE);Centrales Electricas de Nariño S.A.
+Empresas Industriales y comerciales del Estado (EICE);Centro de Diagnostico Automotor de Caldas LTDA.
+Empresas Industriales y comerciales del Estado (EICE);Centro de Diagnostico Automotor de Cucuta LTDA
+Empresas Industriales y comerciales del Estado (EICE);Centro Dermatologico Federico Lleras Acosta
+Empresas Industriales y comerciales del Estado (EICE);Coljuegos
+Empresas Industriales y comerciales del Estado (EICE);Corporacion Autonoma Regional del Rio Grande de la Magdalena
+Empresas Industriales y comerciales del Estado (EICE);Corporación de la Industria Aeronáutica Colombiana S.A.
+Empresas Industriales y comerciales del Estado (EICE);DISPAC
+Empresas Industriales y comerciales del Estado (EICE);Generadora y Comercializadora de Energia del Caribe
+Empresas Industriales y comerciales del Estado (EICE);Gestion Energetica SA ESP
+Empresas Industriales y comerciales del Estado (EICE);Imprenta Nacional de Colombia
+Empresas Industriales y comerciales del Estado (EICE);Industria Militar
+Empresas Industriales y comerciales del Estado (EICE);Instituto Colombiano para el Fomento de la Educacion Superior
+Empresas Industriales y comerciales del Estado (EICE);Instituto Colombiano para la Evaluación de la Educación - Icfes
+Empresas Industriales y comerciales del Estado (EICE);Instituto Nacional de Cancerología
+Empresas Industriales y comerciales del Estado (EICE);Radio Television Nacional de Colombia
+Empresas Industriales y comerciales del Estado (EICE);Sanatorio de Agua de Dios
+Empresas Industriales y comerciales del Estado (EICE);Sanatorio de Contratacion
+Empresas Industriales y comerciales del Estado (EICE);SATENA
+Empresas Industriales y comerciales del Estado (EICE);Servicios Postales Nacionales S.A.
+Empresas Industriales y comerciales del Estado (EICE);Sociedad Hotelera Tequendama
+Empresas Industriales y comerciales del Estado (EICE);Telecafe LTDA.
+Empresas Industriales y comerciales del Estado (EICE);Telecaribe LTDA.
+Empresas Industriales y comerciales del Estado (EICE);Teveandina LTDA
+Empresas Industriales y comerciales del Estado (EICE);URRA S.A. E.S.P.
+Localidad;Barranquilla - Localidad Metropolitana
+Localidad;Barranquilla - Localidad Norte - Centro Histórico
+Localidad;Barranquilla - Localidad Riomar
+Localidad;Barranquilla - Localidad Suroccidente
+Localidad;Barranquilla - Localidad Suroriente
+Localidad;Bogotá, D.C. - Localidad 01 Usaquén
+Localidad;Bogotá, D.C. - Localidad 02 Chapinero
+Localidad;Bogotá, D.C. - Localidad 03 Santa Fe
+Localidad;Bogotá, D.C. - Localidad 04 San Cristobal
+Localidad;Bogotá, D.C. - Localidad 05 Usme
+Localidad;Bogotá, D.C. - Localidad 06 Tunjuelito
+Localidad;Bogotá, D.C. - Localidad 07 Bosa
+Localidad;Bogotá, D.C. - Localidad 08 Kennedy
+Localidad;Bogotá, D.C. - Localidad 09 Fontibón
+Localidad;Bogotá, D.C. - Localidad 10 Engativá
+Localidad;Bogotá, D.C. - Localidad 11 Suba
+Localidad;Bogotá, D.C. - Localidad 12 Barrios Unidos
+Localidad;Bogotá, D.C. - Localidad 13 Teusaquillo
+Localidad;Bogotá, D.C. - Localidad 14 Los Mártires
+Localidad;Bogotá, D.C. - Localidad 15 Antonio Nariño
+Localidad;Bogotá, D.C. - Localidad 16 Puente Aranda
+Localidad;Bogotá, D.C. - Localidad 17 La Candelaria
+Localidad;Bogotá, D.C. - Localidad 18 Rafael Uribe Uribe
+Localidad;Bogotá, D.C. - Localidad 19 Ciudad Bolívar
+Localidad;Bogotá, D.C. - Localidad 20 Sumapaz
+Localidad;Buenaventura - Localidad 1: Isla del Cascajal
+Localidad;Buenaventura - Localidad 2: El Pailón
+Localidad;Cartagena - Localidad de la Virgen y Turística
+Localidad;Cartagena - Localidad Histórica y del Caribe Norte
+Localidad;Cartagena - Localidad Industrial y de la Bahía
+Localidad;Riohacha - Localidad 1 - Zona Centro
+Localidad;Riohacha - Localidad 2 - Zona Sur
+Localidad;Santa Marta - Localidad 1 - Cultural Tayrona - San Pedro Alejandrino
+Localidad;Santa Marta - Localidad 2 - Histórica - Rodrigo de Bastidas
+Localidad;Santa Marta - Localidad 3 - Turística - Perla del Caribe
+Municipal;ABEJORRAL - ANTIOQUIA
+Municipal;ÁBREGO - NORTE DE SANTANDER
+Municipal;ABRIAQUÍ - ANTIOQUIA
+Municipal;ACACÍAS - META
+Municipal;ACANDÍ - CHOCÓ
+Municipal;ACEVEDO - HUILA
+Municipal;ACHÍ - BOLÍVAR
+Municipal;AGRADO - HUILA
+Municipal;AGUA DE DIOS - CUNDINAMARCA
+Municipal;AGUACHICA - CESAR
+Municipal;AGUADA - SANTANDER
+Municipal;AGUADAS - CALDAS
+Municipal;AGUAZUL - CASANARE
+Municipal;AGUSTÍN CODAZZI - CESAR
+Municipal;AIPE - HUILA
+Municipal;ALBÁN - CUNDINAMARCA
+Municipal;ALBÁN - NARIÑO
+Municipal;ALBANIA - CAQUETÁ
+Municipal;ALBANIA - LA GUAJIRA
+Municipal;ALBANIA - SANTANDER
+Municipal;ALCALÁ - VALLE DEL CAUCA
+Municipal;ALDANA - NARIÑO
+Municipal;ALEJANDRÍA - ANTIOQUIA
+Municipal;ALGARROBO - MAGDALENA
+Municipal;ALGECIRAS - HUILA
+Municipal;ALMAGUER - CAUCA
+Municipal;ALMEIDA - BOYACÁ
+Municipal;ALPUJARRA - TOLIMA
+Municipal;ALTAMIRA - HUILA
+Municipal;ALTO BAUDÓ - CHOCÓ
+Municipal;ALTOS DEL ROSARIO - BOLÍVAR
+Municipal;ALVARADO - TOLIMA
+Municipal;AMAGÁ - ANTIOQUIA
+Municipal;AMALFI - ANTIOQUIA
+Municipal;AMBALEMA - TOLIMA
+Municipal;ANAPOIMA - CUNDINAMARCA
+Municipal;ANCUYA - NARIÑO
+Municipal;ANDALUCÍA - VALLE DEL CAUCA
+Municipal;ANDES - ANTIOQUIA
+Municipal;ANGELÓPOLIS - ANTIOQUIA
+Municipal;ANGOSTURA - ANTIOQUIA
+Municipal;ANOLAIMA - CUNDINAMARCA
+Municipal;ANORÍ - ANTIOQUIA
+Municipal;ANSERMA - CALDAS
+Municipal;ANSERMANUEVO - VALLE DEL CAUCA
+Municipal;ANZÁ - ANTIOQUIA
+Municipal;ANZOÁTEGUI - TOLIMA
+Municipal;APARTADÓ - ANTIOQUIA
+Municipal;APÍA - RISARALDA
+Municipal;APULO - CUNDINAMARCA
+Municipal;AQUITANIA - BOYACÁ
+Municipal;ARACATACA - MAGDALENA
+Municipal;ARANZAZU - CALDAS
+Municipal;ARATOCA - SANTANDER
+Municipal;ARAUCA - ARAUCA
+Municipal;ARAUQUITA - ARAUCA
+Municipal;ARBELÁEZ - CUNDINAMARCA
+Municipal;ARBOLEDA - NARIÑO
+Municipal;ARBOLEDAS - NORTE DE SANTANDER
+Municipal;ARBOLETES - ANTIOQUIA
+Municipal;ARCABUCO - BOYACÁ
+Municipal;ARENAL - BOLÍVAR
+Municipal;ARGELIA - ANTIOQUIA
+Municipal;ARGELIA - CAUCA
+Municipal;ARGELIA - VALLE DEL CAUCA
+Municipal;ARIGUANÍ - MAGDALENA
+Municipal;ARJONA - BOLÍVAR
+Municipal;ARMENIA - ANTIOQUIA
+Municipal;ARMENIA - QUINDIO
+Municipal;ARMERO - TOLIMA
+Municipal;ARROYOHONDO - BOLÍVAR
+Municipal;ASTREA - CESAR
+Municipal;ATACO - TOLIMA
+Municipal;ATRATO - CHOCÓ
+Municipal;AYAPEL - CÓRDOBA
+Municipal;BAGADÓ - CHOCÓ
+Municipal;BAHÍA SOLANO - CHOCÓ
+Municipal;BAJO BAUDÓ - CHOCÓ
+Municipal;BALBOA - CAUCA
+Municipal;BALBOA - RISARALDA
+Municipal;BARANOA - ATLÁNTICO
+Municipal;BARAYA - HUILA
+Municipal;BARBACOAS - NARIÑO
+Municipal;BARBOSA - ANTIOQUIA
+Municipal;BARBOSA - SANTANDER
+Municipal;BARICHARA - SANTANDER
+Municipal;BARRANCA DE UPÍA - META
+Municipal;BARRANCABERMEJA - SANTANDER
+Municipal;BARRANCAS - LA GUAJIRA
+Municipal;BARRANCO DE LOBA - BOLÍVAR
+Municipal;BARRANCOMINAS - GUAINÍA
+Municipal;BARRANQUILLA - ATLÁNTICO
+Municipal;BECERRIL - CESAR
+Municipal;BELALCÁZAR - CALDAS
+Municipal;BELÉN - BOYACÁ
+Municipal;BELÉN - NARIÑO
+Municipal;BELÉN DE LOS ANDAQUÍES - CAQUETÁ
+Municipal;BELÉN DE UMBRÍA - RISARALDA
+Municipal;BELLO - ANTIOQUIA
+Municipal;BELMIRA - ANTIOQUIA
+Municipal;BELTRÁN - CUNDINAMARCA
+Municipal;BERBEO - BOYACÁ
+Municipal;BETANIA - ANTIOQUIA
+Municipal;BETÉITIVA - BOYACÁ
+Municipal;BETULIA - ANTIOQUIA
+Municipal;BETULIA - SANTANDER
+Municipal;BITUIMA - CUNDINAMARCA
+Municipal;BOAVITA - BOYACÁ
+Municipal;BOCHALEMA - NORTE DE SANTANDER
+Municipal;BOGOTÁ, D.C. - BOGOTÁ D.C
+Municipal;BOJACÁ - CUNDINAMARCA
+Municipal;BOJAYÁ - CHOCÓ
+Municipal;BOLÍVAR - CAUCA
+Municipal;BOLÍVAR - SANTANDER
+Municipal;BOLÍVAR - VALLE DEL CAUCA
+Municipal;BOSCONIA - CESAR
+Municipal;BOYACÁ - BOYACÁ
+Municipal;BRICEÑO - ANTIOQUIA
+Municipal;BRICEÑO - BOYACÁ
+Municipal;BUCARAMANGA - SANTANDER
+Municipal;BUCARASICA - NORTE DE SANTANDER
+Municipal;BUENAVENTURA - VALLE DEL CAUCA
+Municipal;BUENAVISTA - BOYACÁ
+Municipal;BUENAVISTA - CÓRDOBA
+Municipal;BUENAVISTA - QUINDIO
+Municipal;BUENAVISTA - SUCRE
+Municipal;BUENOS AIRES - CAUCA
+Municipal;BUESACO - NARIÑO
+Municipal;BUGALAGRANDE - VALLE DEL CAUCA
+Municipal;BURITICÁ - ANTIOQUIA
+Municipal;BUSBANZÁ - BOYACÁ
+Municipal;CABRERA - CUNDINAMARCA
+Municipal;CABRERA - SANTANDER
+Municipal;CABUYARO - META
+Municipal;CACAHUAL - GUAINÍA
+Municipal;CÁCERES - ANTIOQUIA
+Municipal;CACHIPAY - CUNDINAMARCA
+Municipal;CÁCHIRA - NORTE DE SANTANDER
+Municipal;CÁCOTA - NORTE DE SANTANDER
+Municipal;CAICEDO - ANTIOQUIA
+Municipal;CAICEDONIA - VALLE DEL CAUCA
+Municipal;CAIMITO - SUCRE
+Municipal;CAJAMARCA - TOLIMA
+Municipal;CAJIBÍO - CAUCA
+Municipal;CAJICÁ - CUNDINAMARCA
+Municipal;CALAMAR - BOLÍVAR
+Municipal;CALAMAR - GUAVIARE
+Municipal;CALARCÁ - QUINDIO
+Municipal;CALDAS - ANTIOQUIA
+Municipal;CALDAS - BOYACÁ
+Municipal;CALDONO - CAUCA
+Municipal;CALIFORNIA - SANTANDER
+Municipal;CALIMA - VALLE DEL CAUCA
+Municipal;CALOTO - CAUCA
+Municipal;CAMPAMENTO - ANTIOQUIA
+Municipal;CAMPO DE LA CRUZ - ATLÁNTICO
+Municipal;CAMPOALEGRE - HUILA
+Municipal;CAMPOHERMOSO - BOYACÁ
+Municipal;CANALETE - CÓRDOBA
+Municipal;CAÑASGORDAS - ANTIOQUIA
+Municipal;CANDELARIA - ATLÁNTICO
+Municipal;CANDELARIA - VALLE DEL CAUCA
+Municipal;CANTAGALLO - BOLÍVAR
+Municipal;CAPARRAPÍ - CUNDINAMARCA
+Municipal;CAPITANEJO - SANTANDER
+Municipal;CÁQUEZA - CUNDINAMARCA
+Municipal;CARACOLÍ - ANTIOQUIA
+Municipal;CARAMANTA - ANTIOQUIA
+Municipal;CARCASÍ - SANTANDER
+Municipal;CAREPA - ANTIOQUIA
+Municipal;CARMEN DE APICALÁ - TOLIMA
+Municipal;CARMEN DE CARUPA - CUNDINAMARCA
+Municipal;CARMEN DEL DARIÉN - CHOCÓ
+Municipal;CAROLINA - ANTIOQUIA
+Municipal;CARTAGENA DE INDIAS - BOLÍVAR
+Municipal;CARTAGENA DEL CHAIRÁ - CAQUETÁ
+Municipal;CARTAGO - VALLE DEL CAUCA
+Municipal;CARURÚ - VAUPÉS
+Municipal;CASABIANCA - TOLIMA
+Municipal;CASTILLA LA NUEVA - META
+Municipal;CAUCASIA - ANTIOQUIA
+Municipal;CEPITÁ - SANTANDER
+Municipal;CERETÉ - CÓRDOBA
+Municipal;CERINZA - BOYACÁ
+Municipal;CERRITO - SANTANDER
+Municipal;CERRO DE SAN ANTONIO - MAGDALENA
+Municipal;CÉRTEGUI - CHOCÓ
+Municipal;CHACHAGÜÍ - NARIÑO
+Municipal;CHAGUANÍ - CUNDINAMARCA
+Municipal;CHALÁN - SUCRE
+Municipal;CHÁMEZA - CASANARE
+Municipal;CHAPARRAL - TOLIMA
+Municipal;CHARALÁ - SANTANDER
+Municipal;CHARTA - SANTANDER
+Municipal;CHÍA - CUNDINAMARCA
+Municipal;CHIGORODÓ - ANTIOQUIA
+Municipal;CHIMÁ - CÓRDOBA
+Municipal;CHIMA - SANTANDER
+Municipal;CHIMICHAGUA - CESAR
+Municipal;CHINÁCOTA - NORTE DE SANTANDER
+Municipal;CHINAVITA - BOYACÁ
+Municipal;CHINCHINÁ - CALDAS
+Municipal;CHINÚ - CÓRDOBA
+Municipal;CHIPAQUE - CUNDINAMARCA
+Municipal;CHIPATÁ - SANTANDER
+Municipal;CHIQUINQUIRÁ - BOYACÁ
+Municipal;CHÍQUIZA - BOYACÁ
+Municipal;CHIRIGUANÁ - CESAR
+Municipal;CHISCAS - BOYACÁ
+Municipal;CHITA - BOYACÁ
+Municipal;CHITAGÁ - NORTE DE SANTANDER
+Municipal;CHITARAQUE - BOYACÁ
+Municipal;CHIVATÁ - BOYACÁ
+Municipal;CHIVOLO - MAGDALENA
+Municipal;CHIVOR - BOYACÁ
+Municipal;CHOACHÍ - CUNDINAMARCA
+Municipal;CHOCONTÁ - CUNDINAMARCA
+Municipal;CICUCO - BOLÍVAR
+Municipal;CIÉNAGA - MAGDALENA
+Municipal;CIÉNAGA DE ORO - CÓRDOBA
+Municipal;CIÉNEGA - BOYACÁ
+Municipal;CIMITARRA - SANTANDER
+Municipal;CIRCASIA - QUINDIO
+Municipal;CISNEROS - ANTIOQUIA
+Municipal;CIUDAD BOLÍVAR - ANTIOQUIA
+Municipal;CLEMENCIA - BOLÍVAR
+Municipal;COCORNÁ - ANTIOQUIA
+Municipal;COELLO - TOLIMA
+Municipal;COGUA - CUNDINAMARCA
+Municipal;COLOMBIA - HUILA
+Municipal;COLÓN - NARIÑO
+Municipal;COLÓN - PUTUMAYO
+Municipal;COLOSÓ - SUCRE
+Municipal;CÓMBITA - BOYACÁ
+Municipal;CONCEPCIÓN - ANTIOQUIA
+Municipal;CONCEPCIÓN - SANTANDER
+Municipal;CONCORDIA - ANTIOQUIA
+Municipal;CONCORDIA - MAGDALENA
+Municipal;CONDOTO - CHOCÓ
+Municipal;CONFINES - SANTANDER
+Municipal;CONSACÁ - NARIÑO
+Municipal;CONTADERO - NARIÑO
+Municipal;CONTRATACIÓN - SANTANDER
+Municipal;CONVENCIÓN - NORTE DE SANTANDER
+Municipal;COPACABANA - ANTIOQUIA
+Municipal;COPER - BOYACÁ
+Municipal;CÓRDOBA - BOLÍVAR
+Municipal;CÓRDOBA - NARIÑO
+Municipal;CÓRDOBA - QUINDIO
+Municipal;CORINTO - CAUCA
+Municipal;COROMORO - SANTANDER
+Municipal;COROZAL - SUCRE
+Municipal;CORRALES - BOYACÁ
+Municipal;COTA - CUNDINAMARCA
+Municipal;COTORRA - CÓRDOBA
+Municipal;COVARACHÍA - BOYACÁ
+Municipal;COVEÑAS - SUCRE
+Municipal;COYAIMA - TOLIMA
+Municipal;CRAVO NORTE - ARAUCA
+Municipal;CUASPUD CARLOSAMA - NARIÑO
+Municipal;CUBARÁ - BOYACÁ
+Municipal;CUBARRAL - META
+Municipal;CUCAITA - BOYACÁ
+Municipal;CUCUNUBÁ - CUNDINAMARCA
+Municipal;CUCUTILLA - NORTE DE SANTANDER
+Municipal;CUÍTIVA - BOYACÁ
+Municipal;CUMARAL - META
+Municipal;CUMARIBO - VICHADA
+Municipal;CUMBAL - NARIÑO
+Municipal;CUMBITARA - NARIÑO
+Municipal;CUNDAY - TOLIMA
+Municipal;CURILLO - CAQUETÁ
+Municipal;CURITÍ - SANTANDER
+Municipal;CURUMANÍ - CESAR
+Municipal;DABEIBA - ANTIOQUIA
+Municipal;DAGUA - VALLE DEL CAUCA
+Municipal;DIBULLA - LA GUAJIRA
+Municipal;DISTRACCIÓN - LA GUAJIRA
+Municipal;DOLORES - TOLIMA
+Municipal;DONMATÍAS - ANTIOQUIA
+Municipal;DOSQUEBRADAS - RISARALDA
+Municipal;DUITAMA - BOYACÁ
+Municipal;DURANIA - NORTE DE SANTANDER
+Municipal;EBÉJICO - ANTIOQUIA
+Municipal;EL ÁGUILA - VALLE DEL CAUCA
+Municipal;EL BAGRE - ANTIOQUIA
+Municipal;EL BANCO - MAGDALENA
+Municipal;EL CAIRO - VALLE DEL CAUCA
+Municipal;EL CALVARIO - META
+Municipal;EL CANTÓN DEL SAN PABLO - CHOCÓ
+Municipal;EL CARMEN - NORTE DE SANTANDER
+Municipal;EL CARMEN DE ATRATO - CHOCÓ
+Municipal;EL CARMEN DE BOLÍVAR - BOLÍVAR
+Municipal;EL CARMEN DE CHUCURÍ - SANTANDER
+Municipal;EL CARMEN DE VIBORAL - ANTIOQUIA
+Municipal;EL CASTILLO - META
+Municipal;EL CERRITO - VALLE DEL CAUCA
+Municipal;EL CHARCO - NARIÑO
+Municipal;EL COCUY - BOYACÁ
+Municipal;EL COLEGIO - CUNDINAMARCA
+Municipal;EL COPEY - CESAR
+Municipal;EL DONCELLO - CAQUETÁ
+Municipal;EL DORADO - META
+Municipal;EL DOVIO - VALLE DEL CAUCA
+Municipal;EL ENCANTO - AMAZONAS
+Municipal;EL ESPINO - BOYACÁ
+Municipal;EL GUACAMAYO - SANTANDER
+Municipal;EL GUAMO - BOLÍVAR
+Municipal;EL LITORAL DEL SAN JUAN - CHOCÓ
+Municipal;EL MOLINO - LA GUAJIRA
+Municipal;EL PASO - CESAR
+Municipal;EL PAUJÍL - CAQUETÁ
+Municipal;EL PEÑOL - NARIÑO
+Municipal;EL PEÑÓN - BOLÍVAR
+Municipal;EL PEÑÓN - CUNDINAMARCA
+Municipal;EL PEÑÓN - SANTANDER
+Municipal;EL PIÑÓN - MAGDALENA
+Municipal;EL PLAYÓN - SANTANDER
+Municipal;EL RETÉN - MAGDALENA
+Municipal;EL RETORNO - GUAVIARE
+Municipal;EL ROBLE - SUCRE
+Municipal;EL ROSAL - CUNDINAMARCA
+Municipal;EL ROSARIO - NARIÑO
+Municipal;EL SANTUARIO - ANTIOQUIA
+Municipal;EL TABLÓN DE GÓMEZ - NARIÑO
+Municipal;EL TAMBO - CAUCA
+Municipal;EL TAMBO - NARIÑO
+Municipal;EL TARRA - NORTE DE SANTANDER
+Municipal;EL ZULIA - NORTE DE SANTANDER
+Municipal;ELÍAS - HUILA
+Municipal;ENCINO - SANTANDER
+Municipal;ENCISO - SANTANDER
+Municipal;ENTRERRÍOS - ANTIOQUIA
+Municipal;ENVIGADO - ANTIOQUIA
+Municipal;ESPINAL - TOLIMA
+Municipal;FACATATIVÁ - CUNDINAMARCA
+Municipal;FALAN - TOLIMA
+Municipal;FILADELFIA - CALDAS
+Municipal;FILANDIA - QUINDIO
+Municipal;FIRAVITOBA - BOYACÁ
+Municipal;FLANDES - TOLIMA
+Municipal;FLORENCIA - CAQUETÁ
+Municipal;FLORENCIA - CAUCA
+Municipal;FLORESTA - BOYACÁ
+Municipal;FLORIÁN - SANTANDER
+Municipal;FLORIDA - VALLE DEL CAUCA
+Municipal;FLORIDABLANCA - SANTANDER
+Municipal;FÓMEQUE - CUNDINAMARCA
+Municipal;FONSECA - LA GUAJIRA
+Municipal;FORTUL - ARAUCA
+Municipal;FOSCA - CUNDINAMARCA
+Municipal;FRANCISCO PIZARRO - NARIÑO
+Municipal;FREDONIA - ANTIOQUIA
+Municipal;FRESNO - TOLIMA
+Municipal;FRONTINO - ANTIOQUIA
+Municipal;FUENTE DE ORO - META
+Municipal;FUNDACIÓN - MAGDALENA
+Municipal;FUNES - NARIÑO
+Municipal;FUNZA - CUNDINAMARCA
+Municipal;FÚQUENE - CUNDINAMARCA
+Municipal;FUSAGASUGÁ - CUNDINAMARCA
+Municipal;GACHALÁ - CUNDINAMARCA
+Municipal;GACHANCIPÁ - CUNDINAMARCA
+Municipal;GACHANTIVÁ - BOYACÁ
+Municipal;GACHETÁ - CUNDINAMARCA
+Municipal;GALÁN - SANTANDER
+Municipal;GALAPA - ATLÁNTICO
+Municipal;GALERAS - SUCRE
+Municipal;GAMA - CUNDINAMARCA
+Municipal;GAMARRA - CESAR
+Municipal;GÁMBITA - SANTANDER
+Municipal;GÁMEZA - BOYACÁ
+Municipal;GARAGOA - BOYACÁ
+Municipal;GARZÓN - HUILA
+Municipal;GÉNOVA - QUINDIO
+Municipal;GIGANTE - HUILA
+Municipal;GINEBRA - VALLE DEL CAUCA
+Municipal;GIRALDO - ANTIOQUIA
+Municipal;GIRARDOT - CUNDINAMARCA
+Municipal;GIRARDOTA - ANTIOQUIA
+Municipal;GIRÓN - SANTANDER
+Municipal;GÓMEZ PLATA - ANTIOQUIA
+Municipal;GONZÁLEZ - CESAR
+Municipal;GRAMALOTE - NORTE DE SANTANDER
+Municipal;GRANADA - ANTIOQUIA
+Municipal;GRANADA - CUNDINAMARCA
+Municipal;GRANADA - META
+Municipal;GUACA - SANTANDER
+Municipal;GUACAMAYAS - BOYACÁ
+Municipal;GUACARÍ - VALLE DEL CAUCA
+Municipal;GUACHENÉ - CAUCA
+Municipal;GUACHETÁ - CUNDINAMARCA
+Municipal;GUACHUCAL - NARIÑO
+Municipal;GUADALAJARA DE BUGA - VALLE DEL CAUCA
+Municipal;GUADALUPE - ANTIOQUIA
+Municipal;GUADALUPE - HUILA
+Municipal;GUADALUPE - SANTANDER
+Municipal;GUADUAS - CUNDINAMARCA
+Municipal;GUAITARILLA - NARIÑO
+Municipal;GUALMATÁN - NARIÑO
+Municipal;GUAMAL - MAGDALENA
+Municipal;GUAMAL - META
+Municipal;GUAMO - TOLIMA
+Municipal;GUAPI - CAUCA
+Municipal;GUAPOTÁ - SANTANDER
+Municipal;GUARANDA - SUCRE
+Municipal;GUARNE - ANTIOQUIA
+Municipal;GUASCA - CUNDINAMARCA
+Municipal;GUATAPÉ - ANTIOQUIA
+Municipal;GUATAQUÍ - CUNDINAMARCA
+Municipal;GUATAVITA - CUNDINAMARCA
+Municipal;GUATEQUE - BOYACÁ
+Municipal;GUÁTICA - RISARALDA
+Municipal;GUAVATÁ - SANTANDER
+Municipal;GUAYABAL DE SÍQUIMA - CUNDINAMARCA
+Municipal;GUAYABETAL - CUNDINAMARCA
+Municipal;GUAYATÁ - BOYACÁ
+Municipal;GÜEPSA - SANTANDER
+Municipal;GÜICÁN DE LA SIERRA - BOYACÁ
+Municipal;GUTIÉRREZ - CUNDINAMARCA
+Municipal;HACARÍ - NORTE DE SANTANDER
+Municipal;HATILLO DE LOBA - BOLÍVAR
+Municipal;HATO - SANTANDER
+Municipal;HATO COROZAL - CASANARE
+Municipal;HATONUEVO - LA GUAJIRA
+Municipal;HELICONIA - ANTIOQUIA
+Municipal;HERRÁN - NORTE DE SANTANDER
+Municipal;HERVEO - TOLIMA
+Municipal;HISPANIA - ANTIOQUIA
+Municipal;HOBO - HUILA
+Municipal;HONDA - TOLIMA
+Municipal;IBAGUÉ - TOLIMA
+Municipal;ICONONZO - TOLIMA
+Municipal;ILES - NARIÑO
+Municipal;IMUÉS - NARIÑO
+Municipal;INÍRIDA - GUAINÍA
+Municipal;INZÁ - CAUCA
+Municipal;IPIALES - NARIÑO
+Municipal;ÍQUIRA - HUILA
+Municipal;ISNOS - HUILA
+Municipal;ISTMINA - CHOCÓ
+Municipal;ITAGÜÍ - ANTIOQUIA
+Municipal;ITUANGO - ANTIOQUIA
+Municipal;IZA - BOYACÁ
+Municipal;JAMBALÓ - CAUCA
+Municipal;JAMUNDÍ - VALLE DEL CAUCA
+Municipal;JARDÍN - ANTIOQUIA
+Municipal;JENESANO - BOYACÁ
+Municipal;JERICÓ - ANTIOQUIA
+Municipal;JERICÓ - BOYACÁ
+Municipal;JERUSALÉN - CUNDINAMARCA
+Municipal;JESÚS MARÍA - SANTANDER
+Municipal;JORDÁN - SANTANDER
+Municipal;JUAN DE ACOSTA - ATLÁNTICO
+Municipal;JUNÍN - CUNDINAMARCA
+Municipal;JURADÓ - CHOCÓ
+Municipal;LA APARTADA - CÓRDOBA
+Municipal;LA ARGENTINA - HUILA
+Municipal;LA BELLEZA - SANTANDER
+Municipal;LA CALERA - CUNDINAMARCA
+Municipal;LA CAPILLA - BOYACÁ
+Municipal;LA CEJA - ANTIOQUIA
+Municipal;LA CELIA - RISARALDA
+Municipal;LA CHORRERA - AMAZONAS
+Municipal;LA CRUZ - NARIÑO
+Municipal;LA CUMBRE - VALLE DEL CAUCA
+Municipal;LA DORADA - CALDAS
+Municipal;LA ESPERANZA - NORTE DE SANTANDER
+Municipal;LA ESTRELLA - ANTIOQUIA
+Municipal;LA FLORIDA - NARIÑO
+Municipal;LA GLORIA - CESAR
+Municipal;LA GUADALUPE - GUAINÍA
+Municipal;LA JAGUA DE IBIRICO - CESAR
+Municipal;LA JAGUA DEL PILAR - LA GUAJIRA
+Municipal;LA LLANADA - NARIÑO
+Municipal;LA MACARENA - META
+Municipal;LA MERCED - CALDAS
+Municipal;LA MESA - CUNDINAMARCA
+Municipal;LA MONTAÑITA - CAQUETÁ
+Municipal;LA PALMA - CUNDINAMARCA
+Municipal;LA PAZ - CESAR
+Municipal;LA PAZ - SANTANDER
+Municipal;LA PEDRERA - AMAZONAS
+Municipal;LA PEÑA - CUNDINAMARCA
+Municipal;LA PINTADA - ANTIOQUIA
+Municipal;LA PLATA - HUILA
+Municipal;LA PLAYA - NORTE DE SANTANDER
+Municipal;LA PRIMAVERA - VICHADA
+Municipal;LA SALINA - CASANARE
+Municipal;LA SIERRA - CAUCA
+Municipal;LA TEBAIDA - QUINDIO
+Municipal;LA TOLA - NARIÑO
+Municipal;LA UNIÓN - ANTIOQUIA
+Municipal;LA UNIÓN - NARIÑO
+Municipal;LA UNIÓN - SUCRE
+Municipal;LA UNIÓN - VALLE DEL CAUCA
+Municipal;LA UVITA - BOYACÁ
+Municipal;LA VEGA - CAUCA
+Municipal;LA VEGA - CUNDINAMARCA
+Municipal;LA VICTORIA - AMAZONAS
+Municipal;LA VICTORIA - BOYACÁ
+Municipal;LA VICTORIA - VALLE DEL CAUCA
+Municipal;LA VIRGINIA - RISARALDA
+Municipal;LABATECA - NORTE DE SANTANDER
+Municipal;LABRANZAGRANDE - BOYACÁ
+Municipal;LANDÁZURI - SANTANDER
+Municipal;LEBRIJA - SANTANDER
+Municipal;LEIVA - NARIÑO
+Municipal;LEJANÍAS - META
+Municipal;LENGUAZAQUE - CUNDINAMARCA
+Municipal;LÉRIDA - TOLIMA
+Municipal;LETICIA - AMAZONAS
+Municipal;LÍBANO - TOLIMA
+Municipal;LIBORINA - ANTIOQUIA
+Municipal;LINARES - NARIÑO
+Municipal;LLORÓ - CHOCÓ
+Municipal;LÓPEZ DE MICAY - CAUCA
+Municipal;LORICA - CÓRDOBA
+Municipal;LOS ANDES - NARIÑO
+Municipal;LOS CÓRDOBAS - CÓRDOBA
+Municipal;LOS PALMITOS - SUCRE
+Municipal;LOS PATIOS - NORTE DE SANTANDER
+Municipal;LOS SANTOS - SANTANDER
+Municipal;LOURDES - NORTE DE SANTANDER
+Municipal;LURUACO - ATLÁNTICO
+Municipal;MACANAL - BOYACÁ
+Municipal;MACARAVITA - SANTANDER
+Municipal;MACEO - ANTIOQUIA
+Municipal;MACHETÁ - CUNDINAMARCA
+Municipal;MADRID - CUNDINAMARCA
+Municipal;MAGANGUÉ - BOLÍVAR
+Municipal;MAGÜÍ - NARIÑO
+Municipal;MAHATES - BOLÍVAR
+Municipal;MAICAO - LA GUAJIRA
+Municipal;MAJAGUAL - SUCRE
+Municipal;MÁLAGA - SANTANDER
+Municipal;MALAMBO - ATLÁNTICO
+Municipal;MALLAMA - NARIÑO
+Municipal;MANATÍ - ATLÁNTICO
+Municipal;MANAURE - LA GUAJIRA
+Municipal;MANAURE BALCÓN DEL CESAR - CESAR
+Municipal;MANÍ - CASANARE
+Municipal;MANIZALES - CALDAS
+Municipal;MANTA - CUNDINAMARCA
+Municipal;MANZANARES - CALDAS
+Municipal;MAPIRIPÁN - META
+Municipal;MAPIRIPANA - GUAINÍA
+Municipal;MARGARITA - BOLÍVAR
+Municipal;MARÍA LA BAJA - BOLÍVAR
+Municipal;MARINILLA - ANTIOQUIA
+Municipal;MARIPÍ - BOYACÁ
+Municipal;MARMATO - CALDAS
+Municipal;MARQUETALIA - CALDAS
+Municipal;MARSELLA - RISARALDA
+Municipal;MARULANDA - CALDAS
+Municipal;MATANZA - SANTANDER
+Municipal;MEDELLÍN - ANTIOQUIA
+Municipal;MEDINA - CUNDINAMARCA
+Municipal;MEDIO ATRATO - CHOCÓ
+Municipal;MEDIO BAUDÓ - CHOCÓ
+Municipal;MEDIO SAN JUAN - CHOCÓ
+Municipal;MELGAR - TOLIMA
+Municipal;MERCADERES - CAUCA
+Municipal;MESETAS - META
+Municipal;MILÁN - CAQUETÁ
+Municipal;MIRAFLORES - BOYACÁ
+Municipal;MIRAFLORES - GUAVIARE
+Municipal;MIRANDA - CAUCA
+Municipal;MIRITÍ - PARANÁ - AMAZONAS
+Municipal;MISTRATÓ - RISARALDA
+Municipal;MITÚ - VAUPÉS
+Municipal;MOCOA - PUTUMAYO
+Municipal;MOGOTES - SANTANDER
+Municipal;MOLAGAVITA - SANTANDER
+Municipal;MOMIL - CÓRDOBA
+Municipal;MONGUA - BOYACÁ
+Municipal;MONGUÍ - BOYACÁ
+Municipal;MONIQUIRÁ - BOYACÁ
+Municipal;MOÑITOS - CÓRDOBA
+Municipal;MONTEBELLO - ANTIOQUIA
+Municipal;MONTECRISTO - BOLÍVAR
+Municipal;MONTELÍBANO - CÓRDOBA
+Municipal;MONTENEGRO - QUINDIO
+Municipal;MONTERÍA - CÓRDOBA
+Municipal;MONTERREY - CASANARE
+Municipal;MORALES - BOLÍVAR
+Municipal;MORALES - CAUCA
+Municipal;MORELIA - CAQUETÁ
+Municipal;MORICHAL - GUAINÍA
+Municipal;MORROA - SUCRE
+Municipal;MOSQUERA - CUNDINAMARCA
+Municipal;MOSQUERA - NARIÑO
+Municipal;MOTAVITA - BOYACÁ
+Municipal;MURILLO - TOLIMA
+Municipal;MURINDÓ - ANTIOQUIA
+Municipal;MUTATÁ - ANTIOQUIA
+Municipal;MUTISCUA - NORTE DE SANTANDER
+Municipal;MUZO - BOYACÁ
+Municipal;NARIÑO - ANTIOQUIA
+Municipal;NARIÑO - CUNDINAMARCA
+Municipal;NARIÑO - NARIÑO
+Municipal;NÁTAGA - HUILA
+Municipal;NATAGAIMA - TOLIMA
+Municipal;NECHÍ - ANTIOQUIA
+Municipal;NECOCLÍ - ANTIOQUIA
+Municipal;NEIRA - CALDAS
+Municipal;NEIVA - HUILA
+Municipal;NEMOCÓN - CUNDINAMARCA
+Municipal;NILO - CUNDINAMARCA
+Municipal;NIMAIMA - CUNDINAMARCA
+Municipal;NOBSA - BOYACÁ
+Municipal;NOCAIMA - CUNDINAMARCA
+Municipal;NORCASIA - CALDAS
+Municipal;NOROSÍ - BOLÍVAR
+Municipal;NÓVITA - CHOCÓ
+Municipal;NUEVA GRANADA - MAGDALENA
+Municipal;NUEVO BELÉN DE BAJIRÁ - CHOCÓ
+Municipal;NUEVO COLÓN - BOYACÁ
+Municipal;NUNCHÍA - CASANARE
+Municipal;NUQUÍ - CHOCÓ
+Municipal;OBANDO - VALLE DEL CAUCA
+Municipal;OCAMONTE - SANTANDER
+Municipal;OCAÑA - NORTE DE SANTANDER
+Municipal;OIBA - SANTANDER
+Municipal;OICATÁ - BOYACÁ
+Municipal;OLAYA - ANTIOQUIA
+Municipal;OLAYA HERRERA - NARIÑO
+Municipal;ONZAGA - SANTANDER
+Municipal;OPORAPA - HUILA
+Municipal;ORITO - PUTUMAYO
+Municipal;OROCUÉ - CASANARE
+Municipal;ORTEGA - TOLIMA
+Municipal;OSPINA - NARIÑO
+Municipal;OTANCHE - BOYACÁ
+Municipal;OVEJAS - SUCRE
+Municipal;PACHAVITA - BOYACÁ
+Municipal;PACHO - CUNDINAMARCA
+Municipal;PACOA - VAUPÉS
+Municipal;PÁCORA - CALDAS
+Municipal;PADILLA - CAUCA
+Municipal;PÁEZ - BOYACÁ
+Municipal;PÁEZ - CAUCA
+Municipal;PAICOL - HUILA
+Municipal;PAILITAS - CESAR
+Municipal;PAIME - CUNDINAMARCA
+Municipal;PAIPA - BOYACÁ
+Municipal;PAJARITO - BOYACÁ
+Municipal;PALERMO - HUILA
+Municipal;PALESTINA - CALDAS
+Municipal;PALESTINA - HUILA
+Municipal;PALMAR - SANTANDER
+Municipal;PALMAR DE VARELA - ATLÁNTICO
+Municipal;PALMAS DEL SOCORRO - SANTANDER
+Municipal;PALMIRA - VALLE DEL CAUCA
+Municipal;PALMITO - SUCRE
+Municipal;PALOCABILDO - TOLIMA
+Municipal;PAMPLONA - NORTE DE SANTANDER
+Municipal;PAMPLONITA - NORTE DE SANTANDER
+Municipal;PANA PANA - GUAINÍA
+Municipal;PANDI - CUNDINAMARCA
+Municipal;PANQUEBA - BOYACÁ
+Municipal;PAPUNAHUA - VAUPÉS
+Municipal;PÁRAMO - SANTANDER
+Municipal;PARATEBUENO - CUNDINAMARCA
+Municipal;PASCA - CUNDINAMARCA
+Municipal;PASTO - NARIÑO
+Municipal;PATÍA - CAUCA
+Municipal;PAUNA - BOYACÁ
+Municipal;PAYA - BOYACÁ
+Municipal;PAZ DE ARIPORO - CASANARE
+Municipal;PAZ DE RÍO - BOYACÁ
+Municipal;PEDRAZA - MAGDALENA
+Municipal;PELAYA - CESAR
+Municipal;PEÑOL - ANTIOQUIA
+Municipal;PENSILVANIA - CALDAS
+Municipal;PEQUE - ANTIOQUIA
+Municipal;PEREIRA - RISARALDA
+Municipal;PESCA - BOYACÁ
+Municipal;PIAMONTE - CAUCA
+Municipal;PIEDECUESTA - SANTANDER
+Municipal;PIEDRAS - TOLIMA
+Municipal;PIENDAMÓ - TUNÍA - CAUCA
+Municipal;PIJAO - QUINDIO
+Municipal;PIJIÑO DEL CARMEN - MAGDALENA
+Municipal;PINCHOTE - SANTANDER
+Municipal;PINILLOS - BOLÍVAR
+Municipal;PIOJÓ - ATLÁNTICO
+Municipal;PISBA - BOYACÁ
+Municipal;PITAL - HUILA
+Municipal;PITALITO - HUILA
+Municipal;PIVIJAY - MAGDALENA
+Municipal;PLANADAS - TOLIMA
+Municipal;PLANETA RICA - CÓRDOBA
+Municipal;PLATO - MAGDALENA
+Municipal;POLICARPA - NARIÑO
+Municipal;POLONUEVO - ATLÁNTICO
+Municipal;PONEDERA - ATLÁNTICO
+Municipal;POPAYÁN - CAUCA
+Municipal;PORE - CASANARE
+Municipal;POTOSÍ - NARIÑO
+Municipal;PRADERA - VALLE DEL CAUCA
+Municipal;PRADO - TOLIMA
+Municipal;PROVIDENCIA - NARIÑO
+Municipal;PROVIDENCIA - SAN ANDRÉS
+Municipal;PUEBLO BELLO - CESAR
+Municipal;PUEBLO NUEVO - CÓRDOBA
+Municipal;PUEBLO RICO - RISARALDA
+Municipal;PUEBLORRICO - ANTIOQUIA
+Municipal;PUEBLOVIEJO - MAGDALENA
+Municipal;PUENTE NACIONAL - SANTANDER
+Municipal;PUERRES - NARIÑO
+Municipal;PUERTO ALEGRÍA - AMAZONAS
+Municipal;PUERTO ARICA - AMAZONAS
+Municipal;PUERTO ASÍS - PUTUMAYO
+Municipal;PUERTO BERRÍO - ANTIOQUIA
+Municipal;PUERTO BOYACÁ - BOYACÁ
+Municipal;PUERTO CAICEDO - PUTUMAYO
+Municipal;PUERTO CARREÑO - VICHADA
+Municipal;PUERTO COLOMBIA - ATLÁNTICO
+Municipal;PUERTO COLOMBIA - GUAINÍA
+Municipal;PUERTO CONCORDIA - META
+Municipal;PUERTO ESCONDIDO - CÓRDOBA
+Municipal;PUERTO GAITÁN - META
+Municipal;PUERTO GUZMÁN - PUTUMAYO
+Municipal;PUERTO LEGUÍZAMO - PUTUMAYO
+Municipal;PUERTO LIBERTADOR - CÓRDOBA
+Municipal;PUERTO LLERAS - META
+Municipal;PUERTO LÓPEZ - META
+Municipal;PUERTO NARE - ANTIOQUIA
+Municipal;PUERTO NARIÑO - AMAZONAS
+Municipal;PUERTO PARRA - SANTANDER
+Municipal;PUERTO RICO - CAQUETÁ
+Municipal;PUERTO RICO - META
+Municipal;PUERTO RONDÓN - ARAUCA
+Municipal;PUERTO SALGAR - CUNDINAMARCA
+Municipal;PUERTO SANTANDER - AMAZONAS
+Municipal;PUERTO SANTANDER - NORTE DE SANTANDER
+Municipal;PUERTO TEJADA - CAUCA
+Municipal;PUERTO TRIUNFO - ANTIOQUIA
+Municipal;PUERTO WILCHES - SANTANDER
+Municipal;PULÍ - CUNDINAMARCA
+Municipal;PUPIALES - NARIÑO
+Municipal;PURACÉ - CAUCA
+Municipal;PURIFICACIÓN - TOLIMA
+Municipal;PURÍSIMA DE LA CONCEPCIÓN - CÓRDOBA
+Municipal;QUEBRADANEGRA - CUNDINAMARCA
+Municipal;QUETAME - CUNDINAMARCA
+Municipal;QUIBDÓ - CHOCÓ
+Municipal;QUIMBAYA - QUINDIO
+Municipal;QUINCHÍA - RISARALDA
+Municipal;QUÍPAMA - BOYACÁ
+Municipal;QUIPILE - CUNDINAMARCA
+Municipal;RAGONVALIA - NORTE DE SANTANDER
+Municipal;RAMIRIQUÍ - BOYACÁ
+Municipal;RÁQUIRA - BOYACÁ
+Municipal;RECETOR - CASANARE
+Municipal;REGIDOR - BOLÍVAR
+Municipal;REMEDIOS - ANTIOQUIA
+Municipal;REMOLINO - MAGDALENA
+Municipal;REPELÓN - ATLÁNTICO
+Municipal;RESTREPO - META
+Municipal;RESTREPO - VALLE DEL CAUCA
+Municipal;RETIRO - ANTIOQUIA
+Municipal;RICAURTE - CUNDINAMARCA
+Municipal;RICAURTE - NARIÑO
+Municipal;RÍO DE ORO - CESAR
+Municipal;RÍO IRÓ - CHOCÓ
+Municipal;RÍO QUITO - CHOCÓ
+Municipal;RÍO VIEJO - BOLÍVAR
+Municipal;RIOBLANCO - TOLIMA
+Municipal;RIOFRÍO - VALLE DEL CAUCA
+Municipal;RIOHACHA - LA GUAJIRA
+Municipal;RIONEGRO - ANTIOQUIA
+Municipal;RIONEGRO - SANTANDER
+Municipal;RIOSUCIO - CALDAS
+Municipal;RIOSUCIO - CHOCÓ
+Municipal;RISARALDA - CALDAS
+Municipal;RIVERA - HUILA
+Municipal;ROBERTO PAYÁN - NARIÑO
+Municipal;ROLDANILLO - VALLE DEL CAUCA
+Municipal;RONCESVALLES - TOLIMA
+Municipal;RONDÓN - BOYACÁ
+Municipal;ROSAS - CAUCA
+Municipal;ROVIRA - TOLIMA
+Municipal;SABANA DE TORRES - SANTANDER
+Municipal;SABANAGRANDE - ATLÁNTICO
+Municipal;SABANALARGA - ANTIOQUIA
+Municipal;SABANALARGA - ATLÁNTICO
+Municipal;SABANALARGA - CASANARE
+Municipal;SABANAS DE SAN ÁNGEL - MAGDALENA
+Municipal;SABANETA - ANTIOQUIA
+Municipal;SABOYÁ - BOYACÁ
+Municipal;SÁCAMA - CASANARE
+Municipal;SÁCHICA - BOYACÁ
+Municipal;SAHAGÚN - CÓRDOBA
+Municipal;SALADOBLANCO - HUILA
+Municipal;SALAMINA - CALDAS
+Municipal;SALAMINA - MAGDALENA
+Municipal;SALAZAR - NORTE DE SANTANDER
+Municipal;SALDAÑA - TOLIMA
+Municipal;SALENTO - QUINDIO
+Municipal;SALGAR - ANTIOQUIA
+Municipal;SAMACÁ - BOYACÁ
+Municipal;SAMANÁ - CALDAS
+Municipal;SAMANIEGO - NARIÑO
+Municipal;SAMPUÉS - SUCRE
+Municipal;SAN AGUSTÍN - HUILA
+Municipal;SAN ALBERTO - CESAR
+Municipal;SAN ANDRÉS - SAN ANDRÉS
+Municipal;SAN ANDRÉS - SANTANDER
+Municipal;SAN ANDRÉS DE CUERQUÍA - ANTIOQUIA
+Municipal;SAN ANDRÉS DE SOTAVENTO - CÓRDOBA
+Municipal;SAN ANDRÉS DE TUMACO - NARIÑO
+Municipal;SAN ANTERO - CÓRDOBA
+Municipal;SAN ANTONIO - TOLIMA
+Municipal;SAN ANTONIO DEL TEQUENDAMA - CUNDINAMARCA
+Municipal;SAN BENITO - SANTANDER
+Municipal;SAN BENITO ABAD - SUCRE
+Municipal;SAN BERNARDO - CUNDINAMARCA
+Municipal;SAN BERNARDO - NARIÑO
+Municipal;SAN BERNARDO DEL VIENTO - CÓRDOBA
+Municipal;SAN CALIXTO - NORTE DE SANTANDER
+Municipal;SAN CARLOS - ANTIOQUIA
+Municipal;SAN CARLOS - CÓRDOBA
+Municipal;SAN CARLOS DE GUAROA - META
+Municipal;SAN CAYETANO - CUNDINAMARCA
+Municipal;SAN CAYETANO - NORTE DE SANTANDER
+Municipal;SAN CRISTÓBAL - BOLÍVAR
+Municipal;SAN DIEGO - CESAR
+Municipal;SAN EDUARDO - BOYACÁ
+Municipal;SAN ESTANISLAO - BOLÍVAR
+Municipal;SAN FELIPE - GUAINÍA
+Municipal;SAN FERNANDO - BOLÍVAR
+Municipal;SAN FRANCISCO - ANTIOQUIA
+Municipal;SAN FRANCISCO - CUNDINAMARCA
+Municipal;SAN FRANCISCO - PUTUMAYO
+Municipal;SAN GIL - SANTANDER
+Municipal;SAN JACINTO - BOLÍVAR
+Municipal;SAN JACINTO DEL CAUCA - BOLÍVAR
+Municipal;SAN JERÓNIMO - ANTIOQUIA
+Municipal;SAN JOAQUÍN - SANTANDER
+Municipal;SAN JOSÉ - CALDAS
+Municipal;SAN JOSÉ DE CÚCUTA - NORTE DE SANTANDER
+Municipal;SAN JOSÉ DE LA MONTAÑA - ANTIOQUIA
+Municipal;SAN JOSÉ DE MIRANDA - SANTANDER
+Municipal;SAN JOSÉ DE PARE - BOYACÁ
+Municipal;SAN JOSÉ DE TOLUVIEJO - SUCRE
+Municipal;SAN JOSÉ DE URÉ - CÓRDOBA
+Municipal;SAN JOSÉ DEL FRAGUA - CAQUETÁ
+Municipal;SAN JOSÉ DEL GUAVIARE - GUAVIARE
+Municipal;SAN JOSÉ DEL PALMAR - CHOCÓ
+Municipal;SAN JUAN DE ARAMA - META
+Municipal;SAN JUAN DE BETULIA - SUCRE
+Municipal;SAN JUAN DE RIOSECO - CUNDINAMARCA
+Municipal;SAN JUAN DE URABÁ - ANTIOQUIA
+Municipal;SAN JUAN DEL CESAR - LA GUAJIRA
+Municipal;SAN JUAN NEPOMUCENO - BOLÍVAR
+Municipal;SAN JUANITO - META
+Municipal;SAN LORENZO - NARIÑO
+Municipal;SAN LUIS - ANTIOQUIA
+Municipal;SAN LUIS - TOLIMA
+Municipal;SAN LUIS DE GACENO - BOYACÁ
+Municipal;SAN LUIS DE PALENQUE - CASANARE
+Municipal;SAN LUIS DE SINCÉ - SUCRE
+Municipal;SAN MARCOS - SUCRE
+Municipal;SAN MARTÍN - CESAR
+Municipal;SAN MARTÍN - META
+Municipal;SAN MARTÍN DE LOBA - BOLÍVAR
+Municipal;SAN MATEO - BOYACÁ
+Municipal;SAN MIGUEL - PUTUMAYO
+Municipal;SAN MIGUEL - SANTANDER
+Municipal;SAN MIGUEL DE SEMA - BOYACÁ
+Municipal;SAN ONOFRE - SUCRE
+Municipal;SAN PABLO - BOLÍVAR
+Municipal;SAN PABLO - NARIÑO
+Municipal;SAN PABLO DE BORBUR - BOYACÁ
+Municipal;SAN PEDRO - SUCRE
+Municipal;SAN PEDRO - VALLE DEL CAUCA
+Municipal;SAN PEDRO DE CARTAGO - NARIÑO
+Municipal;SAN PEDRO DE LOS MILAGROS - ANTIOQUIA
+Municipal;SAN PEDRO DE URABÁ - ANTIOQUIA
+Municipal;SAN PELAYO - CÓRDOBA
+Municipal;SAN RAFAEL - ANTIOQUIA
+Municipal;SAN ROQUE - ANTIOQUIA
+Municipal;SAN SEBASTIÁN - CAUCA
+Municipal;SAN SEBASTIÁN DE BUENAVISTA - MAGDALENA
+Municipal;SAN SEBASTIÁN DE MARIQUITA - TOLIMA
+Municipal;SAN VICENTE DE CHUCURÍ - SANTANDER
+Municipal;SAN VICENTE DEL CAGUÁN - CAQUETÁ
+Municipal;SAN VICENTE FERRER - ANTIOQUIA
+Municipal;SAN ZENÓN - MAGDALENA
+Municipal;SANDONÁ - NARIÑO
+Municipal;SANTA ANA - MAGDALENA
+Municipal;SANTA BÁRBARA - ANTIOQUIA
+Municipal;SANTA BÁRBARA - NARIÑO
+Municipal;SANTA BÁRBARA - SANTANDER
+Municipal;SANTA BÁRBARA DE PINTO - MAGDALENA
+Municipal;SANTA CATALINA - BOLÍVAR
+Municipal;SANTA CRUZ DE MOMPOX - BOLÍVAR
+Municipal;SANTA FÉ DE ANTIOQUIA - ANTIOQUIA
+Municipal;SANTA HELENA DEL OPÓN - SANTANDER
+Municipal;SANTA ISABEL - TOLIMA
+Municipal;SANTA LUCÍA - ATLÁNTICO
+Municipal;SANTA MARÍA - BOYACÁ
+Municipal;SANTA MARÍA - HUILA
+Municipal;SANTA MARTA - MAGDALENA
+Municipal;SANTA ROSA - BOLÍVAR
+Municipal;SANTA ROSA - CAUCA
+Municipal;SANTA ROSA DE CABAL - RISARALDA
+Municipal;SANTA ROSA DE OSOS - ANTIOQUIA
+Municipal;SANTA ROSA DE VITERBO - BOYACÁ
+Municipal;SANTA ROSA DEL SUR - BOLÍVAR
+Municipal;SANTA ROSALÍA - VICHADA
+Municipal;SANTA SOFÍA - BOYACÁ
+Municipal;SANTACRUZ - NARIÑO
+Municipal;SANTANA - BOYACÁ
+Municipal;SANTANDER DE QUILICHAO - CAUCA
+Municipal;SANTIAGO - NORTE DE SANTANDER
+Municipal;SANTIAGO - PUTUMAYO
+Municipal;SANTIAGO DE CALI - VALLE DEL CAUCA
+Municipal;SANTIAGO DE TOLÚ - SUCRE
+Municipal;SANTO DOMINGO - ANTIOQUIA
+Municipal;SANTO TOMÁS - ATLÁNTICO
+Municipal;SANTUARIO - RISARALDA
+Municipal;SAPUYES - NARIÑO
+Municipal;SARAVENA - ARAUCA
+Municipal;SARDINATA - NORTE DE SANTANDER
+Municipal;SASAIMA - CUNDINAMARCA
+Municipal;SATIVANORTE - BOYACÁ
+Municipal;SATIVASUR - BOYACÁ
+Municipal;SEGOVIA - ANTIOQUIA
+Municipal;SESQUILÉ - CUNDINAMARCA
+Municipal;SEVILLA - VALLE DEL CAUCA
+Municipal;SIACHOQUE - BOYACÁ
+Municipal;SIBATÉ - CUNDINAMARCA
+Municipal;SIBUNDOY - PUTUMAYO
+Municipal;SILOS - NORTE DE SANTANDER
+Municipal;SILVANIA - CUNDINAMARCA
+Municipal;SILVIA - CAUCA
+Municipal;SIMACOTA - SANTANDER
+Municipal;SIMIJACA - CUNDINAMARCA
+Municipal;SIMITÍ - BOLÍVAR
+Municipal;SINCELEJO - SUCRE
+Municipal;SIPÍ - CHOCÓ
+Municipal;SITIONUEVO - MAGDALENA
+Municipal;SOACHA - CUNDINAMARCA
+Municipal;SOATÁ - BOYACÁ
+Municipal;SOCHA - BOYACÁ
+Municipal;SOCORRO - SANTANDER
+Municipal;SOCOTÁ - BOYACÁ
+Municipal;SOGAMOSO - BOYACÁ
+Municipal;SOLANO - CAQUETÁ
+Municipal;SOLEDAD - ATLÁNTICO
+Municipal;SOLITA - CAQUETÁ
+Municipal;SOMONDOCO - BOYACÁ
+Municipal;SONSÓN - ANTIOQUIA
+Municipal;SOPETRÁN - ANTIOQUIA
+Municipal;SOPLAVIENTO - BOLÍVAR
+Municipal;SOPÓ - CUNDINAMARCA
+Municipal;SORA - BOYACÁ
+Municipal;SORACÁ - BOYACÁ
+Municipal;SOTAQUIRÁ - BOYACÁ
+Municipal;SOTARÁ - PAISPAMBA - CAUCA
+Municipal;SUAITA - SANTANDER
+Municipal;SUAN - ATLÁNTICO
+Municipal;SUÁREZ - CAUCA
+Municipal;SUÁREZ - TOLIMA
+Municipal;SUAZA - HUILA
+Municipal;SUBACHOQUE - CUNDINAMARCA
+Municipal;SUCRE - CAUCA
+Municipal;SUCRE - SANTANDER
+Municipal;SUCRE - SUCRE
+Municipal;SUESCA - CUNDINAMARCA
+Municipal;SUPATÁ - CUNDINAMARCA
+Municipal;SUPÍA - CALDAS
+Municipal;SURATÁ - SANTANDER
+Municipal;SUSA - CUNDINAMARCA
+Municipal;SUSACÓN - BOYACÁ
+Municipal;SUTAMARCHÁN - BOYACÁ
+Municipal;SUTATAUSA - CUNDINAMARCA
+Municipal;SUTATENZA - BOYACÁ
+Municipal;TABIO - CUNDINAMARCA
+Municipal;TADÓ - CHOCÓ
+Municipal;TALAIGUA NUEVO - BOLÍVAR
+Municipal;TAMALAMEQUE - CESAR
+Municipal;TÁMARA - CASANARE
+Municipal;TAME - ARAUCA
+Municipal;TÁMESIS - ANTIOQUIA
+Municipal;TAMINANGO - NARIÑO
+Municipal;TANGUA - NARIÑO
+Municipal;TARAIRA - VAUPÉS
+Municipal;TARAPACÁ - AMAZONAS
+Municipal;TARAZÁ - ANTIOQUIA
+Municipal;TARQUI - HUILA
+Municipal;TARSO - ANTIOQUIA
+Municipal;TASCO - BOYACÁ
+Municipal;TAURAMENA - CASANARE
+Municipal;TAUSA - CUNDINAMARCA
+Municipal;TELLO - HUILA
+Municipal;TENA - CUNDINAMARCA
+Municipal;TENERIFE - MAGDALENA
+Municipal;TENJO - CUNDINAMARCA
+Municipal;TENZA - BOYACÁ
+Municipal;TEORAMA - NORTE DE SANTANDER
+Municipal;TERUEL - HUILA
+Municipal;TESALIA - HUILA
+Municipal;TIBACUY - CUNDINAMARCA
+Municipal;TIBANÁ - BOYACÁ
+Municipal;TIBASOSA - BOYACÁ
+Municipal;TIBIRITA - CUNDINAMARCA
+Municipal;TIBÚ - NORTE DE SANTANDER
+Municipal;TIERRALTA - CÓRDOBA
+Municipal;TIMANÁ - HUILA
+Municipal;TIMBÍO - CAUCA
+Municipal;TIMBIQUÍ - CAUCA
+Municipal;TINJACÁ - BOYACÁ
+Municipal;TIPACOQUE - BOYACÁ
+Municipal;TIQUISIO - BOLÍVAR
+Municipal;TITIRIBÍ - ANTIOQUIA
+Municipal;TOCA - BOYACÁ
+Municipal;TOCAIMA - CUNDINAMARCA
+Municipal;TOCANCIPÁ - CUNDINAMARCA
+Municipal;TODO EL DEPARTAMENTO - 
+Municipal;TODO EL DEPARTAMENTO - AMAZONAS
+Municipal;TODO EL DEPARTAMENTO - ANTIOQUIA
+Municipal;TODO EL DEPARTAMENTO - ARAUCA
+Municipal;TODO EL DEPARTAMENTO - ATLÁNTICO
+Municipal;TODO EL DEPARTAMENTO - BOLÍVAR
+Municipal;TODO EL DEPARTAMENTO - BOYACÁ
+Municipal;TODO EL DEPARTAMENTO - CALDAS
+Municipal;TODO EL DEPARTAMENTO - CAQUETÁ
+Municipal;TODO EL DEPARTAMENTO - CASANARE
+Municipal;TODO EL DEPARTAMENTO - CAUCA
+Municipal;TODO EL DEPARTAMENTO - CESAR
+Municipal;TODO EL DEPARTAMENTO - CHOCÓ
+Municipal;TODO EL DEPARTAMENTO - CÓRDOBA
+Municipal;TODO EL DEPARTAMENTO - CUNDINAMARCA
+Municipal;TODO EL DEPARTAMENTO - GUAINÍA
+Municipal;TODO EL DEPARTAMENTO - GUAVIARE
+Municipal;TODO EL DEPARTAMENTO - HUILA
+Municipal;TODO EL DEPARTAMENTO - LA GUAJIRA
+Municipal;TODO EL DEPARTAMENTO - MAGDALENA
+Municipal;TODO EL DEPARTAMENTO - META
+Municipal;TODO EL DEPARTAMENTO - NARIÑO
+Municipal;TODO EL DEPARTAMENTO - NORTE DE SANTANDER
+Municipal;TODO EL DEPARTAMENTO - PUTUMAYO
+Municipal;TODO EL DEPARTAMENTO - QUINDIO
+Municipal;TODO EL DEPARTAMENTO - RISARALDA
+Municipal;TODO EL DEPARTAMENTO - SAN ANDRÉS
+Municipal;TODO EL DEPARTAMENTO - SANTANDER
+Municipal;TODO EL DEPARTAMENTO - SUCRE
+Municipal;TODO EL DEPARTAMENTO - TOLIMA
+Municipal;TODO EL DEPARTAMENTO - VALLE DEL CAUCA
+Municipal;TODO EL DEPARTAMENTO - VAUPÉS
+Municipal;TODO EL DEPARTAMENTO - VICHADA
+Municipal;TOGÜÍ - BOYACÁ
+Municipal;TOLEDO - ANTIOQUIA
+Municipal;TOLEDO - NORTE DE SANTANDER
+Municipal;TONA - SANTANDER
+Municipal;TÓPAGA - BOYACÁ
+Municipal;TOPAIPÍ - CUNDINAMARCA
+Municipal;TORIBÍO - CAUCA
+Municipal;TORO - VALLE DEL CAUCA
+Municipal;TOTA - BOYACÁ
+Municipal;TOTORÓ - CAUCA
+Municipal;TRINIDAD - CASANARE
+Municipal;TRUJILLO - VALLE DEL CAUCA
+Municipal;TUBARÁ - ATLÁNTICO
+Municipal;TUCHÍN - CÓRDOBA
+Municipal;TULUÁ - VALLE DEL CAUCA
+Municipal;TUNJA - BOYACÁ
+Municipal;TUNUNGUÁ - BOYACÁ
+Municipal;TÚQUERRES - NARIÑO
+Municipal;TURBACO - BOLÍVAR
+Municipal;TURBANA - BOLÍVAR
+Municipal;TURBO - ANTIOQUIA
+Municipal;TURMEQUÉ - BOYACÁ
+Municipal;TUTA - BOYACÁ
+Municipal;TUTAZÁ - BOYACÁ
+Municipal;UBALÁ - CUNDINAMARCA
+Municipal;UBAQUE - CUNDINAMARCA
+Municipal;ULLOA - VALLE DEL CAUCA
+Municipal;ÚMBITA - BOYACÁ
+Municipal;UNE - CUNDINAMARCA
+Municipal;UNGUÍA - CHOCÓ
+Municipal;UNIÓN PANAMERICANA - CHOCÓ
+Municipal;URAMITA - ANTIOQUIA
+Municipal;URIBE - META
+Municipal;URIBIA - LA GUAJIRA
+Municipal;URRAO - ANTIOQUIA
+Municipal;URUMITA - LA GUAJIRA
+Municipal;USIACURÍ - ATLÁNTICO
+Municipal;ÚTICA - CUNDINAMARCA
+Municipal;VALDIVIA - ANTIOQUIA
+Municipal;VALENCIA - CÓRDOBA
+Municipal;VALLE DE SAN JOSÉ - SANTANDER
+Municipal;VALLE DE SAN JUAN - TOLIMA
+Municipal;VALLE DEL GUAMUEZ - PUTUMAYO
+Municipal;VALLEDUPAR - CESAR
+Municipal;VALPARAÍSO - ANTIOQUIA
+Municipal;VALPARAÍSO - CAQUETÁ
+Municipal;VEGACHÍ - ANTIOQUIA
+Municipal;VÉLEZ - SANTANDER
+Municipal;VENADILLO - TOLIMA
+Municipal;VENECIA - ANTIOQUIA
+Municipal;VENECIA - CUNDINAMARCA
+Municipal;VENTAQUEMADA - BOYACÁ
+Municipal;VERGARA - CUNDINAMARCA
+Municipal;VERSALLES - VALLE DEL CAUCA
+Municipal;VETAS - SANTANDER
+Municipal;VIANÍ - CUNDINAMARCA
+Municipal;VICTORIA - CALDAS
+Municipal;VIGÍA DEL FUERTE - ANTIOQUIA
+Municipal;VIJES - VALLE DEL CAUCA
+Municipal;VILLA CARO - NORTE DE SANTANDER
+Municipal;VILLA DE LEYVA - BOYACÁ
+Municipal;VILLA DE SAN DIEGO DE UBATÉ - CUNDINAMARCA
+Municipal;VILLA DEL ROSARIO - NORTE DE SANTANDER
+Municipal;VILLA RICA - CAUCA
+Municipal;VILLAGARZÓN - PUTUMAYO
+Municipal;VILLAGÓMEZ - CUNDINAMARCA
+Municipal;VILLAHERMOSA - TOLIMA
+Municipal;VILLAMARÍA - CALDAS
+Municipal;VILLANUEVA - BOLÍVAR
+Municipal;VILLANUEVA - CASANARE
+Municipal;VILLANUEVA - LA GUAJIRA
+Municipal;VILLANUEVA - SANTANDER
+Municipal;VILLAPINZÓN - CUNDINAMARCA
+Municipal;VILLARRICA - TOLIMA
+Municipal;VILLAVICENCIO - META
+Municipal;VILLAVIEJA - HUILA
+Municipal;VILLETA - CUNDINAMARCA
+Municipal;VIOTÁ - CUNDINAMARCA
+Municipal;VIRACACHÁ - BOYACÁ
+Municipal;VISTAHERMOSA - META
+Municipal;VITERBO - CALDAS
+Municipal;YACOPÍ - CUNDINAMARCA
+Municipal;YACUANQUER - NARIÑO
+Municipal;YAGUARÁ - HUILA
+Municipal;YALÍ - ANTIOQUIA
+Municipal;YARUMAL - ANTIOQUIA
+Municipal;YAVARATÉ - VAUPÉS
+Municipal;YOLOMBÓ - ANTIOQUIA
+Municipal;YONDÓ - ANTIOQUIA
+Municipal;YOPAL - CASANARE
+Municipal;YOTOCO - VALLE DEL CAUCA
+Municipal;YUMBO - VALLE DEL CAUCA
+Municipal;ZAMBRANO - BOLÍVAR
+Municipal;ZAPATOCA - SANTANDER
+Municipal;ZAPAYÁN - MAGDALENA
+Municipal;ZARAGOZA - ANTIOQUIA
+Municipal;ZARZAL - VALLE DEL CAUCA
+Municipal;ZETAQUIRA - BOYACÁ
+Municipal;ZIPACÓN - CUNDINAMARCA
+Municipal;ZIPAQUIRÁ - CUNDINAMARCA
+Municipal;ZONA BANANERA - MAGDALENA
+Nacional;Agencia de Desarrollo Rural-ADR
+Nacional;Agencia De Renovación Del Territorio
+Nacional;Agencia De Renovacion Del Territorio - Art
+Nacional;Agencia De Renovación Del Territorio Art - Gestión General
+Nacional;Agencia Del Inspector General De Tributos, Rentas Y Contribuciones Parafiscales -Itrc
+Nacional;Agencia Logística De Las Fuerzas Militares
+Nacional;Agencia Nacional De Contratación Pública -Colombia Compra Eficiente
+Nacional;Agencia Nacional De Defensa Jurídica Del Estado
+Nacional;Agencia Nacional De Hidrocarburos - Anh
+Nacional;Agencia Nacional de Infraestructura
+Nacional;Agencia Nacional De Minería Anm
+Nacional;Agencia Nacional De Seguridad Vial
+Nacional;Agencia Nacional de Tierras-ANT
+Nacional;Agencia Nacional Del Espectro
+Nacional;Agencia Nacional Inmobiliaria Virgilio Barco Vargas
+Nacional;Agencia Nacional Para La Superación De La Pobreza Extrema
+Nacional;Agencia para la Reincorporación y la Normalización - ARN
+Nacional;Agencia Presidencial De Cooperación Internacional De Colombia, - Apc - Colombia
+Nacional;Agencia Presidencial Para La Acción Social Y La Cooperación Internacional - Acción Social -
+Nacional;Archivo General De La Nación
+Nacional;Auditoria General De La Republica - Gestión General
+Nacional;Autoridad Nacional De Acuicultura Y Pesca -Aunap
+Nacional;Autoridad Nacional De Licencias Ambientales - Anla
+Nacional;Autoridad Nacional de Televisión - ANTV
+Nacional;Banco Agrario
+Nacional;Caja De Retiro De Las Fuerzas Militares
+Nacional;Caja De Sueldos De Retiro De La Policía Nacional
+Nacional;Centro De Memoria Histórica
+Nacional;Club Militar De Oficiales
+Nacional;Colegio Integrado Nacional Oriente De Caldas
+Nacional;Coljuegos
+Nacional;Comisión De Regulación De Agua Potable Y Saneamiento Básico - Cra
+Nacional;Comisión De Regulación De Infraestructura Y Transporte (crit)
+Nacional;Comisión De Regulación En Salud -Cres
+Nacional;Comisión Nacional De Televisión
+Nacional;Comisión Nacional Del Servicio Civil
+Nacional;Comision Para El Esclarecimiento De La Verdad, La Convivencia Y La No Repeticion
+Nacional;Comisionado Nacional Para La Policía
+Nacional;Computadores Para Educar
+Nacional;Congreso De La Republica - Cámara De Representantes - Gestión General
+Nacional;Congreso De La Republica - Senado De La Republica - Gestión General
+Nacional;Conocimiento E Innovación Para La Justicia(cij)
+Nacional;Consejo Nacional Electoral - CNE
+Nacional;Contraloría General De La Republica - Gestión General
+Nacional;Corporación  Para El Desarrollo Sostenible De La Mojana Y El San Jorge (Corpomojana)
+Nacional;Corporación  Para El Desarrollo Sostenible Del Norte Y Oriente De La Amazonia (Cda)
+Nacional;CORPORACION AGENCIA NACIONAL DE GOBIERNO DIGITAL - AND
+Nacional;Corporación Autónoma Regional De Boyacá (Corpoboyaca)
+Nacional;Corporación Autónoma Regional De Caldas (Corpocaldas)
+Nacional;Corporación Autónoma Regional De Chivor (Corpochivor)
+Nacional;Corporación Autónoma Regional de Cundinamarca (CAR)
+Nacional;Corporación Autónoma Regional De La Frontera Nororiental (Corponor)
+Nacional;Corporación Autónoma Regional De La Guajira (Corpoguajira)
+Nacional;Corporación Autónoma Regional De La Orinoquia (Corporinoquia)
+Nacional;Corporación Autónoma Regional De Los Valles Del Sinu Y San Jorge (Cvs)
+Nacional;Corporación Autónoma Regional De Nariño  (Corponariño)
+Nacional;Corporación Autónoma Regional De Risaralda  (Carder)
+Nacional;Corporación Autónoma Regional De Santander (Cas)
+Nacional;Corporación Autónoma Regional De Sucre (Carsucre)
+Nacional;Corporación Autónoma Regional Del Alto Magdalena (Cam)
+Nacional;Corporación Autónoma Regional Del Atlántico (Cra)
+Nacional;Corporación Autónoma Regional Del Canal Del Dique  (Cardique)
+Nacional;Corporación Autónoma Regional Del Cauca  (Crc)
+Nacional;Corporación Autónoma Regional Del Centro De Antioquia (Corantioquia)
+Nacional;Corporación Autónoma Regional Del Cesar (Corpocesar)
+Nacional;Corporación Autónoma Regional Del Guavio (Corpoguavio)
+Nacional;Corporación Autónoma Regional Del Magdalena (Corpamag)
+Nacional;Corporación Autónoma Regional Del Quindío  (Crq)
+Nacional;Corporación Autónoma Regional del Rio Grande de la Magdalena (Cormagdalena)
+Nacional;Corporación Autónoma Regional Del Sur De Bolívar (Csb)
+Nacional;Corporación Autónoma Regional Del Tolima  (Cortolima)
+Nacional;Corporación Autónoma Regional Del Valle Del Cauca – Cvc
+Nacional;Corporación Autónoma Regional Para El Desarrollo Sostenible Del Choco (Codechoco)
+Nacional;Corporación Autónoma Regional para la Defensa de la Meseta de Bucaramanga (CDMB)
+Nacional;Corporación Autonoma Rio Negro Nare (Cornare)
+Nacional;Corporación Colombiana De Investigación Agropecuaria
+Nacional;Corporación Nacional Para La Reconstrucción De La Cuenca Del Rio Paez Y Zonas Aledañas Nasa Ki We
+Nacional;Corporación Para El Desarrollo Sostenible Del Archipiélago De San Andrés, Providencia Y Santa Catalina (Coralina)
+Nacional;Corporación Para El Desarrollo Sostenible Del Área De Manejo Especial La Macarena (Cormacarena)
+Nacional;Corporación Para El Desarrollo Sostenible Del Sur De La Amazonia (Corpoamazonia)
+Nacional;Corporación Para El Desarrollo Sostenible Del Urabá (Corpouraba)
+Nacional;Defensa Civil Colombiana
+Nacional;Defensoría Del Pueblo
+Nacional;Departamento Administrativo De La Función Publica - Gestión General
+Nacional;Departamento Administrativo De Seguridad -Das- Gestión General
+Nacional;Departamento Administrativo Dirección Nacional De Inteligencia - Gestión General
+Nacional;Departamento Administrativo Nacional De Estadística (Dane) - Gestión General
+Nacional;Departamento Administrativo Nacional De La  Economía Solidaria - Dansocial- Gestión General
+Nacional;Departamento Administrativo Nacional De Planeación - Gestión General
+Nacional;Departamento Administrativo Para La Prosperidad Social
+Nacional;Dirección De Administración De Fondos De La Protección Social
+Nacional;Dirección De Gestión Territorial
+Nacional;Dirección de la Autoridad Nacional de Consulta Previa
+Nacional;Dirección De Sustitución De Cultivos De Uso Ilícito
+Nacional;Direccion Nacional De Bomberos
+Nacional;Dirección Nacional De Estupefacientes
+Nacional;Dirección Nacional Del Derecho De Autor
+Nacional;Empresa Colombiana De Vías Férreas En Liquidación
+Nacional;Empresa Nacional Minera Ltda. En Liquidación Û Minercol En Liquidación
+Nacional;Escuela Superior De Administración Publica (Esap)
+Nacional;Federación Nacional De Cafeteros
+Nacional;Fiscalía General De La Nación - Gestión General
+Nacional;Fondo De Adaptación
+Nacional;Fondo De Bienestar Social De La Contraloría General De La Republica
+Nacional;Fondo De Pasivo Social Ferrocarriles Nacionales De Colombia - Pensiones
+Nacional;Fondo De Pasivo Social Ferrocarriles Nacionales De Colombia - Salud
+Nacional;Fondo De Previsión Social Del Congreso - Pensiones
+Nacional;Fondo De Previsión Social Del Congreso De La República - Pensiones
+Nacional;Fondo De Previsión Social Del Congreso De La República. - Cesantías Y Vivienda
+Nacional;Fondo De Tecnologías De La Información Y Las Comunicaciones
+Nacional;Fondo Especial Para La Administracion De Bienes De La Fiscalia General De La Nacion
+Nacional;Fondo Nacional Ambiental - Gestión General
+Nacional;Fondo Nacional De Regalías
+Nacional;Fondo Nacional De Vivienda - Fonvivienda
+Nacional;Fondo Para La Participacion Y El Fortalecimiento De La Democracia
+Nacional;Fondo Rotatorio De La  Policía- Gestión General
+Nacional;Fondo Rotatorio De La Registraduría
+Nacional;Fondo Rotatorio Del Dane
+Nacional;Fondo Rotatorio Del Departamento Administrativo De Seguridad
+Nacional;Fondo Rotatorio Del Ministerio De Relaciones Exteriores
+Nacional;Fondo Social De Vivienda De La Registraduria Nacional Del Estado Civil
+Nacional;Hospital Militar
+Nacional;Instituto Amazónico De Investigaciones Científicas
+Nacional;Instituto Caro Y Cuervo
+Nacional;Instituto Casas Fiscales Del Ejercito
+Nacional;Instituto Colombiano Agropecuario (Ica)
+Nacional;Instituto Colombiano De Antropología E Historia
+Nacional;Instituto Colombiano De Bienestar Familiar
+Nacional;Instituto colombiano de bienestar familiar- ICBF (Igualdad y Equidad)
+Nacional;Instituto Colombiano De Desarrollo Rural - INCODER
+Nacional;Instituto Colombiano De Geología Y Minería -Ingeominas-
+Nacional;Instituto Colombiano Del Deporte - Coldeportes
+Nacional;Instituto De Educación Técnica Profesional De Roldanillo
+Nacional;Instituto De Hidrología, Meteorología Y Estudios Ambientales- Ideam
+Nacional;"Instituto De Investigación De Recursos Biológicos ""Alexander Von Humboldt"""
+Nacional;"Instituto De Investigaciones Ambientales Del Pacifico ""John Von Neumann"""
+Nacional;"Instituto De Investigaciones Marinas Y Costeras ""José Benito Vives De Andreis"""
+Nacional;Instituto De Planificación Y Promoción De Soluciones  Energéticas Para Las Zonas No Interconectadas
+Nacional;Instituto Geográfico Agustín Codazzi - Igac
+Nacional;Instituto Nacional De Formación Técnica Profesional De Ciénaga
+Nacional;Instituto Nacional De Formación Técnica Profesional De San Andrés Y Providencia
+Nacional;Instituto Nacional De Formación Técnica Profesional De San Juan Del Cesar
+Nacional;Instituto Nacional De Medicina Legal Y Ciencias Forenses
+Nacional;Instituto Nacional De Metrología -Inm
+Nacional;Instituto Nacional De Salud - Ins
+Nacional;Instituto Nacional De Vías
+Nacional;Instituto Nacional De Vigilancia De Medicamentos Y Alimentos - Invima
+Nacional;Instituto Nacional De Vigilancia De Medicamentos Y Alimentos -Invima.
+Nacional;Instituto nacional para ciegos- INCI (Igualdad y Equidad)
+Nacional;Instituto nacional para sordos- INSOR (Igualdad y Equidad)
+Nacional;Instituto Nacional Penitenciario Y Carcelario - Inpec
+Nacional;Instituto Superior De Educación Rural De Pamplona - Iser
+Nacional;Instituto Técnico Agrícola - Ita - De Buga
+Nacional;Instituto Técnico Central
+Nacional;Instituto Técnico Nacional De Comercio Simón Rodríguez De Cali
+Nacional;Instituto Tecnológico De Soledad - Atlántico Itsa
+Nacional;Instituto Tolimense De Formación Técnica Profesional
+Nacional;Jurisdicción Especial para la Paz
+Nacional;Mincomercio Industria Turismo - Artesanías De Colombia S.A.
+Nacional;Ministerio De Agricultura Y Desarrollo Rural -Gestión General
+Nacional;Ministerio De Ambiente Y Desarrollo Sostenible
+Nacional;Ministerio De Ambiente, Vivienda Y Desarrollo Territorial- Unidad Administrativa Especial Comisión D
+Nacional;Ministerio De Ambiente, Vivienda Y Desarrollo Territorial- Unidad Administrativa Especial Del Sistema De Parques Nacionales Naturales
+Nacional;Ministerio de Ciencia, Tecnologia e Innovacion
+Nacional;Ministerio De Comercio Industria Turismo - Dirección General De Comercio Exterior
+Nacional;Ministerio De Comercio Industria Y Turismo - Gestión General
+Nacional;Ministerio De Defensa Nacional - Armada
+Nacional;Ministerio De Defensa Nacional - Comando General
+Nacional;Ministerio De Defensa Nacional - Dirección General Marítima - Dimar
+Nacional;Ministerio De Defensa Nacional - Ejercito
+Nacional;Ministerio De Defensa Nacional - Fuerza Aérea
+Nacional;Ministerio De Defensa Nacional - Gestión General
+Nacional;Ministerio De Defensa Nacional - Salud
+Nacional;Ministerio De Hacienda Y Crédito Publico - Gestión General
+Nacional;Ministerio de Igualdad y Equidad - Gestión General
+Nacional;Ministerio De Justicia Y Del Derecho
+Nacional;Ministerio De La Protección Social - Instituto Nacional De Cancerología
+Nacional;Ministerio De La Protección Social - Superintendencia De Subsidio Familiar
+Nacional;Ministerio De Las Culturas, Las Artes Y Los Saberes
+Nacional;Ministerio De Minas Y Energía - Comisión De Regulación De Energía Y Gas - Creg -
+Nacional;Ministerio De Minas Y Energía - Gestión General
+Nacional;Ministerio De Relaciones Exteriores - Gestión General
+Nacional;Ministerio De Salud Y Protección Social – Administradora Colombiana De Pensiones – Colpensiones
+Nacional;Ministerio De Salud Y Protección Social – Centro Dermatológico Federico Lleras Acosta
+Nacional;Ministerio De Salud Y Protección Social – Empresa Territorial Para La Salud, Etesa En Liquidación
+Nacional;Ministerio De Salud Y Protección Social - Gestión General
+Nacional;Ministerio De Salud Y Protección Social – Instituto Nacional De Cancerología
+Nacional;Ministerio De Salud Y Protección Social – Unidad Administrativa Especial Fondo Nacional De Estupefac
+Nacional;Ministerio De Tecnologías De La Información Y Las Comunicaciones - Gestión General
+Nacional;Ministerio De Tecnologías De La Información Y Las Comunicaciones - Unidad Administrativa Especial Comisión De Regulación De Telecomunicaciones
+Nacional;Ministerio De Transporte - Gestión General
+Nacional;Ministerio De Transporte - Superintendencia  De Puertos Y Transporte
+Nacional;Ministerio De Vivienda, Ciudad Y Territorio - Gestión General
+Nacional;Ministerio del Deporte - Gestión General
+Nacional;Ministerio Del Interior - Gestión General
+Nacional;Ministerio Del Trabajo - Caja De Previsión Social De Comunicaciones (Caprecom)
+Nacional;Ministerio Del Trabajo - Gestión General
+Nacional;Ministerio Del Trabajo - Instituto De Seguros Sociales
+Nacional;Ministerio Educación Nacional - Gestión General
+Nacional;niversidad Internacional del Trópico Americano
+Nacional;Policía Nacional – Educación
+Nacional;Policía Nacional - Gestión General
+Nacional;Policía Nacional - Salud
+Nacional;Presidencia De La Republica - Gestión General
+Nacional;Procuraduría General De La Nación - Gestión General
+Nacional;Procuraduría General De La Nación - Instituto De Estudios Del Ministerio Publico
+Nacional;Rama Judicial - Consejo De Estado
+Nacional;Rama Judicial - Consejo Superior De La Judicatura
+Nacional;Rama Judicial - Corte Constitucional
+Nacional;Rama Judicial - Corte Suprema De Justicia
+Nacional;Rama Judicial - Gestión General
+Nacional;Rama Judicial - Tribunales Y Juzgados
+Nacional;Registradora Nacional Del Estado Civil - Gestión General
+Nacional;Satena
+Nacional;Secretaria Ejecutiva
+Nacional;Servicio De La Deuda Publica Nacional
+Nacional;Servicio Nacional De Aprendizaje (Sena)
+Nacional;Superintendencia De Industria Y Comercio
+Nacional;Superintendencia De La Economía Solidaria
+Nacional;Superintendencia De Notariado Y Registro
+Nacional;Superintendencia De Puertos Y Transporte
+Nacional;Superintendencia De Servicios Públicos Domiciliarios
+Nacional;Superintendencia De Sociedades
+Nacional;Superintendencia De Vigilancia Y Seguridad Privada
+Nacional;Superintendencia Financiera De Colombia
+Nacional;Superintendencia Nacional De Salud
+Nacional;Tribunal De Paz Y Las Salas De Justicia
+Nacional;UNIDAD ADMINISTRATIVA ESPECIAL COMISION DE REGULACION DE COMUNICACIONES
+Nacional;Unidad Administrativa Especial Comisión De Regulación En Salud - Cres
+Nacional;Unidad Administrativa Especial Contaduría General De La Nación
+Nacional;Unidad Administrativa Especial De Alimentacion Escolar
+Nacional;Unidad Administrativa Especial De Gestión De Restitución De Tierras Despojadas
+Nacional;Unidad Administrativa Especial De Gestión Pensional Y Contribuciones Parafiscales De La Protección Social –Ugpp - Gestión General
+Nacional;Unidad Administrativa Especial De La Aeronáutica Civil
+Nacional;Unidad Administrativa Especial de la Justicia Penal Militar y Policial
+Nacional;Unidad Administrativa Especial De Organizaciones Solidarias
+Nacional;Unidad Administrativa Especial del Servicio Público de Empleo
+Nacional;Unidad Administrativa Especial Dirección De Impuestos Y Aduanas Nacionales - Gestión General
+Nacional;Unidad Administrativa Especial Junta Central De Contadores
+Nacional;Unidad Administrativa Especial Migración Colombia
+Nacional;Unidad Administrativa Especial Para La Consolidación Territorial
+Nacional;Unidad De Atención Y Reparación Integral A Las Víctimas
+Nacional;Unidad De Busqueda De Personas Dadas Por Desaparecidas En El Contexto Y En Razon Del Conflicto Armado Ubpd
+Nacional;Unidad De Información Y Análisis Financiero
+Nacional;Unidad De Investigación Y Acusación
+Nacional;Unidad De Planeacion Del Sector De Infraestructura De Transporte
+Nacional;Unidad De Planeación Minero Energética - Upme
+Nacional;Unidad De Planificación De Tierras Rurales, Adecuación De Tierras Y Usos Agropecuarios -Upra
+Nacional;Unidad De Proyección Normativa Y Estudios De Regulación Financiera -Urf
+Nacional;Unidad De Servicios Penitenciarios Y Carcelarios - Uspec
+Nacional;Unidad Nacional De Proteccion - Unp
+Nacional;Unidad Nacional Para La Gestión Del Riesgo De Desastres
+Nacional;Universidad Autónoma Indígena Intercultural UAIIN CRIC
+Nacional;Universidad Colegio Mayor de Cundinamarca
+Nacional;Universidad de Antioquia
+Nacional;Universidad de Caldas
+Nacional;Universidad de Cartagena
+Nacional;Universidad de Córdoba
+Nacional;Universidad de Cundinamarca
+Nacional;Universidad de la Amazonia
+Nacional;Universidad de la Guajira
+Nacional;Universidad de los Llanos
+Nacional;Universidad de Nariño
+Nacional;Universidad de Pamplona
+Nacional;Universidad de Sucre
+Nacional;Universidad del Atlántico
+Nacional;Universidad del Cauca
+Nacional;Universidad del Magdalena
+Nacional;Universidad del Pacifico
+Nacional;Universidad del Quindío
+Nacional;Universidad del Tolima
+Nacional;Universidad del Valle
+Nacional;Universidad Distrital Francisco Jose de Caldas
+Nacional;Universidad Francisco de Paula Santander
+Nacional;Universidad Francisco de Paula Santander Seccional Ocaña
+Nacional;Universidad Industrial de Santander
+Nacional;Universidad Militar Nueva Granada
+Nacional;Universidad Nacional Abierta y a Distancia UNAD
+Nacional;Universidad Nacional de Colombia
+Nacional;Universidad Pedagógica Nacional
+Nacional;Universidad Pedagógica y Tecnológica de Colombia
+Nacional;Universidad Popular del Cesar
+Nacional;Universidad Surcolombiana
+Nacional;Universidad tecnológica de Pereira
+Nacional;Universidad Tecnológica del Chocó
+Otro;

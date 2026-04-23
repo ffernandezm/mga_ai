@@ -2,10 +2,18 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../services/api";
 import { useNotification } from "../context/NotificationContext";
+import comunidadesCsv from "../data/comunidades.csv?raw";
 
 function DevelopmentPlan({ projectId }) {
     const navigate = useNavigate();
     const { showSuccess, showError } = useNotification();
+
+    // Opciones de tipo de comunidad desde CSV
+    const comunidadOptions = comunidadesCsv
+        .split("\n")
+        .slice(1)
+        .map((line) => line.trim())
+        .filter(Boolean);
 
     // Estado para saber si ya existe el registro (PUT) o es nuevo (POST)
     const [planId, setPlanId] = useState(null);
@@ -262,7 +270,12 @@ function DevelopmentPlan({ projectId }) {
                     <div className="card-body row g-3">
                         <div className="col-md-6">
                             <label className="form-label">Tipo de Comunidad</label>
-                            <input type="text" className="form-control" name="community_type" value={formData.community_type} onChange={handleChange} />
+                            <select className="form-select" name="community_type" value={formData.community_type} onChange={handleChange}>
+                                <option value="">Seleccione...</option>
+                                {comunidadOptions.map((opt) => (
+                                    <option key={opt} value={opt}>{opt}</option>
+                                ))}
+                            </select>
                         </div>
                         <div className="col-md-6">
                             <label className="form-label">Instrumentos de Planeación (Grupos Étnicos)</label>

@@ -47,7 +47,7 @@ function Survey() {
     if (submitted) {
         return (
             <motion.div
-                className="d-flex flex-column align-items-center justify-content-center vh-100 text-center p-4"
+                className="app-page app-page-wide d-flex flex-column align-items-center justify-content-center text-center p-4 mx-auto"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
             >
@@ -68,12 +68,12 @@ function Survey() {
     }
 
     return (
-        <div className="container py-5">
+        <section className="app-page app-page-wide container py-4">
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
             >
-                <h1 className="text-center mb-4">Encuesta de Validación del Sistema</h1>
+                <h1 className="text-center mb-4 app-page-title">Encuesta de Validación del Sistema</h1>
                 <p className="text-center text-muted mb-5">
                     Califique cada aspecto del 1 al 10, donde 1 es “Muy bajo” y 10 es “Excelente”.
                 </p>
@@ -134,7 +134,7 @@ function Survey() {
                     </button>
                 </div>
             </motion.div>
-        </div>
+        </section>
     );
 }
 
