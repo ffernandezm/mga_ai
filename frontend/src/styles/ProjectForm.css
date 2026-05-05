@@ -89,6 +89,26 @@
     border-color: #d1d5db;
 }
 
+.project-form input[readonly],
+.project-form textarea[readonly] {
+    background: #f3f4f6;
+    color: #4b5563;
+    border-color: #d1d5db;
+    cursor: not-allowed;
+}
+
+.project-form input[readonly]:hover,
+.project-form textarea[readonly]:hover {
+    border-color: #d1d5db;
+}
+
+.project-form input[readonly]:focus,
+.project-form textarea[readonly]:focus {
+    outline: none;
+    border-color: #d1d5db;
+    box-shadow: none;
+}
+
 /* Textarea */
 
 .project-form textarea {

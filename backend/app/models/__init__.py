@@ -29,4 +29,5 @@ from .direct_effects import DirectEffect
 from .indirect_causes import IndirectCause
 from .indirect_effects import IndirectEffect
 from .product_catalog import ProductCatalog
+from .pnd_details import PndDetail
 from .project_localization import ProjectLocalization
