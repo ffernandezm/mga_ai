@@ -167,6 +167,11 @@ function DevelopmentPlan({ projectId }) {
 
     // ---------- GUARDAR ----------
     const handleSubmit = async () => {
+        if (!formData.pnds || formData.pnds.length === 0) {
+            showError("Debe agregar al menos un registro en la tabla de Detalle PND.");
+            return;
+        }
+
         const payload = {
             ...formData,
             project_id: projectId // Importante enviar el ID del proyecto asociado
@@ -242,16 +247,16 @@ function DevelopmentPlan({ projectId }) {
                                             {formData.pnds.map((pnd, index) => (
                                                 <tr key={index}>
                                                     <td>
-                                                        <input type="text" className="form-control form-control-sm" value={pnd.transformation} onChange={(e) => handlePndChange(index, "transformation", e.target.value)} />
+                                                        <input type="text" readOnly className="form-control form-control-sm" value={pnd.transformation} onChange={(e) => handlePndChange(index, "transformation", e.target.value)} />
                                                     </td>
                                                     <td>
-                                                        <input type="text" className="form-control form-control-sm" value={pnd.pillar} onChange={(e) => handlePndChange(index, "pillar", e.target.value)} />
+                                                        <input type="text" readOnly className="form-control form-control-sm" value={pnd.pillar} onChange={(e) => handlePndChange(index, "pillar", e.target.value)} />
                                                     </td>
                                                     <td>
-                                                        <input type="text" className="form-control form-control-sm" value={pnd.catalyst} onChange={(e) => handlePndChange(index, "catalyst", e.target.value)} />
+                                                        <input type="text" readOnly className="form-control form-control-sm" value={pnd.catalyst} onChange={(e) => handlePndChange(index, "catalyst", e.target.value)} />
                                                     </td>
                                                     <td>
-                                                        <input type="text" className="form-control form-control-sm" value={pnd.component} onChange={(e) => handlePndChange(index, "component", e.target.value)} />
+                                                        <input type="text" readOnly className="form-control form-control-sm" value={pnd.component} onChange={(e) => handlePndChange(index, "component", e.target.value)} />
                                                     </td>
                                                     <td className="text-center">
                                                         <button type="button" className="btn btn-sm btn-danger" onClick={() => removePndRow(index)}>

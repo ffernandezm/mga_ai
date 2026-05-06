@@ -11,6 +11,8 @@ function ProblemsTree({ projectId, projectName, ProjectDescription }) {
     const [effects, setEffects] = useState([]);
     const [isSaving, setIsSaving] = useState(false);
     const [isProblemEmpty, setIsProblemEmpty] = useState(false);
+    const [isCurrentDescriptionEmpty, setIsCurrentDescriptionEmpty] = useState(false);
+    const [isMagnitudeProblemEmpty, setIsMagnitudeProblemEmpty] = useState(false);
     const [showErrorPopup, setShowErrorPopup] = useState(false);
     const [currentDescription, setCurrentDescription] = useState("");
     const [magnitudeProblem, setMagnitudeProblem] = useState("");
@@ -223,9 +225,20 @@ function ProblemsTree({ projectId, projectName, ProjectDescription }) {
     const updateProblemTree = async () => {
         if (!projectId) return;
 
+        const isCurrentDescriptionValid = currentDescription.trim().length > 0;
+        const isMagnitudeProblemValid = magnitudeProblem.trim().length > 0;
+
         // Validar campo problema general
         if (!problem.trim()) {
             setIsProblemEmpty(true);
+            setShowErrorPopup(true);
+            return;
+        }
+
+        // Validar campos obligatorios adicionales
+        if (!isCurrentDescriptionValid || !isMagnitudeProblemValid) {
+            setIsCurrentDescriptionEmpty(!isCurrentDescriptionValid);
+            setIsMagnitudeProblemEmpty(!isMagnitudeProblemValid);
             setShowErrorPopup(true);
             return;
         }
@@ -420,7 +433,11 @@ function ProblemsTree({ projectId, projectName, ProjectDescription }) {
                     message={
                         !problem.trim()
                             ? "El campo Problema general es obligatorio. Por favor, complételo antes de guardar."
-                            : "Debe cumplir con los requisitos mínimos: Al menos un Efecto Directo, un Efecto Indirecto, una Causa Directa y una Causa Indirecta."
+                            : !currentDescription.trim()
+                                ? "El campo Descripción de la situación existente es obligatorio. Por favor, complételo antes de guardar."
+                                : !magnitudeProblem.trim()
+                                    ? "El campo Magnitud actual del problema es obligatorio. Por favor, complételo antes de guardar."
+                                    : "Debe cumplir con los requisitos mínimos: Al menos un Efecto Directo, un Efecto Indirecto, una Causa Directa y una Causa Indirecta."
                     }
                     onClose={() => setShowErrorPopup(false)}
                 />
@@ -428,19 +445,35 @@ function ProblemsTree({ projectId, projectName, ProjectDescription }) {
 
             <div className="additional-fields">
                 <div className="trunk">
+                    <label className="problem-general-label">Descripción de la situación existente *</label>
                     <input
                         type="text"
+                        required
                         placeholder="Descripción de la situación existente con respecto al problema"
                         value={currentDescription}
-                        onChange={(e) => setCurrentDescription(e.target.value)}
+                        onChange={(e) => {
+                            setCurrentDescription(e.target.value);
+                            if (isCurrentDescriptionEmpty && e.target.value.trim()) {
+                                setIsCurrentDescriptionEmpty(false);
+                            }
+                        }}
+                        className={isCurrentDescriptionEmpty ? "error-input" : ""}
                     />
                 </div>
                 <div className="trunk">
+                    <label className="problem-general-label">Magnitud actual del problema *</label>
                     <input
                         type="text"
+                        required
                         placeholder="Magnitud actual del problema e indicadores de referencia"
                         value={magnitudeProblem}
-                        onChange={(e) => setMagnitudeProblem(e.target.value)}
+                        onChange={(e) => {
+                            setMagnitudeProblem(e.target.value);
+                            if (isMagnitudeProblemEmpty && e.target.value.trim()) {
+                                setIsMagnitudeProblemEmpty(false);
+                            }
+                        }}
+                        className={isMagnitudeProblemEmpty ? "error-input" : ""}
                     />
                 </div>
             </div>
