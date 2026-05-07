@@ -48,18 +48,18 @@ class Population(Base):
     # Relaciones
     project = relationship("Project", back_populates="population")
     
-    population_type_affected = Column(Text, nullable=True)
-    number_affected = Column(Integer, nullable=True)
-    source_information_affected = Column(Text, nullable=True)
+    population_type_affected = Column(Text, nullable=False, default="Personas")
+    population_number_affected = Column(Integer, nullable=True)
+    population_info_affected = Column(Text, nullable=True)
     affected_population = relationship(
         "AffectedPopulation",
         back_populates="population",
         cascade="all, delete-orphan",
     )
     
-    population_type_intervention = Column(Text, nullable=False, default="No especificado")
-    number_intervention = Column(Integer, nullable=False, default=0)
-    source_information_intervention = Column(Text, nullable=True)
+    population_type_intervention = Column(Text, nullable=False, default="Personas")
+    population_number_intervention = Column(Integer, nullable=True)
+    population_info_intervention = Column(Text, nullable=True)
     intervention_population = relationship(
         "InterventionPopulation",
         back_populates="population",
@@ -84,14 +84,14 @@ class PopulationBase(BaseModel):
     population_json: Optional[dict] = None
     
     #Population Affected
-    population_type_affected: Optional[str] = None
-    number_affected: Optional[int] = None
-    source_information_affected: Optional[str] = None
+    population_type_affected: Optional[str] = "Personas"
+    population_number_affected: Optional[int] = None
+    population_info_affected: Optional[str] = None
     
     #Population Intervention
-    population_type_intervention: Optional[str] = None
-    number_intervention: Optional[int] = None
-    source_information_intervention: Optional[str] = None
+    population_type_intervention: Optional[str] = "Personas"
+    population_number_intervention: Optional[int] = None
+    population_info_intervention: Optional[str] = None
 
 class PopulationCreate(PopulationBase):
     project_id: int
@@ -126,28 +126,17 @@ def create_population(payload: PopulationCreate, db: Session = Depends(get_db)):
     pop = Population(
         project_id=payload.project_id,
         population_json=payload.population_json,
+        population_type_affected=payload.population_type_affected or "Personas",
+        population_number_affected=payload.population_number_affected,
+        population_info_affected=payload.population_info_affected,
+        population_type_intervention=payload.population_type_intervention or "Personas",
+        population_number_intervention=payload.population_number_intervention,
+        population_info_intervention=payload.population_info_intervention,
     )
     db.add(pop)
     db.flush()  # para obtener pop.id
 
-    # Crear hijos
-    for group in payload.affected_population:
-        child = AffectedPopulation(
-            population_id=pop.id,
-            population_type=group.population_type,
-            number=group.number,
-            source_information=group.source_information,
-        )
-        db.add(child)
-    
-    # for group in payload.affected_population:
-    #     child = AffectedPopulation(
-    #         population_id=pop.id,
-    #         population_type=group.population_type,
-    #         number=group.number,
-    #         source_information=group.source_information,
-    #     )
-    #     db.add(child)
+    # Nota: las filas hijas se gestionan con sus propios endpoints.
 
     db.commit()
     db.refresh(pop)
@@ -167,7 +156,7 @@ def get_population_by_project(project_id: int, db: Session = Depends(get_db)):
     return pop
 
 
-@router.put("/{project_id}", response_model=PopulationResponse)
+@router.put("/{population_id}", response_model=PopulationResponse)
 def update_population(population_id: int, payload: PopulationCreate, db: Session = Depends(get_db)):
     pop = db.query(Population).filter(Population.id == population_id).first()
     if not pop:
@@ -175,22 +164,20 @@ def update_population(population_id: int, payload: PopulationCreate, db: Session
 
     # Actualizar campos
     pop.population_json = payload.population_json
+    pop.population_type_affected = payload.population_type_affected or "Personas"
+    pop.population_number_affected = payload.population_number_affected
+    pop.population_info_affected = payload.population_info_affected
+    pop.population_type_intervention = payload.population_type_intervention or "Personas"
+    pop.population_number_intervention = payload.population_number_intervention
+    pop.population_info_intervention = payload.population_info_intervention
     # Si cambia project_id, verificar duplicado
     if pop.project_id != payload.project_id:
         if db.query(Population).filter_by(project_id=payload.project_id).first():
             raise HTTPException(status_code=400, detail="Another population with this project_id exists")
         pop.project_id = payload.project_id
 
-    # Reemplazar hijos: borra y vuelve a crear
-    pop.affected_population.clear()
-    for group in payload.affected_population:
-        child = AffectedPopulation(
-            population_id=pop.id,
-            population_type=group.population_type,
-            number=group.number,
-            source_information=group.source_information,
-        )
-        db.add(child)
+    # Nota: las filas hijas (affected/intervention/characteristics) se gestionan
+    # con sus propios endpoints; no se reemplazan aquí.
 
     db.commit()
     db.refresh(pop)

@@ -12,6 +12,16 @@ function Population({ projectId }) {
     const [analysis, setAnalysis] = useState("");
     const [populationId, setPopulationId] = useState(null);
 
+    // Datos generales de Población (parent)
+    const [populationFields, setPopulationFields] = useState({
+        population_type_affected: "Personas",
+        population_number_affected: "",
+        population_info_affected: "",
+        population_type_intervention: "Personas",
+        population_number_intervention: "",
+        population_info_intervention: "",
+    });
+
     // Estados de edición
     const [editingAffectedId, setEditingAffectedId] = useState(null);
     const [editingInterventionId, setEditingInterventionId] = useState(null);
@@ -51,6 +61,14 @@ function Population({ projectId }) {
                 setAffectedPopulation(data.affected_population || []);
                 setInterventionPopulation(data.intervention_population || []);
                 setCharacteristicsPopulation(data.characteristics_population || []);
+                setPopulationFields({
+                    population_type_affected: data.population_type_affected || "Personas",
+                    population_number_affected: data.population_number_affected ?? "",
+                    population_info_affected: data.population_info_affected || "",
+                    population_type_intervention: data.population_type_intervention || "Personas",
+                    population_number_intervention: data.population_number_intervention ?? "",
+                    population_info_intervention: data.population_info_intervention || "",
+                });
             } else {
                 // Inicializar vacíos si no existe
                 setAffectedPopulation([]);
@@ -58,6 +76,14 @@ function Population({ projectId }) {
                 setCharacteristicsPopulation([]);
                 setPopulationId(null);
                 setAnalysis("");
+                setPopulationFields({
+                    population_type_affected: "Personas",
+                    population_number_affected: "",
+                    population_info_affected: "",
+                    population_type_intervention: "Personas",
+                    population_number_intervention: "",
+                    population_info_intervention: "",
+                });
             }
         } catch (error) {
             console.error("Error al obtener la Población:", error);
@@ -71,9 +97,31 @@ function Population({ projectId }) {
     const handleSubmit = async () => {
         if (!projectId) return showError("No hay proyecto seleccionado.");
 
+        // Validación de campos requeridos
+        const numAff = parseInt(populationFields.population_number_affected, 10);
+        const numInt = parseInt(populationFields.population_number_intervention, 10);
+        if (Number.isNaN(numAff) || numAff < 0) {
+            return showError("El número de población afectada es obligatorio.");
+        }
+        if (!populationFields.population_info_affected.trim()) {
+            return showError("La fuente de información de población afectada es obligatoria.");
+        }
+        if (Number.isNaN(numInt) || numInt < 0) {
+            return showError("El número de población de intervención es obligatorio.");
+        }
+        if (!populationFields.population_info_intervention.trim()) {
+            return showError("La fuente de información de población de intervención es obligatoria.");
+        }
+
         const payload = {
             project_id: projectId,
             population_json: { analysis },
+            population_type_affected: populationFields.population_type_affected || "Personas",
+            population_number_affected: numAff,
+            population_info_affected: populationFields.population_info_affected,
+            population_type_intervention: populationFields.population_type_intervention || "Personas",
+            population_number_intervention: numInt,
+            population_info_intervention: populationFields.population_info_intervention,
             affected_population: affectedPopulation,
             intervention_population: interventionPopulation,
             characteristics_population: characteristicsPopulation,
@@ -320,11 +368,48 @@ function Population({ projectId }) {
     const getDepartmentOptions = (region) => departments[region] || [];
     const getCityOptions = (department) => cities[department] || [];
 
+    const handlePopulationFieldChange = (field, value) => {
+        setPopulationFields(prev => ({ ...prev, [field]: value }));
+    };
+
     return (
         <div className="container mt-4">
             {/* Affected Population */}
             <div>
                 <h2 className="mb-3">Población Afectada</h2>
+
+                <div className="row g-3 mb-3">
+                    <div className="col-md-4">
+                        <label className="form-label">Tipo de población</label>
+                        <input
+                            type="text"
+                            className="form-control"
+                            value={populationFields.population_type_affected}
+                            readOnly
+                        />
+                    </div>
+                    <div className="col-md-4">
+                        <label className="form-label">Número <span className="text-danger">*</span></label>
+                        <input
+                            type="number"
+                            min="0"
+                            className="form-control"
+                            value={populationFields.population_number_affected}
+                            onChange={(e) => handlePopulationFieldChange("population_number_affected", e.target.value)}
+                            required
+                        />
+                    </div>
+                    <div className="col-md-4">
+                        <label className="form-label">Fuente de la información <span className="text-danger">*</span></label>
+                        <input
+                            type="text"
+                            className="form-control"
+                            value={populationFields.population_info_affected}
+                            onChange={(e) => handlePopulationFieldChange("population_info_affected", e.target.value)}
+                            required
+                        />
+                    </div>
+                </div>
 
                 <button
                     className="btn btn-success btn-sm mb-3"
@@ -564,6 +649,39 @@ function Population({ projectId }) {
             {/* Intervention Population */}
             <div className="mt-5">
                 <h2 className="mb-3">Población de Intervención</h2>
+
+                <div className="row g-3 mb-3">
+                    <div className="col-md-4">
+                        <label className="form-label">Tipo de población</label>
+                        <input
+                            type="text"
+                            className="form-control"
+                            value={populationFields.population_type_intervention}
+                            readOnly
+                        />
+                    </div>
+                    <div className="col-md-4">
+                        <label className="form-label">Número <span className="text-danger">*</span></label>
+                        <input
+                            type="number"
+                            min="0"
+                            className="form-control"
+                            value={populationFields.population_number_intervention}
+                            onChange={(e) => handlePopulationFieldChange("population_number_intervention", e.target.value)}
+                            required
+                        />
+                    </div>
+                    <div className="col-md-4">
+                        <label className="form-label">Fuente de la información <span className="text-danger">*</span></label>
+                        <input
+                            type="text"
+                            className="form-control"
+                            value={populationFields.population_info_intervention}
+                            onChange={(e) => handlePopulationFieldChange("population_info_intervention", e.target.value)}
+                            required
+                        />
+                    </div>
+                </div>
 
                 <button
                     className="btn btn-success btn-sm mb-3"
