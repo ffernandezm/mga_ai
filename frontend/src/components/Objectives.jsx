@@ -74,6 +74,22 @@ function Objectives({ projectId }) {
         if (projectId) fetchObjectives();
     }, [projectId]);
 
+    // Cargar el Problema Central desde el árbol de problemas (solo lectura)
+    useEffect(() => {
+        const fetchCentralProblem = async () => {
+            if (!projectId) return;
+            try {
+                const res = await api.get(`/problems/${projectId}`);
+                if (res.data && res.data.central_problem) {
+                    setGeneralProblem(res.data.central_problem);
+                }
+            } catch (error) {
+                console.error("Error al obtener el problema central:", error);
+            }
+        };
+        fetchCentralProblem();
+    }, [projectId]);
+
     const handleSubmit = async () => {
         const payload = {
             project_id: projectId,
@@ -183,7 +199,7 @@ function Objectives({ projectId }) {
             <textarea
                 className="form-control mb-3"
                 value={generalProblem}
-                onChange={e => setGeneralProblem(e.target.value)}
+                readOnly
             />
 
             <h2>Objetivo General</h2>

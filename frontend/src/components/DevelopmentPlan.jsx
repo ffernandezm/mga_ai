@@ -3,6 +3,18 @@ import { useNavigate } from "react-router-dom";
 import api from "../services/api";
 import { useNotification } from "../context/NotificationContext";
 import comunidadesCsv from "../data/comunidades.csv?raw";
+import productsCatalogCsv from "../data/products_catalog.csv?raw";
+import PndDetailWizard from "./PndDetailWizard";
+
+const programByIndicatorCode = new Map(
+    productsCatalogCsv
+        .split(/\r?\n/)
+        .slice(1)
+        .map((line) => line.split(";"))
+        .filter((columns) => columns.length > 8)
+        .map((columns) => [columns[8].trim(), columns[3].trim()])
+        .filter(([indicatorCode, program]) => indicatorCode && program)
+);
 
 function DevelopmentPlan({ projectId }) {
     const navigate = useNavigate();
@@ -21,7 +33,7 @@ function DevelopmentPlan({ projectId }) {
     // Estado centralizado para todos los campos del formulario
     const [formData, setFormData] = useState({
         program: "",
-        national_development_plan: "",
+        national_development_plan: "(2022-2026) Colombia Potencia Mundial de la Vida",
         departmental_or_sectoral_development_plan: "",
         strategy_departmental: "",
         program_departmental: "",
@@ -35,6 +47,9 @@ function DevelopmentPlan({ projectId }) {
         program_other: "",
         pnds: [], // <-- Añadimos el array para manejar la tabla de PND
     });
+
+    // Estado para controlar el wizard de PND
+    const [showPndWizard, setShowPndWizard] = useState(false);
 
     // Estado para controlar qué sección está desplegada
     const [expandedSections, setExpandedSections] = useState({
@@ -62,6 +77,10 @@ function DevelopmentPlan({ projectId }) {
                         sanitizedData[key] = res.data[key] === null ? "" : res.data[key];
                     }
                 }
+                // Aplicar valor por defecto si el campo está vacío
+                if (!sanitizedData.national_development_plan) {
+                    sanitizedData.national_development_plan = "(2022-2026) Colombia Potencia Mundial de la Vida";
+                }
                 setFormData(sanitizedData);
             }
         } catch (error) {
@@ -72,9 +91,38 @@ function DevelopmentPlan({ projectId }) {
         }
     };
 
+    const syncProgramFromProject = async () => {
+        try {
+            const res = await api.get(`/projects/${projectId}`);
+            const resolvedProgram = programByIndicatorCode.get(String(res.data?.indicator_code ?? "").trim());
+
+            if (!resolvedProgram) {
+                return;
+            }
+
+            setFormData((prev) => {
+                if (prev.program === resolvedProgram) {
+                    return prev;
+                }
+
+                return {
+                    ...prev,
+                    program: resolvedProgram
+                };
+            });
+        } catch (error) {
+            console.error("Error cargando el proyecto para resolver el programa:", error);
+        }
+    };
+
     useEffect(() => {
         if (projectId) {
-            fetchDevelopmentPlan();
+            const loadData = async () => {
+                await fetchDevelopmentPlan();
+                await syncProgramFromProject();
+            };
+
+            loadData();
         }
     }, [projectId]);
 
@@ -102,12 +150,13 @@ function DevelopmentPlan({ projectId }) {
     };
 
     const addPndRow = () => {
+        setShowPndWizard(true);
+    };
+
+    const handlePndWizardSelect = (selected) => {
         setFormData((prev) => ({
             ...prev,
-            pnds: [
-                ...prev.pnds,
-                { transformation: "", pillar: "", catalyst: "", component: "" }
-            ]
+            pnds: [...prev.pnds, selected]
         }));
     };
 
@@ -118,6 +167,11 @@ function DevelopmentPlan({ projectId }) {
 
     // ---------- GUARDAR ----------
     const handleSubmit = async () => {
+        if (!formData.pnds || formData.pnds.length === 0) {
+            showError("Debe agregar al menos un registro en la tabla de Detalle PND.");
+            return;
+        }
+
         const payload = {
             ...formData,
             project_id: projectId // Importante enviar el ID del proyecto asociado
@@ -152,176 +206,183 @@ function DevelopmentPlan({ projectId }) {
     );
 
     return (
-        <div className="container mt-4 mb-5">
-            <h2 className="mb-4">Plan de Desarrollo</h2>
+        <>
+            <PndDetailWizard
+                isOpen={showPndWizard}
+                onClose={() => setShowPndWizard(false)}
+                onSelect={handlePndWizardSelect}
+            />
+            <div className="container mt-4 mb-5">
+                <h2 className="mb-4">Plan de Desarrollo</h2>
 
-            {/* ---------- SECCIÓN 1: Plan Nacional ---------- */}
-            <div className="card mb-3 shadow-sm">
-                {renderSectionHeader("national", "Contribución al Plan Nacional de Desarrollo")}
-                {expandedSections.national && (
-                    <div className="card-body row g-3">
-                        <div className="col-md-6">
-                            <label className="form-label">Programa</label>
-                            <input type="text" className="form-control" name="program" value={formData.program} onChange={handleChange} />
-                        </div>
-                        <div className="col-md-6">
-                            <label className="form-label">Plan Nacional de Desarrollo</label>
-                            <input type="text" className="form-control" name="national_development_plan" value={formData.national_development_plan} onChange={handleChange} />
-                        </div>
-
-                        {/* TABLA DINÁMICA DE PND */}
-                        <div className="col-12 mt-4">
-                            <h6 className="mb-3">Detalle PND</h6>
-                            <div className="table-responsive">
-                                <table className="table table-striped table-bordered">
-                                    <thead className="table-dark">
-                                        <tr>
-                                            <th>Transformación</th>
-                                            <th>Pilar</th>
-                                            <th>Catalizador</th>
-                                            <th>Componente</th>
-                                            <th style={{ width: "80px" }}>Acciones</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {formData.pnds.map((pnd, index) => (
-                                            <tr key={index}>
-                                                <td>
-                                                    <input type="text" className="form-control form-control-sm" value={pnd.transformation} onChange={(e) => handlePndChange(index, "transformation", e.target.value)} />
-                                                </td>
-                                                <td>
-                                                    <input type="text" className="form-control form-control-sm" value={pnd.pillar} onChange={(e) => handlePndChange(index, "pillar", e.target.value)} />
-                                                </td>
-                                                <td>
-                                                    <input type="text" className="form-control form-control-sm" value={pnd.catalyst} onChange={(e) => handlePndChange(index, "catalyst", e.target.value)} />
-                                                </td>
-                                                <td>
-                                                    <input type="text" className="form-control form-control-sm" value={pnd.component} onChange={(e) => handlePndChange(index, "component", e.target.value)} />
-                                                </td>
-                                                <td className="text-center">
-                                                    <button type="button" className="btn btn-sm btn-danger" onClick={() => removePndRow(index)}>
-                                                        Eliminar
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                        {formData.pnds.length === 0 && (
-                                            <tr>
-                                                <td colSpan="5" className="text-center text-muted">No hay registros asociados.</td>
-                                            </tr>
-                                        )}
-                                    </tbody>
-                                </table>
+                {/* ---------- SECCIÓN 1: Plan Nacional ---------- */}
+                <div className="card mb-3 shadow-sm">
+                    {renderSectionHeader("national", "Contribución al Plan Nacional de Desarrollo")}
+                    {expandedSections.national && (
+                        <div className="card-body row g-3">
+                            <div className="col-md-6">
+                                <label className="form-label">Programa</label>
+                                <input type="text" className="form-control" name="program" value={formData.program} readOnly />
                             </div>
-                            <button type="button" className="btn btn-success btn-sm" onClick={addPndRow}>
-                                + Agregar Fila
-                            </button>
-                        </div>
-                    </div>
-                )}
-            </div>
+                            <div className="col-md-6">
+                                <label className="form-label">Plan Nacional de Desarrollo</label>
+                                <input type="text" className="form-control" name="national_development_plan" value={formData.national_development_plan} onChange={handleChange} />
+                            </div>
 
-            {/* ---------- SECCIÓN 2: Plan Departamental o Sectorial ---------- */}
-            <div className="card mb-3 shadow-sm">
-                {renderSectionHeader("departmental", "Plan de Desarrollo Departamental o Sectorial")}
-                {expandedSections.departmental && (
-                    <div className="card-body row g-3">
-                        <div className="col-12">
-                            <label className="form-label">Plan de Desarrollo Departamental / Sectorial</label>
-                            <input type="text" className="form-control" name="departmental_or_sectoral_development_plan" value={formData.departmental_or_sectoral_development_plan} onChange={handleChange} />
+                            {/* TABLA DINÁMICA DE PND */}
+                            <div className="col-12 mt-4">
+                                <h6 className="mb-3">Detalle PND</h6>
+                                <div className="table-responsive">
+                                    <table className="table table-striped table-bordered">
+                                        <thead className="table-dark">
+                                            <tr>
+                                                <th>Transformación</th>
+                                                <th>Pilar</th>
+                                                <th>Catalizador</th>
+                                                <th>Componente</th>
+                                                <th style={{ width: "80px" }}>Acciones</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {formData.pnds.map((pnd, index) => (
+                                                <tr key={index}>
+                                                    <td>
+                                                        <input type="text" readOnly className="form-control form-control-sm" value={pnd.transformation} onChange={(e) => handlePndChange(index, "transformation", e.target.value)} />
+                                                    </td>
+                                                    <td>
+                                                        <input type="text" readOnly className="form-control form-control-sm" value={pnd.pillar} onChange={(e) => handlePndChange(index, "pillar", e.target.value)} />
+                                                    </td>
+                                                    <td>
+                                                        <input type="text" readOnly className="form-control form-control-sm" value={pnd.catalyst} onChange={(e) => handlePndChange(index, "catalyst", e.target.value)} />
+                                                    </td>
+                                                    <td>
+                                                        <input type="text" readOnly className="form-control form-control-sm" value={pnd.component} onChange={(e) => handlePndChange(index, "component", e.target.value)} />
+                                                    </td>
+                                                    <td className="text-center">
+                                                        <button type="button" className="btn btn-sm btn-danger" onClick={() => removePndRow(index)}>
+                                                            Eliminar
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                            {formData.pnds.length === 0 && (
+                                                <tr>
+                                                    <td colSpan="5" className="text-center text-muted">No hay registros asociados.</td>
+                                                </tr>
+                                            )}
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <button type="button" className="btn btn-success btn-sm" onClick={addPndRow}>
+                                    + Agregar Fila
+                                </button>
+                            </div>
                         </div>
-                        <div className="col-md-6">
-                            <label className="form-label">Estrategia Departamental</label>
-                            <input type="text" className="form-control" name="strategy_departmental" value={formData.strategy_departmental} onChange={handleChange} />
-                        </div>
-                        <div className="col-md-6">
-                            <label className="form-label">Programa Departamental</label>
-                            <input type="text" className="form-control" name="program_departmental" value={formData.program_departmental} onChange={handleChange} />
-                        </div>
-                    </div>
-                )}
-            </div>
+                    )}
+                </div>
 
-            {/* ---------- SECCIÓN 3: Plan Distrital o Municipal ---------- */}
-            <div className="card mb-3 shadow-sm">
-                {renderSectionHeader("district", "Plan de Desarrollo Distrital o Municipal")}
-                {expandedSections.district && (
-                    <div className="card-body row g-3">
-                        <div className="col-12">
-                            <label className="form-label">Plan de Desarrollo Distrital / Municipal</label>
-                            <input type="text" className="form-control" name="district_or_municipal_development_plan" value={formData.district_or_municipal_development_plan} onChange={handleChange} />
+                {/* ---------- SECCIÓN 2: Plan Departamental o Sectorial ---------- */}
+                <div className="card mb-3 shadow-sm">
+                    {renderSectionHeader("departmental", "Plan de Desarrollo Departamental o Sectorial")}
+                    {expandedSections.departmental && (
+                        <div className="card-body row g-3">
+                            <div className="col-12">
+                                <label className="form-label">Plan de Desarrollo Departamental / Sectorial</label>
+                                <input type="text" className="form-control" name="departmental_or_sectoral_development_plan" value={formData.departmental_or_sectoral_development_plan} onChange={handleChange} />
+                            </div>
+                            <div className="col-md-6">
+                                <label className="form-label">Estrategia Departamental</label>
+                                <input type="text" className="form-control" name="strategy_departmental" value={formData.strategy_departmental} onChange={handleChange} />
+                            </div>
+                            <div className="col-md-6">
+                                <label className="form-label">Programa Departamental</label>
+                                <input type="text" className="form-control" name="program_departmental" value={formData.program_departmental} onChange={handleChange} />
+                            </div>
                         </div>
-                        <div className="col-md-6">
-                            <label className="form-label">Estrategia Distrital</label>
-                            <input type="text" className="form-control" name="strategy_district" value={formData.strategy_district} onChange={handleChange} />
-                        </div>
-                        <div className="col-md-6">
-                            <label className="form-label">Programa Distrital</label>
-                            <input type="text" className="form-control" name="program_district" value={formData.program_district} onChange={handleChange} />
-                        </div>
-                    </div>
-                )}
-            </div>
+                    )}
+                </div>
 
-            {/* ---------- SECCIÓN 4: Grupos Étnicos ---------- */}
-            <div className="card mb-3 shadow-sm">
-                {renderSectionHeader("ethnic", "Instrumentos de Planeación de Grupos Étnicos")}
-                {expandedSections.ethnic && (
-                    <div className="card-body row g-3">
-                        <div className="col-md-6">
-                            <label className="form-label">Tipo de Comunidad</label>
-                            <select className="form-select" name="community_type" value={formData.community_type} onChange={handleChange}>
-                                <option value="">Seleccione...</option>
-                                {comunidadOptions.map((opt) => (
-                                    <option key={opt} value={opt}>{opt}</option>
-                                ))}
-                            </select>
+                {/* ---------- SECCIÓN 3: Plan Distrital o Municipal ---------- */}
+                <div className="card mb-3 shadow-sm">
+                    {renderSectionHeader("district", "Plan de Desarrollo Distrital o Municipal")}
+                    {expandedSections.district && (
+                        <div className="card-body row g-3">
+                            <div className="col-12">
+                                <label className="form-label">Plan de Desarrollo Distrital / Municipal</label>
+                                <input type="text" className="form-control" name="district_or_municipal_development_plan" value={formData.district_or_municipal_development_plan} onChange={handleChange} />
+                            </div>
+                            <div className="col-md-6">
+                                <label className="form-label">Estrategia Distrital</label>
+                                <input type="text" className="form-control" name="strategy_district" value={formData.strategy_district} onChange={handleChange} />
+                            </div>
+                            <div className="col-md-6">
+                                <label className="form-label">Programa Distrital</label>
+                                <input type="text" className="form-control" name="program_district" value={formData.program_district} onChange={handleChange} />
+                            </div>
                         </div>
-                        <div className="col-md-6">
-                            <label className="form-label">Instrumentos de Planeación (Grupos Étnicos)</label>
-                            <input type="text" className="form-control" name="ethnic_group_planning_instruments" value={formData.ethnic_group_planning_instruments} onChange={handleChange} />
-                        </div>
-                    </div>
-                )}
-            </div>
+                    )}
+                </div>
 
-            {/* ---------- SECCIÓN 5: Otros Instrumentos ---------- */}
-            <div className="card mb-3 shadow-sm">
-                {renderSectionHeader("other", "Otros Instrumentos de Planeación")}
-                {expandedSections.other && (
-                    <div className="card-body row g-3">
-                        <div className="col-12">
-                            <label className="form-label">Otro Plan de Desarrollo</label>
-                            <input type="text" className="form-control" name="other_development_plan" value={formData.other_development_plan} onChange={handleChange} />
+                {/* ---------- SECCIÓN 4: Grupos Étnicos ---------- */}
+                <div className="card mb-3 shadow-sm">
+                    {renderSectionHeader("ethnic", "Instrumentos de Planeación de Grupos Étnicos")}
+                    {expandedSections.ethnic && (
+                        <div className="card-body row g-3">
+                            <div className="col-md-6">
+                                <label className="form-label">Tipo de Comunidad</label>
+                                <select className="form-select" name="community_type" value={formData.community_type} onChange={handleChange}>
+                                    <option value="">Seleccione...</option>
+                                    {comunidadOptions.map((opt) => (
+                                        <option key={opt} value={opt}>{opt}</option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div className="col-md-6">
+                                <label className="form-label">Instrumentos de Planeación (Grupos Étnicos)</label>
+                                <input type="text" className="form-control" name="ethnic_group_planning_instruments" value={formData.ethnic_group_planning_instruments} onChange={handleChange} />
+                            </div>
                         </div>
-                        <div className="col-md-6">
-                            <label className="form-label">Estrategia (Otro)</label>
-                            <input type="text" className="form-control" name="strategy_other" value={formData.strategy_other} onChange={handleChange} />
-                        </div>
-                        <div className="col-md-6">
-                            <label className="form-label">Programa (Otro)</label>
-                            <input type="text" className="form-control" name="program_other" value={formData.program_other} onChange={handleChange} />
-                        </div>
-                    </div>
-                )}
-            </div>
+                    )}
+                </div>
 
-            {/* ---------- BOTONES DE ACCIÓN ---------- */}
-            <div className="d-flex justify-content-end mt-4">
-                <button
-                    className="btn btn-secondary me-2"
-                    onClick={() => navigate("/projects")}
-                >
-                    Regresar
-                </button>
-                <button
-                    className="btn btn-primary"
-                    onClick={handleSubmit}
-                >
-                    Guardar Cambios
-                </button>
+                {/* ---------- SECCIÓN 5: Otros Instrumentos ---------- */}
+                <div className="card mb-3 shadow-sm">
+                    {renderSectionHeader("other", "Otros Instrumentos de Planeación")}
+                    {expandedSections.other && (
+                        <div className="card-body row g-3">
+                            <div className="col-12">
+                                <label className="form-label">Otro Plan de Desarrollo</label>
+                                <input type="text" className="form-control" name="other_development_plan" value={formData.other_development_plan} onChange={handleChange} />
+                            </div>
+                            <div className="col-md-6">
+                                <label className="form-label">Estrategia (Otro)</label>
+                                <input type="text" className="form-control" name="strategy_other" value={formData.strategy_other} onChange={handleChange} />
+                            </div>
+                            <div className="col-md-6">
+                                <label className="form-label">Programa (Otro)</label>
+                                <input type="text" className="form-control" name="program_other" value={formData.program_other} onChange={handleChange} />
+                            </div>
+                        </div>
+                    )}
+                </div>
+
+                {/* ---------- BOTONES DE ACCIÓN ---------- */}
+                <div className="d-flex justify-content-end mt-4">
+                    <button
+                        className="btn btn-secondary me-2"
+                        onClick={() => navigate("/projects")}
+                    >
+                        Regresar
+                    </button>
+                    <button
+                        className="btn btn-primary"
+                        onClick={handleSubmit}
+                    >
+                        Guardar Cambios
+                    </button>
+                </div>
             </div>
-        </div>
+        </>
     );
 }
 

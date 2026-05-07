@@ -101,6 +101,27 @@ function CreateProject() {
         return uniqueProjectTypologies.sort((a, b) => a.localeCompare(b, "es"));
     }, [investmentTypologies, project.intervention_type]);
 
+    const computedProjectName = useMemo(() => {
+        const processPart = (project.process || "").trim();
+        const objectDescPart = (project.object_desc || "").trim();
+        const municipalitiesPart = [...new Set(
+            localizations
+                .map(loc => (loc.municipality || "").trim())
+                .filter(Boolean)
+        )].join(", ");
+
+        return [processPart, objectDescPart, municipalitiesPart]
+            .filter(Boolean)
+            .join(" ");
+    }, [project.process, project.object_desc, localizations]);
+
+    useEffect(() => {
+        setProject(prev => {
+            if (prev.name === computedProjectName) return prev;
+            return { ...prev, name: computedProjectName };
+        });
+    }, [computedProjectName]);
+
     // Cargar opciones del CSV al montar el componente
     useEffect(() => {
         const fetchProcessOptions = () => {
@@ -274,18 +295,47 @@ function CreateProject() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!project.name.trim()) return;
+
+        const projectPayload = {
+            ...project,
+            name: computedProjectName
+        };
+
+        const requiredFields = [
+            { key: "name", label: "Nombre del Proyecto" },
+            { key: "process", label: "Proceso" },
+            { key: "object_desc", label: "Objeto" },
+            { key: "intervention_type", label: "Tipo de Intervención" },
+            { key: "project_typology", label: "Tipología de Proyecto" },
+            { key: "main_product", label: "Producto Principal del Proyecto" },
+            { key: "sector", label: "Sector" },
+            { key: "indicator_code", label: "Código de Indicador" }
+        ];
+
+        const missingFields = requiredFields
+            .filter(({ key }) => !(projectPayload[key] || "").toString().trim())
+            .map(({ label }) => label);
+
+        if (missingFields.length > 0) {
+            showError(`Complete los campos obligatorios: ${missingFields.join(", ")}.`);
+            return;
+        }
+
+        if (localizations.length === 0) {
+            showError("Debe agregar al menos una localización geográfica.");
+            return;
+        }
 
         setLoading(true);
         try {
             let projectId = id;
 
             if (id) {
-                await api.put(`/projects/${id}`, project);
+                await api.put(`/projects/${id}`, projectPayload);
                 // Eliminar localizaciones anteriores y crear las nuevas
                 await api.delete(`/project_localizations/project/${id}`);
             } else {
-                const res = await api.post("/projects/", project);
+                const res = await api.post("/projects/", projectPayload);
                 projectId = res.data.id;
             }
 
@@ -329,13 +379,13 @@ function CreateProject() {
                                 type="text"
                                 name="name"
                                 value={project.name}
-                                onChange={handleChange}
-                                placeholder="Ej: Fortalecimiento de la infraestructura..."
+                                readOnly
+                                placeholder="Proceso + Objeto + Localización"
                                 required
                             />
                         </div>
                         <div className="form-group">
-                            <label>Proceso</label>
+                            <label>Proceso *</label>
                             {loadingProcess ? (
                                 <input type="text" disabled value="Cargando opciones..." />
                             ) : (
@@ -343,6 +393,7 @@ function CreateProject() {
                                     name="process"
                                     value={project.process}
                                     onChange={handleChange}
+                                    required
                                 >
                                     <option value="">Seleccione</option>
                                     {processOptions.map((opt, idx) => (
@@ -355,8 +406,8 @@ function CreateProject() {
                         </div>
 
                         <div className="form-group full-width">
-                            <label>Objeto</label>
-                            <textarea name="object_desc" value={project.object_desc} onChange={handleChange} rows="2" />
+                            <label>Objeto *</label>
+                            <textarea name="object_desc" value={project.object_desc} onChange={handleChange} rows="2" required />
                         </div>
                     </div>
                 </section>
@@ -473,7 +524,7 @@ function CreateProject() {
                     <h3>Clasificación y Tipología</h3>
                     <div className="form-grid">
                         <div className="form-group">
-                            <label>Tipo de Intervención</label>
+                            <label>Tipo de Intervención *</label>
                             {loadingInvestmentTypologies ? (
                                 <input type="text" disabled value="Cargando opciones..." />
                             ) : (
@@ -481,6 +532,7 @@ function CreateProject() {
                                     name="intervention_type"
                                     value={project.intervention_type}
                                     onChange={handleChange}
+                                    required
                                 >
                                     <option value="">Seleccione</option>
                                     {interventionTypeOptions.map((opt, idx) => (
@@ -492,7 +544,7 @@ function CreateProject() {
                             )}
                         </div>
                         <div className="form-group">
-                            <label>Tipología de Proyecto</label>
+                            <label>Tipología de Proyecto *</label>
                             {loadingInvestmentTypologies ? (
                                 <input type="text" disabled value="Cargando opciones..." />
                             ) : (
@@ -501,6 +553,7 @@ function CreateProject() {
                                     value={project.project_typology}
                                     onChange={handleChange}
                                     disabled={!project.intervention_type}
+                                    required
                                 >
                                     <option value="">Seleccione</option>
                                     {projectTypologyOptions.map((opt, idx) => (
@@ -512,8 +565,8 @@ function CreateProject() {
                             )}
                         </div>
                         <div className="form-group full-width">
-                            <label>Producto Principal</label>
-                            <input type="text" name="main_product" value={project.main_product} onChange={handleChange} />
+                            <label>Producto Principal del Proyecto *</label>
+                            <input type="text" readOnly name="main_product" value={project.main_product} onChange={handleChange} required />
                             <button
                                 type="button"
                                 className="btn-catalog"
@@ -524,8 +577,8 @@ function CreateProject() {
                         </div>
                         <input type="hidden" name="indicator_code" value={project.indicator_code} />
                         <div className="form-group">
-                            <label>Sector</label>
-                            <input type="text" name="sector" value={project.sector} onChange={handleChange} />
+                            <label>Sector *</label>
+                            <input type="text" readOnly name="sector" value={project.sector} onChange={handleChange} required />
                         </div>
                         <div className="form-group full-width">
                             <label>Descripción General</label>

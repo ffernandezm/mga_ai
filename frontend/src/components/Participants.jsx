@@ -35,6 +35,14 @@ const emptyParticipant = {
     contribution_conflicts: "",
 };
 
+const requiredParticipantFields = [
+    { key: "participant_actor", label: "Actor" },
+    { key: "participant_entity", label: "Entidad" },
+    { key: "interest_expectative", label: "Intereses / Expectativas" },
+    { key: "rol", label: "Rol" },
+    { key: "contribution_conflicts", label: "Contribuciones / Conflictos" },
+];
+
 function ParticipantsGeneral({ projectId }) {
     const { showSuccess, showError, showConfirmation } = useNotification();
     const [participantsGeneral, setParticipantsGeneral] = useState([]);
@@ -74,8 +82,25 @@ function ParticipantsGeneral({ projectId }) {
         if (projectId) fetchParticipantsGeneral();
     }, [projectId]);
 
+    const getMissingParticipantFields = (participant) => {
+        return requiredParticipantFields
+            .filter(({ key }) => !String(participant[key] || "").trim())
+            .map(({ label }) => label);
+    };
+
     const handleSubmit = async () => {
         if (!projectId) return showError("No hay proyecto seleccionado.");
+
+        if (!analysis.trim()) {
+            showError("El campo Análisis de los participantes es obligatorio.");
+            return;
+        }
+
+        if (participantsGeneral.length === 0) {
+            showError("Debe registrar al menos un participante en la tabla antes de guardar.");
+            return;
+        }
+
         const payload = {
             project_id: projectId,
             participants_analisis: analysis,
@@ -132,6 +157,12 @@ function ParticipantsGeneral({ projectId }) {
     };
 
     const handleSaveEdit = async () => {
+        const missingFields = getMissingParticipantFields(editedParticipant);
+        if (missingFields.length > 0) {
+            showError(`Complete los campos obligatorios: ${missingFields.join(", ")}.`);
+            return;
+        }
+
         try {
             await api.put(`/participants/${editingId}`, editedParticipant);
             setParticipantsGeneral((prev) =>
@@ -166,6 +197,12 @@ function ParticipantsGeneral({ projectId }) {
     };
 
     const saveNewParticipant = async () => {
+        const missingFields = getMissingParticipantFields(newParticipant);
+        if (missingFields.length > 0) {
+            showError(`Complete los campos obligatorios: ${missingFields.join(", ")}.`);
+            return;
+        }
+
         try {
             const payload = { ...newParticipant, participants_general_id: generalId };
             const res = await api.post("/participants/", payload);
@@ -186,6 +223,7 @@ function ParticipantsGeneral({ projectId }) {
                 className="form-control form-control-sm"
                 value={value || ""}
                 onChange={(e) => onChange(e.target.value)}
+                required
             >
                 <option value="">{placeholder}</option>
                 {options.map((opt) => (
@@ -204,6 +242,7 @@ function ParticipantsGeneral({ projectId }) {
                 value={value || ""}
                 onChange={(e) => onChange(e.target.value)}
                 rows={2}
+                required
             />
         ) : (
             value
@@ -350,6 +389,7 @@ function ParticipantsGeneral({ projectId }) {
                                         className="form-control form-control-sm"
                                         value={newParticipant.participant_actor}
                                         onChange={(e) => handleNewChange("participant_actor", e.target.value)}
+                                        required
                                     >
                                         <option value="">Seleccione actor</option>
                                         {actorOptions.map((a) => (
@@ -365,6 +405,7 @@ function ParticipantsGeneral({ projectId }) {
                                             value={newParticipant.participant_entity}
                                             onChange={(e) => handleNewChange("participant_entity", e.target.value)}
                                             placeholder="Escriba la entidad"
+                                            required
                                         />
                                     ) : (
                                         <select
@@ -372,6 +413,7 @@ function ParticipantsGeneral({ projectId }) {
                                             value={newParticipant.participant_entity}
                                             onChange={(e) => handleNewChange("participant_entity", e.target.value)}
                                             disabled={!newParticipant.participant_actor}
+                                            required
                                         >
                                             <option value="">Seleccione entidad</option>
                                             {getEntityOptions(newParticipant.participant_actor).map((e) => (
@@ -386,6 +428,7 @@ function ParticipantsGeneral({ projectId }) {
                                         value={newParticipant.interest_expectative}
                                         onChange={(e) => handleNewChange("interest_expectative", e.target.value)}
                                         rows={2}
+                                        required
                                     />
                                 </td>
                                 <td>
@@ -393,6 +436,7 @@ function ParticipantsGeneral({ projectId }) {
                                         className="form-control form-control-sm"
                                         value={newParticipant.rol}
                                         onChange={(e) => handleNewChange("rol", e.target.value)}
+                                        required
                                     >
                                         <option value="">Seleccione rol</option>
                                         {rolOptions.map((r) => (
@@ -406,6 +450,7 @@ function ParticipantsGeneral({ projectId }) {
                                         value={newParticipant.contribution_conflicts}
                                         onChange={(e) => handleNewChange("contribution_conflicts", e.target.value)}
                                         rows={2}
+                                        required
                                     />
                                 </td>
                                 <td>
@@ -432,6 +477,7 @@ function ParticipantsGeneral({ projectId }) {
                     className="form-control"
                     value={analysis}
                     onChange={(e) => setAnalysis(e.target.value)}
+                    required
                 />
             </div>
 

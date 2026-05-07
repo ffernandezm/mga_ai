@@ -182,8 +182,8 @@ class LLMManager:
 
     def _is_invoke_skipped(self) -> bool:
         """Permite desactivar llamadas al LLM durante debug para evitar consumo de tokens."""
-        #raw_value = os.getenv("SKIP_LLM_INVOKE", os.getenv("DEBUG_SKIP_LLM_INVOKE", "true"))
-        raw_value = True
+        raw_value = os.getenv("SKIP_LLM_INVOKE", os.getenv("DEBUG_SKIP_LLM_INVOKE", "true"))
+        #raw_value = True
         return str(raw_value).strip().lower() in {"1", "true", "yes", "on"}
 
 
@@ -221,7 +221,6 @@ class LLMManager:
             
             # Crear cadena LLM
             chain = prompt | self.model | StrOutputParser()
-            
             response = chain.invoke({
                 "project_context": context or "",
                 "chat_history": self._build_chat_context(chat_history) if chat_history else "",
