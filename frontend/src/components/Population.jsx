@@ -48,8 +48,32 @@ function Population({ projectId }) {
         location_entity: "",
     });
 
+    const [expandedSections, setExpandedSections] = useState({
+        affected: true,
+        intervention: true,
+        characteristics: true,
+    });
+
     const navigate = useNavigate();
     const { regions, departments, cities, populationCenters, locationEntities } = populationOptions;
+
+    const toggleSection = (section) => {
+        setExpandedSections((prev) => ({
+            ...prev,
+            [section]: !prev[section],
+        }));
+    };
+
+    const renderSectionHeader = (key, title) => (
+        <div
+            className="card-header bg-dark text-white d-flex justify-content-between align-items-center"
+            style={{ cursor: "pointer" }}
+            onClick={() => toggleSection(key)}
+        >
+            <h5 className="mb-0">{title}</h5>
+            <span>{expandedSections[key] ? "▲" : "▼"}</span>
+        </div>
+    );
 
     const fetchPopulation = async () => {
         try {
@@ -373,662 +397,677 @@ function Population({ projectId }) {
     };
 
     return (
-        <div className="container mt-4">
+        <div className="container mt-4 mb-5">
             {/* Affected Population */}
-            <div>
-                <h2 className="mb-3">Población Afectada</h2>
+            <div className="card mb-3 shadow-sm">
+                {renderSectionHeader("affected", "Población Afectada")}
+                {expandedSections.affected && (
+                    <div className="card-body">
+                        <h2 className="mb-3">Población Afectada</h2>
 
-                <div className="row g-3 mb-3">
-                    <div className="col-md-4">
-                        <label className="form-label">Tipo de población</label>
-                        <input
-                            type="text"
-                            className="form-control"
-                            value={populationFields.population_type_affected}
-                            readOnly
-                        />
-                    </div>
-                    <div className="col-md-4">
-                        <label className="form-label">Número <span className="text-danger">*</span></label>
-                        <input
-                            type="number"
-                            min="0"
-                            className="form-control"
-                            value={populationFields.population_number_affected}
-                            onChange={(e) => handlePopulationFieldChange("population_number_affected", e.target.value)}
-                            required
-                        />
-                    </div>
-                    <div className="col-md-4">
-                        <label className="form-label">Fuente de la información <span className="text-danger">*</span></label>
-                        <input
-                            type="text"
-                            className="form-control"
-                            value={populationFields.population_info_affected}
-                            onChange={(e) => handlePopulationFieldChange("population_info_affected", e.target.value)}
-                            required
-                        />
-                    </div>
-                </div>
+                        <div className="row g-3 mb-3">
+                            <div className="col-md-4">
+                                <label className="form-label">Tipo de población</label>
+                                <input
+                                    type="text"
+                                    className="form-control"
+                                    value={populationFields.population_type_affected}
+                                    readOnly
+                                />
+                            </div>
+                            <div className="col-md-4">
+                                <label className="form-label">Número <span className="text-danger">*</span></label>
+                                <input
+                                    type="number"
+                                    min="0"
+                                    className="form-control"
+                                    value={populationFields.population_number_affected}
+                                    onChange={(e) => handlePopulationFieldChange("population_number_affected", e.target.value)}
+                                    required
+                                />
+                            </div>
+                            <div className="col-md-4">
+                                <label className="form-label">Fuente de la información <span className="text-danger">*</span></label>
+                                <input
+                                    type="text"
+                                    className="form-control"
+                                    value={populationFields.population_info_affected}
+                                    onChange={(e) => handlePopulationFieldChange("population_info_affected", e.target.value)}
+                                    required
+                                />
+                            </div>
+                        </div>
 
-                <button
-                    className="btn btn-success btn-sm mb-3"
-                    onClick={handleCreateAffected}
-                    disabled={creatingAffected}
-                >
-                    Crear Registro de Afectados
-                </button>
+                        <button
+                            className="btn btn-success btn-sm mb-3"
+                            onClick={handleCreateAffected}
+                            disabled={creatingAffected}
+                        >
+                            Crear Registro de Afectados
+                        </button>
 
-                <div className="table-responsive">
-                    <table className="table table-striped table-bordered">
-                        <thead className="table-dark">
-                            <tr>
-                                <th>ID</th>
-                                <th>Región</th>
-                                <th>Departamento</th>
-                                <th>Ciudad</th>
-                                <th>Centro Poblado</th>
-                                <th>Resguardo</th>
-                                <th>Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {affectedPopulation.length > 0 ? (
-                                affectedPopulation.map((p) => (
-                                    <tr key={p.id}>
-                                        <td>{p.id}</td>
-                                        <td>
-                                            {editingAffectedId === p.id ? (
+                        <div className="table-responsive">
+                            <table className="table table-striped table-bordered">
+                                <thead className="table-dark">
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Región</th>
+                                        <th>Departamento</th>
+                                        <th>Ciudad</th>
+                                        <th>Centro Poblado</th>
+                                        <th>Resguardo</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {affectedPopulation.length > 0 ? (
+                                        affectedPopulation.map((p) => (
+                                            <tr key={p.id}>
+                                                <td>{p.id}</td>
+                                                <td>
+                                                    {editingAffectedId === p.id ? (
+                                                        <select
+                                                            className="form-control form-control-sm"
+                                                            value={editedAffected.region || ''}
+                                                            onChange={(e) => handleAffectedChange('region', e.target.value)}
+                                                        >
+                                                            <option value="">Seleccione región</option>
+                                                            {regions.map(region => (
+                                                                <option key={region} value={region}>{region}</option>
+                                                            ))}
+                                                        </select>
+                                                    ) : (
+                                                        p.region
+                                                    )}
+                                                </td>
+                                                <td>
+                                                    {editingAffectedId === p.id ? (
+                                                        <select
+                                                            className="form-control form-control-sm"
+                                                            value={editedAffected.department || ''}
+                                                            onChange={(e) => handleAffectedChange('department', e.target.value)}
+                                                            disabled={!editedAffected.region}
+                                                        >
+                                                            <option value="">Seleccione departamento</option>
+                                                            {getDepartmentOptions(editedAffected.region).map(dep => (
+                                                                <option key={dep} value={dep}>{dep}</option>
+                                                            ))}
+                                                        </select>
+                                                    ) : (
+                                                        p.department
+                                                    )}
+                                                </td>
+                                                <td>
+                                                    {editingAffectedId === p.id ? (
+                                                        <select
+                                                            className="form-control form-control-sm"
+                                                            value={editedAffected.city || ''}
+                                                            onChange={(e) => handleAffectedChange('city', e.target.value)}
+                                                            disabled={!editedAffected.department}
+                                                        >
+                                                            <option value="">Seleccione ciudad</option>
+                                                            {getCityOptions(editedAffected.department).map(city => (
+                                                                <option key={city} value={city}>{city}</option>
+                                                            ))}
+                                                        </select>
+                                                    ) : (
+                                                        p.city
+                                                    )}
+                                                </td>
+                                                <td>
+                                                    {editingAffectedId === p.id ? (
+                                                        <select
+                                                            className="form-control form-control-sm"
+                                                            value={editedAffected.population_center || ''}
+                                                            onChange={(e) => handleAffectedChange('population_center', e.target.value)}
+                                                        >
+                                                            <option value="">Seleccione centro poblado</option>
+                                                            {populationCenters.map(pc => (
+                                                                <option key={pc} value={pc}>{pc}</option>
+                                                            ))}
+                                                        </select>
+                                                    ) : (
+                                                        p.population_center
+                                                    )}
+                                                </td>
+                                                <td>
+                                                    {editingAffectedId === p.id ? (
+                                                        <select
+                                                            className="form-control form-control-sm"
+                                                            value={editedAffected.location_entity || ''}
+                                                            onChange={(e) => handleAffectedChange('location_entity', e.target.value)}
+                                                        >
+                                                            <option value="">Seleccione localización</option>
+                                                            {locationEntities.map(le => (
+                                                                <option key={le} value={le}>{le}</option>
+                                                            ))}
+                                                        </select>
+                                                    ) : (
+                                                        p.location_entity
+                                                    )}
+                                                </td>
+                                                <td>
+                                                    {editingAffectedId === p.id ? (
+                                                        <div>
+                                                            <button
+                                                                className="btn btn-sm btn-success me-2"
+                                                                onClick={handleSaveAffected}
+                                                            >
+                                                                Guardar
+                                                            </button>
+                                                            <button
+                                                                className="btn btn-sm btn-secondary"
+                                                                onClick={handleCancelEdit}
+                                                            >
+                                                                Cancelar
+                                                            </button>
+                                                        </div>
+                                                    ) : (
+                                                        <div>
+                                                            <button
+                                                                className="btn btn-sm btn-primary me-2"
+                                                                onClick={() => handleEditAffected(p)}
+                                                            >
+                                                                Editar
+                                                            </button>
+                                                            <button
+                                                                className="btn btn-sm btn-danger"
+                                                                onClick={() => handleDelete(p.id, "affected")}
+                                                            >
+                                                                Eliminar
+                                                            </button>
+                                                        </div>
+                                                    )}
+                                                </td>
+                                            </tr>
+                                        ))
+                                    ) : (
+                                        <tr>
+                                            <td colSpan="7" className="text-center">
+                                                No hay registros afectados.
+                                            </td>
+                                        </tr>
+                                    )}
+
+                                    {/* Fila de creación inline */}
+                                    {creatingAffected && (
+                                        <tr>
+                                            <td>Nuevo</td>
+                                            <td>
                                                 <select
                                                     className="form-control form-control-sm"
-                                                    value={editedAffected.region || ''}
-                                                    onChange={(e) => handleAffectedChange('region', e.target.value)}
+                                                    value={newAffected.region}
+                                                    onChange={(e) => handleNewAffectedChange("region", e.target.value)}
                                                 >
                                                     <option value="">Seleccione región</option>
-                                                    {regions.map(region => (
-                                                        <option key={region} value={region}>{region}</option>
+                                                    {regions.map(r => (
+                                                        <option key={r} value={r}>{r}</option>
                                                     ))}
                                                 </select>
-                                            ) : (
-                                                p.region
-                                            )}
-                                        </td>
-                                        <td>
-                                            {editingAffectedId === p.id ? (
+                                            </td>
+                                            <td>
                                                 <select
                                                     className="form-control form-control-sm"
-                                                    value={editedAffected.department || ''}
-                                                    onChange={(e) => handleAffectedChange('department', e.target.value)}
-                                                    disabled={!editedAffected.region}
+                                                    value={newAffected.department}
+                                                    onChange={(e) => handleNewAffectedChange("department", e.target.value)}
+                                                    disabled={!newAffected.region}
                                                 >
                                                     <option value="">Seleccione departamento</option>
-                                                    {getDepartmentOptions(editedAffected.region).map(dep => (
+                                                    {getDepartmentOptions(newAffected.region).map(dep => (
                                                         <option key={dep} value={dep}>{dep}</option>
                                                     ))}
                                                 </select>
-                                            ) : (
-                                                p.department
-                                            )}
-                                        </td>
-                                        <td>
-                                            {editingAffectedId === p.id ? (
+                                            </td>
+                                            <td>
                                                 <select
                                                     className="form-control form-control-sm"
-                                                    value={editedAffected.city || ''}
-                                                    onChange={(e) => handleAffectedChange('city', e.target.value)}
-                                                    disabled={!editedAffected.department}
+                                                    value={newAffected.city}
+                                                    onChange={(e) => handleNewAffectedChange("city", e.target.value)}
+                                                    disabled={!newAffected.department}
                                                 >
                                                     <option value="">Seleccione ciudad</option>
-                                                    {getCityOptions(editedAffected.department).map(city => (
-                                                        <option key={city} value={city}>{city}</option>
+                                                    {getCityOptions(newAffected.department).map(c => (
+                                                        <option key={c} value={c}>{c}</option>
                                                     ))}
                                                 </select>
-                                            ) : (
-                                                p.city
-                                            )}
-                                        </td>
-                                        <td>
-                                            {editingAffectedId === p.id ? (
+                                            </td>
+                                            <td>
                                                 <select
                                                     className="form-control form-control-sm"
-                                                    value={editedAffected.population_center || ''}
-                                                    onChange={(e) => handleAffectedChange('population_center', e.target.value)}
+                                                    value={newAffected.population_center}
+                                                    onChange={(e) => handleNewAffectedChange("population_center", e.target.value)}
                                                 >
                                                     <option value="">Seleccione centro poblado</option>
                                                     {populationCenters.map(pc => (
                                                         <option key={pc} value={pc}>{pc}</option>
                                                     ))}
                                                 </select>
-                                            ) : (
-                                                p.population_center
-                                            )}
-                                        </td>
-                                        <td>
-                                            {editingAffectedId === p.id ? (
+                                            </td>
+                                            <td>
                                                 <select
                                                     className="form-control form-control-sm"
-                                                    value={editedAffected.location_entity || ''}
-                                                    onChange={(e) => handleAffectedChange('location_entity', e.target.value)}
+                                                    value={newAffected.location_entity}
+                                                    onChange={(e) => handleNewAffectedChange("location_entity", e.target.value)}
                                                 >
                                                     <option value="">Seleccione localización</option>
                                                     {locationEntities.map(le => (
                                                         <option key={le} value={le}>{le}</option>
                                                     ))}
                                                 </select>
-                                            ) : (
-                                                p.location_entity
-                                            )}
-                                        </td>
-                                        <td>
-                                            {editingAffectedId === p.id ? (
-                                                <div>
-                                                    <button
-                                                        className="btn btn-sm btn-success me-2"
-                                                        onClick={handleSaveAffected}
-                                                    >
-                                                        Guardar
-                                                    </button>
-                                                    <button
-                                                        className="btn btn-sm btn-secondary"
-                                                        onClick={handleCancelEdit}
-                                                    >
-                                                        Cancelar
-                                                    </button>
-                                                </div>
-                                            ) : (
-                                                <div>
-                                                    <button
-                                                        className="btn btn-sm btn-primary me-2"
-                                                        onClick={() => handleEditAffected(p)}
-                                                    >
-                                                        Editar
-                                                    </button>
-                                                    <button
-                                                        className="btn btn-sm btn-danger"
-                                                        onClick={() => handleDelete(p.id, "affected")}
-                                                    >
-                                                        Eliminar
-                                                    </button>
-                                                </div>
-                                            )}
-                                        </td>
-                                    </tr>
-                                ))
-                            ) : (
-                                <tr>
-                                    <td colSpan="7" className="text-center">
-                                        No hay registros afectados.
-                                    </td>
-                                </tr>
-                            )}
-
-                            {/* Fila de creación inline */}
-                            {creatingAffected && (
-                                <tr>
-                                    <td>Nuevo</td>
-                                    <td>
-                                        <select
-                                            className="form-control form-control-sm"
-                                            value={newAffected.region}
-                                            onChange={(e) => handleNewAffectedChange("region", e.target.value)}
-                                        >
-                                            <option value="">Seleccione región</option>
-                                            {regions.map(r => (
-                                                <option key={r} value={r}>{r}</option>
-                                            ))}
-                                        </select>
-                                    </td>
-                                    <td>
-                                        <select
-                                            className="form-control form-control-sm"
-                                            value={newAffected.department}
-                                            onChange={(e) => handleNewAffectedChange("department", e.target.value)}
-                                            disabled={!newAffected.region}
-                                        >
-                                            <option value="">Seleccione departamento</option>
-                                            {getDepartmentOptions(newAffected.region).map(dep => (
-                                                <option key={dep} value={dep}>{dep}</option>
-                                            ))}
-                                        </select>
-                                    </td>
-                                    <td>
-                                        <select
-                                            className="form-control form-control-sm"
-                                            value={newAffected.city}
-                                            onChange={(e) => handleNewAffectedChange("city", e.target.value)}
-                                            disabled={!newAffected.department}
-                                        >
-                                            <option value="">Seleccione ciudad</option>
-                                            {getCityOptions(newAffected.department).map(c => (
-                                                <option key={c} value={c}>{c}</option>
-                                            ))}
-                                        </select>
-                                    </td>
-                                    <td>
-                                        <select
-                                            className="form-control form-control-sm"
-                                            value={newAffected.population_center}
-                                            onChange={(e) => handleNewAffectedChange("population_center", e.target.value)}
-                                        >
-                                            <option value="">Seleccione centro poblado</option>
-                                            {populationCenters.map(pc => (
-                                                <option key={pc} value={pc}>{pc}</option>
-                                            ))}
-                                        </select>
-                                    </td>
-                                    <td>
-                                        <select
-                                            className="form-control form-control-sm"
-                                            value={newAffected.location_entity}
-                                            onChange={(e) => handleNewAffectedChange("location_entity", e.target.value)}
-                                        >
-                                            <option value="">Seleccione localización</option>
-                                            {locationEntities.map(le => (
-                                                <option key={le} value={le}>{le}</option>
-                                            ))}
-                                        </select>
-                                    </td>
-                                    <td>
-                                        <button className="btn btn-sm btn-success me-2" onClick={saveNewAffected}>
-                                            Guardar
-                                        </button>
-                                        <button
-                                            className="btn btn-sm btn-secondary"
-                                            onClick={() => setCreatingAffected(false)}
-                                        >
-                                            Cancelar
-                                        </button>
-                                    </td>
-                                </tr>
-                            )}
-                        </tbody>
-                    </table>
-                </div>
+                                            </td>
+                                            <td>
+                                                <button className="btn btn-sm btn-success me-2" onClick={saveNewAffected}>
+                                                    Guardar
+                                                </button>
+                                                <button
+                                                    className="btn btn-sm btn-secondary"
+                                                    onClick={() => setCreatingAffected(false)}
+                                                >
+                                                    Cancelar
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                )}
             </div>
 
             {/* Intervention Population */}
-            <div className="mt-5">
-                <h2 className="mb-3">Población de Intervención</h2>
+            <div className="card mb-3 shadow-sm">
+                {renderSectionHeader("intervention", "Población de Intervención")}
+                {expandedSections.intervention && (
+                    <div className="card-body">
+                        <h2 className="mb-3">Población de Intervención</h2>
 
-                <div className="row g-3 mb-3">
-                    <div className="col-md-4">
-                        <label className="form-label">Tipo de población</label>
-                        <input
-                            type="text"
-                            className="form-control"
-                            value={populationFields.population_type_intervention}
-                            readOnly
-                        />
-                    </div>
-                    <div className="col-md-4">
-                        <label className="form-label">Número <span className="text-danger">*</span></label>
-                        <input
-                            type="number"
-                            min="0"
-                            className="form-control"
-                            value={populationFields.population_number_intervention}
-                            onChange={(e) => handlePopulationFieldChange("population_number_intervention", e.target.value)}
-                            required
-                        />
-                    </div>
-                    <div className="col-md-4">
-                        <label className="form-label">Fuente de la información <span className="text-danger">*</span></label>
-                        <input
-                            type="text"
-                            className="form-control"
-                            value={populationFields.population_info_intervention}
-                            onChange={(e) => handlePopulationFieldChange("population_info_intervention", e.target.value)}
-                            required
-                        />
-                    </div>
-                </div>
+                        <div className="row g-3 mb-3">
+                            <div className="col-md-4">
+                                <label className="form-label">Tipo de población</label>
+                                <input
+                                    type="text"
+                                    className="form-control"
+                                    value={populationFields.population_type_intervention}
+                                    readOnly
+                                />
+                            </div>
+                            <div className="col-md-4">
+                                <label className="form-label">Número <span className="text-danger">*</span></label>
+                                <input
+                                    type="number"
+                                    min="0"
+                                    className="form-control"
+                                    value={populationFields.population_number_intervention}
+                                    onChange={(e) => handlePopulationFieldChange("population_number_intervention", e.target.value)}
+                                    required
+                                />
+                            </div>
+                            <div className="col-md-4">
+                                <label className="form-label">Fuente de la información <span className="text-danger">*</span></label>
+                                <input
+                                    type="text"
+                                    className="form-control"
+                                    value={populationFields.population_info_intervention}
+                                    onChange={(e) => handlePopulationFieldChange("population_info_intervention", e.target.value)}
+                                    required
+                                />
+                            </div>
+                        </div>
 
-                <button
-                    className="btn btn-success btn-sm mb-3"
-                    onClick={handleCreateIntervention}
-                    disabled={creatingIntervention}
-                >
-                    Crear Registro de Intervención
-                </button>
+                        <button
+                            className="btn btn-success btn-sm mb-3"
+                            onClick={handleCreateIntervention}
+                            disabled={creatingIntervention}
+                        >
+                            Crear Registro de Intervención
+                        </button>
 
-                <div className="table-responsive">
-                    <table className="table table-striped table-bordered">
-                        <thead className="table-dark">
-                            <tr>
-                                <th>ID</th>
-                                <th>Región</th>
-                                <th>Departamento</th>
-                                <th>Ciudad</th>
-                                <th>Centro Poblado</th>
-                                <th>Resguardo</th>
-                                <th>Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {interventionPopulation.length > 0 ? (
-                                interventionPopulation.map((p) => (
-                                    <tr key={p.id}>
-                                        <td>{p.id}</td>
-                                        <td>
-                                            {editingInterventionId === p.id ? (
+                        <div className="table-responsive">
+                            <table className="table table-striped table-bordered">
+                                <thead className="table-dark">
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Región</th>
+                                        <th>Departamento</th>
+                                        <th>Ciudad</th>
+                                        <th>Centro Poblado</th>
+                                        <th>Resguardo</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {interventionPopulation.length > 0 ? (
+                                        interventionPopulation.map((p) => (
+                                            <tr key={p.id}>
+                                                <td>{p.id}</td>
+                                                <td>
+                                                    {editingInterventionId === p.id ? (
+                                                        <select
+                                                            className="form-control form-control-sm"
+                                                            value={editedIntervention.region || ''}
+                                                            onChange={(e) => handleInterventionChange('region', e.target.value)}
+                                                        >
+                                                            <option value="">Seleccione región</option>
+                                                            {regions.map(region => (
+                                                                <option key={region} value={region}>{region}</option>
+                                                            ))}
+                                                        </select>
+                                                    ) : (
+                                                        p.region
+                                                    )}
+                                                </td>
+                                                <td>
+                                                    {editingInterventionId === p.id ? (
+                                                        <select
+                                                            className="form-control form-control-sm"
+                                                            value={editedIntervention.department || ''}
+                                                            onChange={(e) => handleInterventionChange('department', e.target.value)}
+                                                            disabled={!editedIntervention.region}
+                                                        >
+                                                            <option value="">Seleccione departamento</option>
+                                                            {getDepartmentOptions(editedIntervention.region).map(dep => (
+                                                                <option key={dep} value={dep}>{dep}</option>
+                                                            ))}
+                                                        </select>
+                                                    ) : (
+                                                        p.department
+                                                    )}
+                                                </td>
+                                                <td>
+                                                    {editingInterventionId === p.id ? (
+                                                        <select
+                                                            className="form-control form-control-sm"
+                                                            value={editedIntervention.city || ''}
+                                                            onChange={(e) => handleInterventionChange('city', e.target.value)}
+                                                            disabled={!editedIntervention.department}
+                                                        >
+                                                            <option value="">Seleccione ciudad</option>
+                                                            {getCityOptions(editedIntervention.department).map(city => (
+                                                                <option key={city} value={city}>{city}</option>
+                                                            ))}
+                                                        </select>
+                                                    ) : (
+                                                        p.city
+                                                    )}
+                                                </td>
+                                                <td>
+                                                    {editingInterventionId === p.id ? (
+                                                        <select
+                                                            className="form-control form-control-sm"
+                                                            value={editedIntervention.population_center || ''}
+                                                            onChange={(e) => handleInterventionChange('population_center', e.target.value)}
+                                                        >
+                                                            <option value="">Seleccione centro poblado</option>
+                                                            {populationCenters.map(pc => (
+                                                                <option key={pc} value={pc}>{pc}</option>
+                                                            ))}
+                                                        </select>
+                                                    ) : (
+                                                        p.population_center
+                                                    )}
+                                                </td>
+                                                <td>
+                                                    {editingInterventionId === p.id ? (
+                                                        <select
+                                                            className="form-control form-control-sm"
+                                                            value={editedIntervention.location_entity || ''}
+                                                            onChange={(e) => handleInterventionChange('location_entity', e.target.value)}
+                                                        >
+                                                            <option value="">Seleccione localización</option>
+                                                            {locationEntities.map(le => (
+                                                                <option key={le} value={le}>{le}</option>
+                                                            ))}
+                                                        </select>
+                                                    ) : (
+                                                        p.location_entity
+                                                    )}
+                                                </td>
+                                                <td>
+                                                    {editingInterventionId === p.id ? (
+                                                        <div>
+                                                            <button
+                                                                className="btn btn-sm btn-success me-2"
+                                                                onClick={handleSaveIntervention}
+                                                            >
+                                                                Guardar
+                                                            </button>
+                                                            <button
+                                                                className="btn btn-sm btn-secondary"
+                                                                onClick={handleCancelEdit}
+                                                            >
+                                                                Cancelar
+                                                            </button>
+                                                        </div>
+                                                    ) : (
+                                                        <div>
+                                                            <button
+                                                                className="btn btn-sm btn-primary me-2"
+                                                                onClick={() => handleEditIntervention(p)}
+                                                            >
+                                                                Editar
+                                                            </button>
+                                                            <button
+                                                                className="btn btn-sm btn-danger"
+                                                                onClick={() => handleDelete(p.id, "intervention")}
+                                                            >
+                                                                Eliminar
+                                                            </button>
+                                                        </div>
+                                                    )}
+                                                </td>
+                                            </tr>
+                                        ))
+                                    ) : (
+                                        <tr>
+                                            <td colSpan="7" className="text-center">
+                                                No hay registros de intervención.
+                                            </td>
+                                        </tr>
+                                    )}
+
+                                    {/* Fila de creación inline intervención */}
+                                    {creatingIntervention && (
+                                        <tr>
+                                            <td>Nuevo</td>
+                                            <td>
                                                 <select
                                                     className="form-control form-control-sm"
-                                                    value={editedIntervention.region || ''}
-                                                    onChange={(e) => handleInterventionChange('region', e.target.value)}
+                                                    value={newIntervention.region}
+                                                    onChange={(e) => handleNewInterventionChange("region", e.target.value)}
                                                 >
                                                     <option value="">Seleccione región</option>
-                                                    {regions.map(region => (
-                                                        <option key={region} value={region}>{region}</option>
+                                                    {regions.map(r => (
+                                                        <option key={r} value={r}>{r}</option>
                                                     ))}
                                                 </select>
-                                            ) : (
-                                                p.region
-                                            )}
-                                        </td>
-                                        <td>
-                                            {editingInterventionId === p.id ? (
+                                            </td>
+                                            <td>
                                                 <select
                                                     className="form-control form-control-sm"
-                                                    value={editedIntervention.department || ''}
-                                                    onChange={(e) => handleInterventionChange('department', e.target.value)}
-                                                    disabled={!editedIntervention.region}
+                                                    value={newIntervention.department}
+                                                    onChange={(e) => handleNewInterventionChange("department", e.target.value)}
+                                                    disabled={!newIntervention.region}
                                                 >
                                                     <option value="">Seleccione departamento</option>
-                                                    {getDepartmentOptions(editedIntervention.region).map(dep => (
+                                                    {getDepartmentOptions(newIntervention.region).map(dep => (
                                                         <option key={dep} value={dep}>{dep}</option>
                                                     ))}
                                                 </select>
-                                            ) : (
-                                                p.department
-                                            )}
-                                        </td>
-                                        <td>
-                                            {editingInterventionId === p.id ? (
+                                            </td>
+                                            <td>
                                                 <select
                                                     className="form-control form-control-sm"
-                                                    value={editedIntervention.city || ''}
-                                                    onChange={(e) => handleInterventionChange('city', e.target.value)}
-                                                    disabled={!editedIntervention.department}
+                                                    value={newIntervention.city}
+                                                    onChange={(e) => handleNewInterventionChange("city", e.target.value)}
+                                                    disabled={!newIntervention.department}
                                                 >
                                                     <option value="">Seleccione ciudad</option>
-                                                    {getCityOptions(editedIntervention.department).map(city => (
-                                                        <option key={city} value={city}>{city}</option>
+                                                    {getCityOptions(newIntervention.department).map(c => (
+                                                        <option key={c} value={c}>{c}</option>
                                                     ))}
                                                 </select>
-                                            ) : (
-                                                p.city
-                                            )}
-                                        </td>
-                                        <td>
-                                            {editingInterventionId === p.id ? (
+                                            </td>
+                                            <td>
                                                 <select
                                                     className="form-control form-control-sm"
-                                                    value={editedIntervention.population_center || ''}
-                                                    onChange={(e) => handleInterventionChange('population_center', e.target.value)}
+                                                    value={newIntervention.population_center}
+                                                    onChange={(e) => handleNewInterventionChange("population_center", e.target.value)}
                                                 >
                                                     <option value="">Seleccione centro poblado</option>
                                                     {populationCenters.map(pc => (
                                                         <option key={pc} value={pc}>{pc}</option>
                                                     ))}
                                                 </select>
-                                            ) : (
-                                                p.population_center
-                                            )}
-                                        </td>
-                                        <td>
-                                            {editingInterventionId === p.id ? (
+                                            </td>
+                                            <td>
                                                 <select
                                                     className="form-control form-control-sm"
-                                                    value={editedIntervention.location_entity || ''}
-                                                    onChange={(e) => handleInterventionChange('location_entity', e.target.value)}
+                                                    value={newIntervention.location_entity}
+                                                    onChange={(e) => handleNewInterventionChange("location_entity", e.target.value)}
                                                 >
                                                     <option value="">Seleccione localización</option>
                                                     {locationEntities.map(le => (
                                                         <option key={le} value={le}>{le}</option>
                                                     ))}
                                                 </select>
-                                            ) : (
-                                                p.location_entity
-                                            )}
-                                        </td>
-                                        <td>
-                                            {editingInterventionId === p.id ? (
-                                                <div>
-                                                    <button
-                                                        className="btn btn-sm btn-success me-2"
-                                                        onClick={handleSaveIntervention}
-                                                    >
-                                                        Guardar
-                                                    </button>
-                                                    <button
-                                                        className="btn btn-sm btn-secondary"
-                                                        onClick={handleCancelEdit}
-                                                    >
-                                                        Cancelar
-                                                    </button>
-                                                </div>
-                                            ) : (
-                                                <div>
-                                                    <button
-                                                        className="btn btn-sm btn-primary me-2"
-                                                        onClick={() => handleEditIntervention(p)}
-                                                    >
-                                                        Editar
-                                                    </button>
-                                                    <button
-                                                        className="btn btn-sm btn-danger"
-                                                        onClick={() => handleDelete(p.id, "intervention")}
-                                                    >
-                                                        Eliminar
-                                                    </button>
-                                                </div>
-                                            )}
-                                        </td>
-                                    </tr>
-                                ))
-                            ) : (
-                                <tr>
-                                    <td colSpan="7" className="text-center">
-                                        No hay registros de intervención.
-                                    </td>
-                                </tr>
-                            )}
-
-                            {/* Fila de creación inline intervención */}
-                            {creatingIntervention && (
-                                <tr>
-                                    <td>Nuevo</td>
-                                    <td>
-                                        <select
-                                            className="form-control form-control-sm"
-                                            value={newIntervention.region}
-                                            onChange={(e) => handleNewInterventionChange("region", e.target.value)}
-                                        >
-                                            <option value="">Seleccione región</option>
-                                            {regions.map(r => (
-                                                <option key={r} value={r}>{r}</option>
-                                            ))}
-                                        </select>
-                                    </td>
-                                    <td>
-                                        <select
-                                            className="form-control form-control-sm"
-                                            value={newIntervention.department}
-                                            onChange={(e) => handleNewInterventionChange("department", e.target.value)}
-                                            disabled={!newIntervention.region}
-                                        >
-                                            <option value="">Seleccione departamento</option>
-                                            {getDepartmentOptions(newIntervention.region).map(dep => (
-                                                <option key={dep} value={dep}>{dep}</option>
-                                            ))}
-                                        </select>
-                                    </td>
-                                    <td>
-                                        <select
-                                            className="form-control form-control-sm"
-                                            value={newIntervention.city}
-                                            onChange={(e) => handleNewInterventionChange("city", e.target.value)}
-                                            disabled={!newIntervention.department}
-                                        >
-                                            <option value="">Seleccione ciudad</option>
-                                            {getCityOptions(newIntervention.department).map(c => (
-                                                <option key={c} value={c}>{c}</option>
-                                            ))}
-                                        </select>
-                                    </td>
-                                    <td>
-                                        <select
-                                            className="form-control form-control-sm"
-                                            value={newIntervention.population_center}
-                                            onChange={(e) => handleNewInterventionChange("population_center", e.target.value)}
-                                        >
-                                            <option value="">Seleccione centro poblado</option>
-                                            {populationCenters.map(pc => (
-                                                <option key={pc} value={pc}>{pc}</option>
-                                            ))}
-                                        </select>
-                                    </td>
-                                    <td>
-                                        <select
-                                            className="form-control form-control-sm"
-                                            value={newIntervention.location_entity}
-                                            onChange={(e) => handleNewInterventionChange("location_entity", e.target.value)}
-                                        >
-                                            <option value="">Seleccione localización</option>
-                                            {locationEntities.map(le => (
-                                                <option key={le} value={le}>{le}</option>
-                                            ))}
-                                        </select>
-                                    </td>
-                                    <td>
-                                        <button className="btn btn-sm btn-success me-2" onClick={saveNewIntervention}>
-                                            Guardar
-                                        </button>
-                                        <button
-                                            className="btn btn-sm btn-secondary"
-                                            onClick={() => setCreatingIntervention(false)}
-                                        >
-                                            Cancelar
-                                        </button>
-                                    </td>
-                                </tr>
-                            )}
-                        </tbody>
-                    </table>
-                </div>
+                                            </td>
+                                            <td>
+                                                <button className="btn btn-sm btn-success me-2" onClick={saveNewIntervention}>
+                                                    Guardar
+                                                </button>
+                                                <button
+                                                    className="btn btn-sm btn-secondary"
+                                                    onClick={() => setCreatingIntervention(false)}
+                                                >
+                                                    Cancelar
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                )}
             </div>
 
             {/* Characteristics Population */}
-            <div className="mt-5">
-                <h2 className="mb-3">Características de la Población</h2>
-                <div className="table-responsive">
-                    <table className="table table-striped table-bordered">
-                        <thead className="table-dark">
-                            <tr>
-                                <th>Clasificación</th>
-                                <th>Detalle</th>
-                                <th>Número de personas</th>
-                                <th>Fuente de Información</th>
-                                <th>Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {characteristicsPopulation.length > 0 ? (
-                                characteristicsPopulation.map((p) => (
-                                    <tr key={p.id}>
-                                        <td>
-                                            {editingCharacteristicId === p.id ? (
-                                                <input
-                                                    type="text"
-                                                    className="form-control form-control-sm"
-                                                    value={editedCharacteristic.classification || ''}
-                                                    onChange={(e) => handleCharacteristicChange('classification', e.target.value)}
-                                                />
-                                            ) : (
-                                                p.classification
-                                            )}
-                                        </td>
-                                        <td>
-                                            {editingCharacteristicId === p.id ? (
-                                                <input
-                                                    type="text"
-                                                    className="form-control form-control-sm"
-                                                    value={editedCharacteristic.detail || ''}
-                                                    onChange={(e) => handleCharacteristicChange('detail', e.target.value)}
-                                                />
-                                            ) : (
-                                                p.detail
-                                            )}
-                                        </td>
-                                        <td>
-                                            {editingCharacteristicId === p.id ? (
-                                                <input
-                                                    type="number"
-                                                    className="form-control form-control-sm"
-                                                    value={editedCharacteristic.people_number || 0}
-                                                    onChange={(e) => handleCharacteristicChange('people_number', e.target.value)}
-                                                />
-                                            ) : (
-                                                p.people_number
-                                            )}
-                                        </td>
-                                        <td>
-                                            {editingCharacteristicId === p.id ? (
-                                                <input
-                                                    type="text"
-                                                    className="form-control form-control-sm"
-                                                    value={editedCharacteristic.information || ''}
-                                                    onChange={(e) => handleCharacteristicChange('information', e.target.value)}
-                                                />
-                                            ) : (
-                                                p.information
-                                            )}
-                                        </td>
-                                        <td>
-                                            {editingCharacteristicId === p.id ? (
-                                                <div>
-                                                    <button
-                                                        className="btn btn-sm btn-success me-2"
-                                                        onClick={handleSaveCharacteristic}
-                                                    >
-                                                        Guardar
-                                                    </button>
-                                                    <button
-                                                        className="btn btn-sm btn-secondary"
-                                                        onClick={handleCancelEdit}
-                                                    >
-                                                        Cancelar
-                                                    </button>
-                                                </div>
-                                            ) : (
-                                                <div>
-                                                    <button
-                                                        className="btn btn-sm btn-primary me-2"
-                                                        onClick={() => handleEditCharacteristic(p)}
-                                                    >
-                                                        Editar
-                                                    </button>
-                                                    <button
-                                                        className="btn btn-sm btn-danger"
-                                                        onClick={() => handleDelete(p.id, "characteristic")}
-                                                    >
-                                                        Eliminar
-                                                    </button>
-                                                </div>
-                                            )}
-                                        </td>
+            <div className="card mb-3 shadow-sm">
+                {renderSectionHeader("characteristics", "Características de la Población")}
+                {expandedSections.characteristics && (
+                    <div className="card-body">
+                        <h2 className="mb-3">Características de la Población</h2>
+                        <div className="table-responsive">
+                            <table className="table table-striped table-bordered">
+                                <thead className="table-dark">
+                                    <tr>
+                                        <th>Clasificación</th>
+                                        <th>Detalle</th>
+                                        <th>Número de personas</th>
+                                        <th>Fuente de Información</th>
+                                        <th>Acciones</th>
                                     </tr>
-                                ))
-                            ) : (
-                                <tr>
-                                    <td colSpan="5" className="text-center">
-                                        No hay registros de características.
-                                    </td>
-                                </tr>
-                            )}
-                        </tbody>
-                    </table>
-                </div>
+                                </thead>
+                                <tbody>
+                                    {characteristicsPopulation.length > 0 ? (
+                                        characteristicsPopulation.map((p) => (
+                                            <tr key={p.id}>
+                                                <td>
+                                                    {editingCharacteristicId === p.id ? (
+                                                        <input
+                                                            type="text"
+                                                            className="form-control form-control-sm"
+                                                            value={editedCharacteristic.classification || ''}
+                                                            onChange={(e) => handleCharacteristicChange('classification', e.target.value)}
+                                                        />
+                                                    ) : (
+                                                        p.classification
+                                                    )}
+                                                </td>
+                                                <td>
+                                                    {editingCharacteristicId === p.id ? (
+                                                        <input
+                                                            type="text"
+                                                            className="form-control form-control-sm"
+                                                            value={editedCharacteristic.detail || ''}
+                                                            onChange={(e) => handleCharacteristicChange('detail', e.target.value)}
+                                                        />
+                                                    ) : (
+                                                        p.detail
+                                                    )}
+                                                </td>
+                                                <td>
+                                                    {editingCharacteristicId === p.id ? (
+                                                        <input
+                                                            type="number"
+                                                            className="form-control form-control-sm"
+                                                            value={editedCharacteristic.people_number || 0}
+                                                            onChange={(e) => handleCharacteristicChange('people_number', e.target.value)}
+                                                        />
+                                                    ) : (
+                                                        p.people_number
+                                                    )}
+                                                </td>
+                                                <td>
+                                                    {editingCharacteristicId === p.id ? (
+                                                        <input
+                                                            type="text"
+                                                            className="form-control form-control-sm"
+                                                            value={editedCharacteristic.information || ''}
+                                                            onChange={(e) => handleCharacteristicChange('information', e.target.value)}
+                                                        />
+                                                    ) : (
+                                                        p.information
+                                                    )}
+                                                </td>
+                                                <td>
+                                                    {editingCharacteristicId === p.id ? (
+                                                        <div>
+                                                            <button
+                                                                className="btn btn-sm btn-success me-2"
+                                                                onClick={handleSaveCharacteristic}
+                                                            >
+                                                                Guardar
+                                                            </button>
+                                                            <button
+                                                                className="btn btn-sm btn-secondary"
+                                                                onClick={handleCancelEdit}
+                                                            >
+                                                                Cancelar
+                                                            </button>
+                                                        </div>
+                                                    ) : (
+                                                        <div>
+                                                            <button
+                                                                className="btn btn-sm btn-primary me-2"
+                                                                onClick={() => handleEditCharacteristic(p)}
+                                                            >
+                                                                Editar
+                                                            </button>
+                                                            <button
+                                                                className="btn btn-sm btn-danger"
+                                                                onClick={() => handleDelete(p.id, "characteristic")}
+                                                            >
+                                                                Eliminar
+                                                            </button>
+                                                        </div>
+                                                    )}
+                                                </td>
+                                            </tr>
+                                        ))
+                                    ) : (
+                                        <tr>
+                                            <td colSpan="5" className="text-center">
+                                                No hay registros de características.
+                                            </td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                )}
             </div>
 
             <div className="mt-4">
