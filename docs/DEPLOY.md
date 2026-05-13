@@ -8,6 +8,10 @@ Stack desplegado:
 - **LLM** → **Groq API**
 
 Resultado: dos URLs HTTPS públicas que cualquier usuario puede usar.
+**Todo el stack es 100% gratis y NO requiere tarjeta de crédito.**
+
+> Rama de despliegue: **`main_deployment`** (configurada en `render.yaml`
+> y debe seleccionarse también en Vercel como "Production Branch").
 
 > ⚠️ El plan Free de Render duerme el servicio tras ~15 min sin tráfico.
 > La primera petición tras dormir tarda ~30–60 s. Para evitarlo, usa
@@ -18,9 +22,10 @@ Resultado: dos URLs HTTPS públicas que cualquier usuario puede usar.
 ## 1. Subir el repo a GitHub
 
 ```bash
+git checkout main_deployment
 git add .
 git commit -m "chore: preparar deploy"
-git push origin main
+git push origin main_deployment
 ```
 
 Asegúrate de que `.env`, `venv_fastapi_new/` y `node_modules/` están ignorados.
@@ -58,11 +63,12 @@ Asegúrate de que `.env`, `venv_fastapi_new/` y `node_modules/` están ignorados
 
 1. Entra a https://vercel.com → **Add New… → Project**.
 2. Importa el repo. En **Root Directory** elige `frontend`.
-3. Framework: **Vite** (autodetectado). El `vercel.json` ya configura rewrites SPA.
-4. En **Environment Variables**, añade:
+3. En **Settings → Git → Production Branch**, selecciona `main_deployment`.
+4. Framework: **Vite** (autodetectado). El `vercel.json` ya configura rewrites SPA.
+5. En **Environment Variables**, añade:
    - `VITE_API_URL` = `https://<tu-backend>.onrender.com`
-5. **Deploy**.
-6. Copia la URL (ej. `https://mga-ai.vercel.app`).
+6. **Deploy**.
+7. Copia la URL (ej. `https://mga-ai.vercel.app`).
 
 ---
 

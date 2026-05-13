@@ -4,6 +4,7 @@ services:
     runtime: docker
     plan: free
     region: oregon
+    branch: main_deployment
     rootDir: backend
     dockerfilePath: ./Dockerfile
     healthCheckPath: /health
