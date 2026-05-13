@@ -71,7 +71,7 @@ class Config:
     # RAG Configuration
     PDF_PATH = os.getenv(
         "PDF_PATH",
-        "/home/ffernandez/mga_ai/backend/app/data/Documento_conceptual_2023.pdf"
+        "app/data/Documento_conceptual_2023.pdf"
     )
     EMBED_MODEL = os.getenv(
         "EMBED_MODEL",

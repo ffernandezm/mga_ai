@@ -1,0 +1,29 @@
+services:
+  - type: web
+    name: mga-backend
+    runtime: docker
+    plan: free
+    region: oregon
+    rootDir: backend
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /health
+    envVars:
+      - key: ENVIRONMENT
+        value: production
+      - key: DEBUG
+        value: "False"
+      - key: LLM_PROVIDER
+        value: groq
+      - key: GROQ_MODEL
+        value: llama-3.1-8b-instant
+      - key: PDF_PATH
+        value: app/data/Documento_conceptual_2023.pdf
+      - key: EMBED_MODEL
+        value: sentence-transformers/all-MiniLM-L6-v2
+      # Estas se configuran manualmente en el dashboard:
+      - key: DATABASE_URL
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false
+      - key: FRONTEND_URL
+        sync: false

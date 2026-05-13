@@ -19,7 +19,10 @@ class ApiService {
 
     constructor(config?: Partial<ApiConfig>) {
         this.config = {
-            baseURL: config?.baseURL || process.env.REACT_APP_API_URL || 'http://localhost:8000',
+            baseURL:
+                config?.baseURL ||
+                (import.meta.env.VITE_API_URL as string | undefined) ||
+                'http://localhost:8000',
             timeout: config?.timeout || 30000,
             headers: {
                 'Content-Type': 'application/json',
