@@ -11,7 +11,30 @@ function AlternativesGeneral({ projectId }) {
     const [cost, setCost] = useState(false);
     const [profitability, setProfitability] = useState(false);
 
+    const [expandedSections, setExpandedSections] = useState({
+        general: true,
+        table: true,
+    });
+
     const navigate = useNavigate();
+
+    const toggleSection = (section) => {
+        setExpandedSections((prev) => ({
+            ...prev,
+            [section]: !prev[section],
+        }));
+    };
+
+    const renderSectionHeader = (key, title) => (
+        <div
+            className="card-header bg-dark text-white d-flex justify-content-between align-items-center"
+            style={{ cursor: "pointer" }}
+            onClick={() => toggleSection(key)}
+        >
+            <h5 className="mb-0">{title}</h5>
+            <span>{expandedSections[key] ? "▲" : "▼"}</span>
+        </div>
+    );
 
     /* ================= OBTENER GENERAL ================= */
 
@@ -172,126 +195,140 @@ function AlternativesGeneral({ projectId }) {
     /* ================= RENDER ================= */
 
     return (
-        <div className="container mt-4">
+        <div className="container mt-4 mb-5">
 
             <h2>Alternativas Generales</h2>
 
-            <div className="form-check mb-2">
-                <input type="checkbox"
-                    className="form-check-input"
-                    checked={solutionAlternatives}
-                    onChange={e => setSolutionAlternatives(e.target.checked)}
-                />
-                <label>Soluciones alternativas</label>
+            <div className="card mb-3 shadow-sm">
+                {renderSectionHeader("general", "Criterios Generales")}
+                {expandedSections.general && (
+                    <div className="card-body">
+
+                        <div className="form-check mb-2">
+                            <input type="checkbox"
+                                className="form-check-input"
+                                checked={solutionAlternatives}
+                                onChange={e => setSolutionAlternatives(e.target.checked)}
+                            />
+                            <label>Soluciones alternativas</label>
+                        </div>
+
+                        <div className="form-check mb-2">
+                            <input type="checkbox"
+                                className="form-check-input"
+                                checked={cost}
+                                onChange={e => setCost(e.target.checked)}
+                            />
+                            <label>Costo</label>
+                        </div>
+
+                        <div className="form-check mb-0">
+                            <input type="checkbox"
+                                className="form-check-input"
+                                checked={profitability}
+                                onChange={e => setProfitability(e.target.checked)}
+                            />
+                            <label>Rentabilidad</label>
+                        </div>
+                    </div>
+                )}
             </div>
 
-            <div className="form-check mb-2">
-                <input type="checkbox"
-                    className="form-check-input"
-                    checked={cost}
-                    onChange={e => setCost(e.target.checked)}
-                />
-                <label>Costo</label>
-            </div>
+            <div className="card mb-3 shadow-sm">
+                {renderSectionHeader("table", "Alternativas")}
+                {expandedSections.table && (
+                    <div className="card-body">
 
-            <div className="form-check mb-4">
-                <input type="checkbox"
-                    className="form-check-input"
-                    checked={profitability}
-                    onChange={e => setProfitability(e.target.checked)}
-                />
-                <label>Rentabilidad</label>
-            </div>
+                        <button className="btn btn-success btn-sm mb-3"
+                            onClick={handleAddAlternative}>
+                            Crear Alternativa
+                        </button>
 
-            <h3>Alternativas</h3>
+                        <div className="table-responsive">
+                            <table className="table table-striped table-bordered">
+                                <thead className="table-dark">
+                                    <tr>
+                                        <th>Nombre</th>
+                                        <th>Activo</th>
+                                        <th>Estado</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
 
-            <button className="btn btn-success btn-sm mb-3"
-                onClick={handleAddAlternative}>
-                Crear Alternativa
-            </button>
+                                <tbody>
+                                    {alternatives.length > 0 ? alternatives.map((a, i) => (
 
-            <div className="table-responsive">
-                <table className="table table-striped table-bordered">
-                    <thead className="table-dark">
-                        <tr>
-                            <th>Nombre</th>
-                            <th>Activo</th>
-                            <th>Estado</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
+                                        <tr key={i}>
 
-                    <tbody>
-                        {alternatives.length > 0 ? alternatives.map((a, i) => (
+                                            <td>
+                                                {a.isEditing
+                                                    ? <input className="form-control"
+                                                        value={a.name}
+                                                        onChange={e => handleChange(i, "name", e.target.value)}
+                                                    />
+                                                    : a.name}
+                                            </td>
 
-                            <tr key={i}>
+                                            <td className="text-center">
+                                                {a.isEditing
+                                                    ? <input type="checkbox"
+                                                        checked={a.active}
+                                                        onChange={e => handleChange(i, "active", e.target.checked)}
+                                                    />
+                                                    : a.active ? "Sí" : "No"}
+                                            </td>
 
-                                <td>
-                                    {a.isEditing
-                                        ? <input className="form-control"
-                                            value={a.name}
-                                            onChange={e => handleChange(i, "name", e.target.value)}
-                                        />
-                                        : a.name}
-                                </td>
+                                            <td>
+                                                {a.isEditing
+                                                    ? <input className="form-control"
+                                                        value={a.state || ""}
+                                                        onChange={e => handleChange(i, "state", e.target.value)}
+                                                    />
+                                                    : a.state}
+                                            </td>
 
-                                <td className="text-center">
-                                    {a.isEditing
-                                        ? <input type="checkbox"
-                                            checked={a.active}
-                                            onChange={e => handleChange(i, "active", e.target.checked)}
-                                        />
-                                        : a.active ? "Sí" : "No"}
-                                </td>
+                                            <td>
+                                                {a.isEditing ? (
+                                                    <>
+                                                        <button className="btn btn-success btn-sm me-2"
+                                                            onClick={() => handleSave(i)}>
+                                                            Guardar
+                                                        </button>
 
-                                <td>
-                                    {a.isEditing
-                                        ? <input className="form-control"
-                                            value={a.state || ""}
-                                            onChange={e => handleChange(i, "state", e.target.value)}
-                                        />
-                                        : a.state}
-                                </td>
+                                                        <button className="btn btn-secondary btn-sm"
+                                                            onClick={() => handleCancel(i)}>
+                                                            Cancelar
+                                                        </button>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <button className="btn btn-primary btn-sm me-2"
+                                                            onClick={() => handleEdit(i)}>
+                                                            Editar
+                                                        </button>
 
-                                <td>
-                                    {a.isEditing ? (
-                                        <>
-                                            <button className="btn btn-success btn-sm me-2"
-                                                onClick={() => handleSave(i)}>
-                                                Guardar
-                                            </button>
+                                                        <button className="btn btn-danger btn-sm"
+                                                            onClick={() => handleDelete(a.id, i)}>
+                                                            Eliminar
+                                                        </button>
+                                                    </>
+                                                )}
+                                            </td>
 
-                                            <button className="btn btn-secondary btn-sm"
-                                                onClick={() => handleCancel(i)}>
-                                                Cancelar
-                                            </button>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <button className="btn btn-primary btn-sm me-2"
-                                                onClick={() => handleEdit(i)}>
-                                                Editar
-                                            </button>
+                                        </tr>
 
-                                            <button className="btn btn-danger btn-sm"
-                                                onClick={() => handleDelete(a.id, i)}>
-                                                Eliminar
-                                            </button>
-                                        </>
+                                    )) : (
+                                        <tr>
+                                            <td colSpan="4" className="text-center">
+                                                No hay alternativas registradas
+                                            </td>
+                                        </tr>
                                     )}
-                                </td>
-
-                            </tr>
-
-                        )) : (
-                            <tr>
-                                <td colSpan="4" className="text-center">
-                                    No hay alternativas registradas
-                                </td>
-                            </tr>
-                        )}
-                    </tbody>
-                </table>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                )}
             </div>
 
             <div className="mt-4">

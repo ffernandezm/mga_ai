@@ -58,9 +58,32 @@ function ParticipantsGeneral({ projectId }) {
     const [creating, setCreating] = useState(false);
     const [newParticipant, setNewParticipant] = useState({ ...emptyParticipant });
 
+    const [expandedSections, setExpandedSections] = useState({
+        table: true,
+        analysis: true,
+    });
+
     const getEntityOptions = (actor) => participantOptions.entidad[actor] || [];
     const actorOptions = participantOptions.actor;
     const rolOptions = participantOptions.rol;
+
+    const toggleSection = (section) => {
+        setExpandedSections((prev) => ({
+            ...prev,
+            [section]: !prev[section],
+        }));
+    };
+
+    const renderSectionHeader = (key, title) => (
+        <div
+            className="card-header bg-dark text-white d-flex justify-content-between align-items-center"
+            style={{ cursor: "pointer" }}
+            onClick={() => toggleSection(key)}
+        >
+            <h5 className="mb-0">{title}</h5>
+            <span>{expandedSections[key] ? "▲" : "▼"}</span>
+        </div>
+    );
 
     const fetchParticipantsGeneral = async () => {
         try {
@@ -250,235 +273,245 @@ function ParticipantsGeneral({ projectId }) {
     );
 
     return (
-        <div className="container mt-4">
+        <div className="container mt-4 mb-5">
             <h2 className="mb-3">Participantes</h2>
 
-            <button
-                className="btn btn-success btn-sm mb-3"
-                onClick={handleCreate}
-                disabled={creating}
-            >
-                Crear participante
-            </button>
+            <div className="card mb-3 shadow-sm">
+                {renderSectionHeader("table", "Tabla de Participantes")}
+                {expandedSections.table && (
+                    <div className="card-body">
+                        <button
+                            className="btn btn-success btn-sm mb-3"
+                            onClick={handleCreate}
+                            disabled={creating}
+                        >
+                            Crear participante
+                        </button>
 
-            <div className="table-responsive">
-                <table className="table table-striped table-bordered">
-                    <thead className="table-dark">
-                        <tr>
-                            <th>Actor</th>
-                            <th>Entidad</th>
-                            <th>Intereses / Expectativas</th>
-                            <th>Rol</th>
-                            <th>Contribuciones / Conflictos</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {participantsGeneral.length > 0 ? (
-                            participantsGeneral.map((participant) => {
-                                const isEditing = editingId === participant.id;
-                                const data = isEditing ? editedParticipant : participant;
-                                return (
-                                    <tr key={participant.id}>
-                                        <td>
-                                            {renderSelectCell(
-                                                isEditing,
-                                                data.participant_actor,
-                                                (v) => handleEditChange("participant_actor", v),
-                                                actorOptions,
-                                                "Seleccione actor"
-                                            )}
-                                        </td>
-                                        <td>
-                                            {isEditing ? (
-                                                data.participant_actor === "Otro" ? (
+                        <div className="table-responsive">
+                            <table className="table table-striped table-bordered">
+                                <thead className="table-dark">
+                                    <tr>
+                                        <th>Actor</th>
+                                        <th>Entidad</th>
+                                        <th>Intereses / Expectativas</th>
+                                        <th>Rol</th>
+                                        <th>Contribuciones / Conflictos</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {participantsGeneral.length > 0 ? (
+                                        participantsGeneral.map((participant) => {
+                                            const isEditing = editingId === participant.id;
+                                            const data = isEditing ? editedParticipant : participant;
+                                            return (
+                                                <tr key={participant.id}>
+                                                    <td>
+                                                        {renderSelectCell(
+                                                            isEditing,
+                                                            data.participant_actor,
+                                                            (v) => handleEditChange("participant_actor", v),
+                                                            actorOptions,
+                                                            "Seleccione actor"
+                                                        )}
+                                                    </td>
+                                                    <td>
+                                                        {isEditing ? (
+                                                            data.participant_actor === "Otro" ? (
+                                                                <input
+                                                                    type="text"
+                                                                    className="form-control form-control-sm"
+                                                                    value={data.participant_entity || ""}
+                                                                    onChange={(e) => handleEditChange("participant_entity", e.target.value)}
+                                                                    placeholder="Escriba la entidad"
+                                                                />
+                                                            ) : (
+                                                                renderSelectCell(
+                                                                    true,
+                                                                    data.participant_entity,
+                                                                    (v) => handleEditChange("participant_entity", v),
+                                                                    getEntityOptions(data.participant_actor),
+                                                                    "Seleccione entidad"
+                                                                )
+                                                            )
+                                                        ) : (
+                                                            data.participant_entity
+                                                        )}
+                                                    </td>
+                                                    <td>
+                                                        {renderTextareaCell(
+                                                            isEditing,
+                                                            data.interest_expectative,
+                                                            (v) => handleEditChange("interest_expectative", v)
+                                                        )}
+                                                    </td>
+                                                    <td>
+                                                        {renderSelectCell(
+                                                            isEditing,
+                                                            data.rol,
+                                                            (v) => handleEditChange("rol", v),
+                                                            rolOptions,
+                                                            "Seleccione rol"
+                                                        )}
+                                                    </td>
+                                                    <td>
+                                                        {renderTextareaCell(
+                                                            isEditing,
+                                                            data.contribution_conflicts,
+                                                            (v) => handleEditChange("contribution_conflicts", v)
+                                                        )}
+                                                    </td>
+                                                    <td>
+                                                        {isEditing ? (
+                                                            <div>
+                                                                <button
+                                                                    className="btn btn-sm btn-success me-2"
+                                                                    onClick={handleSaveEdit}
+                                                                >
+                                                                    Guardar
+                                                                </button>
+                                                                <button
+                                                                    className="btn btn-sm btn-secondary"
+                                                                    onClick={handleCancelEdit}
+                                                                >
+                                                                    Cancelar
+                                                                </button>
+                                                            </div>
+                                                        ) : (
+                                                            <div>
+                                                                <button
+                                                                    className="btn btn-sm btn-primary me-2"
+                                                                    onClick={() => handleEdit(participant)}
+                                                                >
+                                                                    Editar
+                                                                </button>
+                                                                <button
+                                                                    className="btn btn-sm btn-danger"
+                                                                    onClick={() => handleDeleteParticipant(participant.id)}
+                                                                >
+                                                                    Eliminar
+                                                                </button>
+                                                            </div>
+                                                        )}
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })
+                                    ) : (
+                                        !creating && (
+                                            <tr>
+                                                <td colSpan="6" className="text-center">
+                                                    No hay participantes para este proyecto.
+                                                </td>
+                                            </tr>
+                                        )
+                                    )}
+
+                                    {/* Fila de creación inline */}
+                                    {creating && (
+                                        <tr>
+                                            <td>
+                                                <select
+                                                    className="form-control form-control-sm"
+                                                    value={newParticipant.participant_actor}
+                                                    onChange={(e) => handleNewChange("participant_actor", e.target.value)}
+                                                    required
+                                                >
+                                                    <option value="">Seleccione actor</option>
+                                                    {actorOptions.map((a) => (
+                                                        <option key={a} value={a}>{a}</option>
+                                                    ))}
+                                                </select>
+                                            </td>
+                                            <td>
+                                                {newParticipant.participant_actor === "Otro" ? (
                                                     <input
                                                         type="text"
                                                         className="form-control form-control-sm"
-                                                        value={data.participant_entity || ""}
-                                                        onChange={(e) => handleEditChange("participant_entity", e.target.value)}
+                                                        value={newParticipant.participant_entity}
+                                                        onChange={(e) => handleNewChange("participant_entity", e.target.value)}
                                                         placeholder="Escriba la entidad"
+                                                        required
                                                     />
                                                 ) : (
-                                                    renderSelectCell(
-                                                        true,
-                                                        data.participant_entity,
-                                                        (v) => handleEditChange("participant_entity", v),
-                                                        getEntityOptions(data.participant_actor),
-                                                        "Seleccione entidad"
-                                                    )
-                                                )
-                                            ) : (
-                                                data.participant_entity
-                                            )}
-                                        </td>
-                                        <td>
-                                            {renderTextareaCell(
-                                                isEditing,
-                                                data.interest_expectative,
-                                                (v) => handleEditChange("interest_expectative", v)
-                                            )}
-                                        </td>
-                                        <td>
-                                            {renderSelectCell(
-                                                isEditing,
-                                                data.rol,
-                                                (v) => handleEditChange("rol", v),
-                                                rolOptions,
-                                                "Seleccione rol"
-                                            )}
-                                        </td>
-                                        <td>
-                                            {renderTextareaCell(
-                                                isEditing,
-                                                data.contribution_conflicts,
-                                                (v) => handleEditChange("contribution_conflicts", v)
-                                            )}
-                                        </td>
-                                        <td>
-                                            {isEditing ? (
-                                                <div>
-                                                    <button
-                                                        className="btn btn-sm btn-success me-2"
-                                                        onClick={handleSaveEdit}
+                                                    <select
+                                                        className="form-control form-control-sm"
+                                                        value={newParticipant.participant_entity}
+                                                        onChange={(e) => handleNewChange("participant_entity", e.target.value)}
+                                                        disabled={!newParticipant.participant_actor}
+                                                        required
                                                     >
-                                                        Guardar
-                                                    </button>
-                                                    <button
-                                                        className="btn btn-sm btn-secondary"
-                                                        onClick={handleCancelEdit}
-                                                    >
-                                                        Cancelar
-                                                    </button>
-                                                </div>
-                                            ) : (
-                                                <div>
-                                                    <button
-                                                        className="btn btn-sm btn-primary me-2"
-                                                        onClick={() => handleEdit(participant)}
-                                                    >
-                                                        Editar
-                                                    </button>
-                                                    <button
-                                                        className="btn btn-sm btn-danger"
-                                                        onClick={() => handleDeleteParticipant(participant.id)}
-                                                    >
-                                                        Eliminar
-                                                    </button>
-                                                </div>
-                                            )}
-                                        </td>
-                                    </tr>
-                                );
-                            })
-                        ) : (
-                            !creating && (
-                                <tr>
-                                    <td colSpan="6" className="text-center">
-                                        No hay participantes para este proyecto.
-                                    </td>
-                                </tr>
-                            )
-                        )}
-
-                        {/* Fila de creación inline */}
-                        {creating && (
-                            <tr>
-                                <td>
-                                    <select
-                                        className="form-control form-control-sm"
-                                        value={newParticipant.participant_actor}
-                                        onChange={(e) => handleNewChange("participant_actor", e.target.value)}
-                                        required
-                                    >
-                                        <option value="">Seleccione actor</option>
-                                        {actorOptions.map((a) => (
-                                            <option key={a} value={a}>{a}</option>
-                                        ))}
-                                    </select>
-                                </td>
-                                <td>
-                                    {newParticipant.participant_actor === "Otro" ? (
-                                        <input
-                                            type="text"
-                                            className="form-control form-control-sm"
-                                            value={newParticipant.participant_entity}
-                                            onChange={(e) => handleNewChange("participant_entity", e.target.value)}
-                                            placeholder="Escriba la entidad"
-                                            required
-                                        />
-                                    ) : (
-                                        <select
-                                            className="form-control form-control-sm"
-                                            value={newParticipant.participant_entity}
-                                            onChange={(e) => handleNewChange("participant_entity", e.target.value)}
-                                            disabled={!newParticipant.participant_actor}
-                                            required
-                                        >
-                                            <option value="">Seleccione entidad</option>
-                                            {getEntityOptions(newParticipant.participant_actor).map((e) => (
-                                                <option key={e} value={e}>{e}</option>
-                                            ))}
-                                        </select>
+                                                        <option value="">Seleccione entidad</option>
+                                                        {getEntityOptions(newParticipant.participant_actor).map((e) => (
+                                                            <option key={e} value={e}>{e}</option>
+                                                        ))}
+                                                    </select>
+                                                )}
+                                            </td>
+                                            <td>
+                                                <textarea
+                                                    className="form-control form-control-sm"
+                                                    value={newParticipant.interest_expectative}
+                                                    onChange={(e) => handleNewChange("interest_expectative", e.target.value)}
+                                                    rows={2}
+                                                    required
+                                                />
+                                            </td>
+                                            <td>
+                                                <select
+                                                    className="form-control form-control-sm"
+                                                    value={newParticipant.rol}
+                                                    onChange={(e) => handleNewChange("rol", e.target.value)}
+                                                    required
+                                                >
+                                                    <option value="">Seleccione rol</option>
+                                                    {rolOptions.map((r) => (
+                                                        <option key={r} value={r}>{r}</option>
+                                                    ))}
+                                                </select>
+                                            </td>
+                                            <td>
+                                                <textarea
+                                                    className="form-control form-control-sm"
+                                                    value={newParticipant.contribution_conflicts}
+                                                    onChange={(e) => handleNewChange("contribution_conflicts", e.target.value)}
+                                                    rows={2}
+                                                    required
+                                                />
+                                            </td>
+                                            <td>
+                                                <button className="btn btn-sm btn-success me-2" onClick={saveNewParticipant}>
+                                                    Guardar
+                                                </button>
+                                                <button
+                                                    className="btn btn-sm btn-secondary"
+                                                    onClick={() => setCreating(false)}
+                                                >
+                                                    Cancelar
+                                                </button>
+                                            </td>
+                                        </tr>
                                     )}
-                                </td>
-                                <td>
-                                    <textarea
-                                        className="form-control form-control-sm"
-                                        value={newParticipant.interest_expectative}
-                                        onChange={(e) => handleNewChange("interest_expectative", e.target.value)}
-                                        rows={2}
-                                        required
-                                    />
-                                </td>
-                                <td>
-                                    <select
-                                        className="form-control form-control-sm"
-                                        value={newParticipant.rol}
-                                        onChange={(e) => handleNewChange("rol", e.target.value)}
-                                        required
-                                    >
-                                        <option value="">Seleccione rol</option>
-                                        {rolOptions.map((r) => (
-                                            <option key={r} value={r}>{r}</option>
-                                        ))}
-                                    </select>
-                                </td>
-                                <td>
-                                    <textarea
-                                        className="form-control form-control-sm"
-                                        value={newParticipant.contribution_conflicts}
-                                        onChange={(e) => handleNewChange("contribution_conflicts", e.target.value)}
-                                        rows={2}
-                                        required
-                                    />
-                                </td>
-                                <td>
-                                    <button className="btn btn-sm btn-success me-2" onClick={saveNewParticipant}>
-                                        Guardar
-                                    </button>
-                                    <button
-                                        className="btn btn-sm btn-secondary"
-                                        onClick={() => setCreating(false)}
-                                    >
-                                        Cancelar
-                                    </button>
-                                </td>
-                            </tr>
-                        )}
-                    </tbody>
-                </table>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                )}
             </div>
 
-
-            <div className="mb-3">
-                <label className="form-label">Análisis de los participantes</label>
-                <textarea
-                    className="form-control"
-                    value={analysis}
-                    onChange={(e) => setAnalysis(e.target.value)}
-                    required
-                />
+            <div className="card mb-3 shadow-sm">
+                {renderSectionHeader("analysis", "Análisis de los participantes")}
+                {expandedSections.analysis && (
+                    <div className="card-body">
+                        <textarea
+                            className="form-control"
+                            value={analysis}
+                            onChange={(e) => setAnalysis(e.target.value)}
+                            required
+                        />
+                    </div>
+                )}
             </div>
 
             <button type="submit" className="btn btn-primary me-2" onClick={handleSubmit}>
