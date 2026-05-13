@@ -3,7 +3,9 @@
  */
 
 export const APP_CONFIG = {
-    API_BASE_URL: process.env.REACT_APP_API_URL || 'http://localhost:8000',
+    API_BASE_URL:
+        (import.meta.env.VITE_API_URL as string | undefined) ||
+        'http://localhost:8000',
     API_TIMEOUT: 30000,
     MAX_RETRIES: 3,
     TOKEN_STORAGE_KEY: 'auth_token',

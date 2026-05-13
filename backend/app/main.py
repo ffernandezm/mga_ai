@@ -127,10 +127,13 @@ origins = [
 
 env = os.getenv("ENVIRONMENT", "development").lower()
 if env == "production":
-    # En producción, ser más restrictivo
-    origins = [
-        os.getenv("FRONTEND_URL", "https://yourdomain.com"),
-    ]
+    # En producción, leer una o varias URLs desde FRONTEND_URL
+    # separadas por coma. Ej: "https://app.vercel.app,https://otra.com"
+    frontend_url = os.getenv("FRONTEND_URL", "")
+    origins = [u.strip() for u in frontend_url.split(",") if u.strip()]
+    if not origins:
+        # Fallback permisivo para que no quede totalmente bloqueado
+        origins = ["*"]
 else:
     # En desarrollo, permitir todos los orígenes
     origins = ["*"]

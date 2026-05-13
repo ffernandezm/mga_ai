@@ -1,0 +1,30 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+
+# Entornos virtuales
+venv/
+venv_*/
+.venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+
+# Variables de entorno locales
+.env
+.env.*
+!.env.example
+
+# Logs y caches
+*.log
+.pytest_cache/
+.mypy_cache/
+
+# Git
+.git/
+.gitignore
