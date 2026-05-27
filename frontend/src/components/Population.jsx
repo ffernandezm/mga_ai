@@ -137,6 +137,11 @@ function Population({ projectId }) {
             return showError("La fuente de información de población de intervención es obligatoria.");
         }
 
+        // NUEVA CONDICIÓN: Población afectada no debe ser menor a la de intervención
+        if (numAff <= numInt) {
+            return showError("El número de la población afectada no debe ser menor o igual al número de la población de intervención.");
+        }
+
         const payload = {
             project_id: projectId,
             population_json: { analysis },
@@ -278,6 +283,13 @@ function Population({ projectId }) {
     };
 
     const handleSaveCharacteristic = async () => {
+        // NUEVA CONDICIÓN: Validar contra el número de población de intervención
+        const numInt = parseInt(populationFields.population_number_intervention, 10) || 0;
+        const peopleNum = parseInt(editedCharacteristic.people_number, 10) || 0;
+
+        if (peopleNum > numInt) {
+            return showError("El número de personas de la característica debe ser menor al número de población de intervención.");
+        }
         try {
             await api.put(`/characteristics_population/${editingCharacteristicId}`, editedCharacteristic);
 
@@ -980,6 +992,7 @@ function Population({ projectId }) {
                                                             className="form-control form-control-sm"
                                                             value={editedCharacteristic.classification || ''}
                                                             onChange={(e) => handleCharacteristicChange('classification', e.target.value)}
+                                                            readOnly={true}
                                                         />
                                                     ) : (
                                                         p.classification
@@ -992,6 +1005,7 @@ function Population({ projectId }) {
                                                             className="form-control form-control-sm"
                                                             value={editedCharacteristic.detail || ''}
                                                             onChange={(e) => handleCharacteristicChange('detail', e.target.value)}
+                                                            readOnly={true}
                                                         />
                                                     ) : (
                                                         p.detail
@@ -1016,6 +1030,7 @@ function Population({ projectId }) {
                                                             className="form-control form-control-sm"
                                                             value={editedCharacteristic.information || ''}
                                                             onChange={(e) => handleCharacteristicChange('information', e.target.value)}
+
                                                         />
                                                     ) : (
                                                         p.information
@@ -1045,12 +1060,12 @@ function Population({ projectId }) {
                                                             >
                                                                 Editar
                                                             </button>
-                                                            <button
+                                                            {/* <button
                                                                 className="btn btn-sm btn-danger"
                                                                 onClick={() => handleDelete(p.id, "characteristic")}
                                                             >
                                                                 Eliminar
-                                                            </button>
+                                                            </button> */}
                                                         </div>
                                                     )}
                                                 </td>

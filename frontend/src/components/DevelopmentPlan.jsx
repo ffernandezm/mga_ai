@@ -351,15 +351,15 @@ function DevelopmentPlan({ projectId }) {
                     {expandedSections.other && (
                         <div className="card-body row g-3">
                             <div className="col-12">
-                                <label className="form-label">Otro Plan de Desarrollo</label>
+                                <label className="form-label">Plan de Desarrollo</label>
                                 <input type="text" className="form-control" name="other_development_plan" value={formData.other_development_plan} onChange={handleChange} />
                             </div>
                             <div className="col-md-6">
-                                <label className="form-label">Estrategia (Otro)</label>
+                                <label className="form-label">Estrategia</label>
                                 <input type="text" className="form-control" name="strategy_other" value={formData.strategy_other} onChange={handleChange} />
                             </div>
                             <div className="col-md-6">
-                                <label className="form-label">Programa (Otro)</label>
+                                <label className="form-label">Programa</label>
                                 <input type="text" className="form-control" name="program_other" value={formData.program_other} onChange={handleChange} />
                             </div>
                         </div>

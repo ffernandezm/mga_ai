@@ -92,23 +92,8 @@ function Formulation() {
     return (
         <section className="formulation-route">
             <div className="formulation-layout">
-                {/* Columna izquierda */}
                 <div className="formulation-main">
                     <div className="px-4 pt-3 formulation-header-surface">
-                        <div className="text-end mt-3 d-flex justify-content-end gap-2">
-                            <button
-                                className="btn btn-outline-primary"
-                                onClick={() => navigate(`/projects/${id}/edit`)}
-                            >
-                                ✏️ Editar Proyecto
-                            </button>
-                            <button
-                                className="btn btn-success"
-                                onClick={() => navigate(`/projects/${id}/survey`)}
-                            >
-                                📝 Ir a la encuesta
-                            </button>
-                        </div>
                         <ProjectHeader id={id} project={project} loading={loading} error={error} />
                     </div>
 

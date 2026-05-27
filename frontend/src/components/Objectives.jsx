@@ -239,107 +239,10 @@ function Objectives({ projectId }) {
                 )}
             </div>
 
-            {/* ---------- CAUSAS ---------- */}
-            <div className="card mb-3 shadow-sm">
-                {renderSectionHeader("causes", "Relación con Causas")}
-                {expandedSections.causes && (
-                    <div className="card-body">
-                        <div className="table-responsive">
-                            <table className="table table-striped table-bordered">
-                                <thead className="table-dark">
-                                    <tr>
-                                        <th>ID</th>
-                                        <th>Tipo</th>
-                                        <th>Causa</th>
-                                        <th>Objetivo Específico</th>
-                                        <th>Acciones</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {objectivesCauses.map(c => (
-                                        <tr key={c.id}>
-                                            <td>{c.id}</td>
-                                            <td>
-                                                {editingCauseId === c.id ? (
-                                                    <input
-                                                        className="form-control form-control-sm"
-                                                        value={editedCause.type || ""}
-                                                        onChange={e => setEditedCause({ ...editedCause, type: e.target.value })}
-                                                    />
-                                                ) : c.type}
-                                            </td>
-                                            <td>
-                                                {editingCauseId === c.id ? (
-                                                    <input
-                                                        className="form-control form-control-sm"
-                                                        value={editedCause.cause_related || ""}
-                                                        onChange={e => setEditedCause({ ...editedCause, cause_related: e.target.value })}
-                                                    />
-                                                ) : c.cause_related}
-                                            </td>
-                                            <td>
-                                                {editingCauseId === c.id ? (
-                                                    <textarea
-                                                        className="form-control form-control-sm"
-                                                        value={editedCause.specifics_objectives || ""}
-                                                        onChange={e => setEditedCause({ ...editedCause, specifics_objectives: e.target.value })}
-                                                    />
-                                                ) : c.specifics_objectives}
-                                            </td>
-                                            <td>
-                                                {editingCauseId === c.id ? (
-                                                    <>
-                                                        <button className="btn btn-sm btn-success me-2" onClick={handleSaveCause}>Guardar</button>
-                                                        <button className="btn btn-sm btn-secondary" onClick={handleCancelEdit}>Cancelar</button>
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        <button className="btn btn-sm btn-primary me-2" onClick={() => handleEditCause(c)}>Editar</button>
-                                                        <button className="btn btn-sm btn-danger" onClick={() => handleDelete(c.id, "cause")}>Eliminar</button>
-                                                    </>
-                                                )}
-                                            </td>
-                                        </tr>
-                                    ))}
-
-                                    {creatingCause && (
-                                        <tr>
-                                            <td>Nuevo</td>
-                                            <td>
-                                                <input className="form-control form-control-sm"
-                                                    value={newCause.type}
-                                                    onChange={e => setNewCause({ ...newCause, type: e.target.value })} />
-                                            </td>
-                                            <td>
-                                                <input className="form-control form-control-sm"
-                                                    value={newCause.cause_related}
-                                                    onChange={e => setNewCause({ ...newCause, cause_related: e.target.value })} />
-                                            </td>
-                                            <td>
-                                                <textarea className="form-control form-control-sm"
-                                                    value={newCause.specifics_objectives}
-                                                    onChange={e => setNewCause({ ...newCause, specifics_objectives: e.target.value })} />
-                                            </td>
-                                            <td>
-                                                <button className="btn btn-sm btn-success me-2" onClick={saveNewCause}>Guardar</button>
-                                                <button className="btn btn-sm btn-secondary" onClick={() => setCreatingCause(false)}>Cancelar</button>
-                                            </td>
-                                        </tr>
-                                    )}
-                                </tbody>
-                            </table>
-
-                        </div>
-                        <button className="btn btn-success btn-sm mb-3" onClick={() => setCreatingCause(true)} disabled={creatingCause}>
-                            Crear Causa
-                        </button>
-                    </div>
-                )}
-            </div>
 
             {/* ---------- INDICADORES ---------- */}
             <div className="card mb-3 shadow-sm">
-                {renderSectionHeader("indicators", "Indicadores")}
+                {renderSectionHeader("indicators", "Indicadores para el Seguimiento del Objetivo General")}
                 {expandedSections.indicators && (
                     <div className="card-body">
                         <div className="table-responsive">
@@ -496,6 +399,103 @@ function Objectives({ projectId }) {
                             disabled={creatingIndicator}
                         >
                             Crear Indicador
+                        </button>
+                    </div>
+                )}
+            </div>
+            {/* ---------- CAUSAS ---------- */}
+            <div className="card mb-3 shadow-sm">
+                {renderSectionHeader("causes", "Relación con Causas")}
+                {expandedSections.causes && (
+                    <div className="card-body">
+                        <div className="table-responsive">
+                            <table className="table table-striped table-bordered">
+                                <thead className="table-dark">
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Tipo</th>
+                                        <th>Causa</th>
+                                        <th>Objetivo Específico</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {objectivesCauses.map(c => (
+                                        <tr key={c.id}>
+                                            <td>{c.id}</td>
+                                            <td>
+                                                {editingCauseId === c.id ? (
+                                                    <input
+                                                        className="form-control form-control-sm"
+                                                        value={editedCause.type || ""}
+                                                        onChange={e => setEditedCause({ ...editedCause, type: e.target.value })}
+                                                    />
+                                                ) : c.type}
+                                            </td>
+                                            <td>
+                                                {editingCauseId === c.id ? (
+                                                    <input
+                                                        className="form-control form-control-sm"
+                                                        value={editedCause.cause_related || ""}
+                                                        onChange={e => setEditedCause({ ...editedCause, cause_related: e.target.value })}
+                                                    />
+                                                ) : c.cause_related}
+                                            </td>
+                                            <td>
+                                                {editingCauseId === c.id ? (
+                                                    <textarea
+                                                        className="form-control form-control-sm"
+                                                        value={editedCause.specifics_objectives || ""}
+                                                        onChange={e => setEditedCause({ ...editedCause, specifics_objectives: e.target.value })}
+                                                    />
+                                                ) : c.specifics_objectives}
+                                            </td>
+                                            <td>
+                                                {editingCauseId === c.id ? (
+                                                    <>
+                                                        <button className="btn btn-sm btn-success me-2" onClick={handleSaveCause}>Guardar</button>
+                                                        <button className="btn btn-sm btn-secondary" onClick={handleCancelEdit}>Cancelar</button>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <button className="btn btn-sm btn-primary me-2" onClick={() => handleEditCause(c)}>Editar</button>
+                                                        <button className="btn btn-sm btn-danger" onClick={() => handleDelete(c.id, "cause")}>Eliminar</button>
+                                                    </>
+                                                )}
+                                            </td>
+                                        </tr>
+                                    ))}
+
+                                    {creatingCause && (
+                                        <tr>
+                                            <td>Nuevo</td>
+                                            <td>
+                                                <input className="form-control form-control-sm"
+                                                    value={newCause.type}
+                                                    onChange={e => setNewCause({ ...newCause, type: e.target.value })} />
+                                            </td>
+                                            <td>
+                                                <input className="form-control form-control-sm"
+                                                    value={newCause.cause_related}
+                                                    onChange={e => setNewCause({ ...newCause, cause_related: e.target.value })} />
+                                            </td>
+                                            <td>
+                                                <textarea className="form-control form-control-sm"
+                                                    value={newCause.specifics_objectives}
+                                                    onChange={e => setNewCause({ ...newCause, specifics_objectives: e.target.value })} />
+                                            </td>
+                                            <td>
+                                                <button className="btn btn-sm btn-success me-2" onClick={saveNewCause}>Guardar</button>
+                                                <button className="btn btn-sm btn-secondary" onClick={() => setCreatingCause(false)}>Cancelar</button>
+                                            </td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </table>
+
+                        </div>
+                        <button className="btn btn-success btn-sm mb-3" onClick={() => setCreatingCause(true)} disabled={creatingCause}>
+                            Crear Causa
                         </button>
                     </div>
                 )}

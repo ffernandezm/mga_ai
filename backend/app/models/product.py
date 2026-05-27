@@ -24,6 +24,7 @@ class Product(Base):
     quantity = Column(Float)
     cost = Column(Float)
     stage = Column(String)
+    name = Column(String)
     description = Column(Text)
 
     # Relación con Project
@@ -47,6 +48,7 @@ class ProductBase(BaseModel):
     quantity: Optional[float] = None
     cost: Optional[float] = None
     stage: Optional[str] = None
+    name: Optional[str] = None
     description: Optional[str] = None
 
 class ProductCreate(BaseModel):
@@ -56,6 +58,7 @@ class ProductCreate(BaseModel):
     quantity: Optional[float] = None
     cost: Optional[float] = None
     stage: Optional[str] = None
+    name: Optional[str] = None
     description: Optional[str] = None
 
 class ProductResponse(ProductBase):

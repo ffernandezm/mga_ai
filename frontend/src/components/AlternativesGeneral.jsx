@@ -36,8 +36,27 @@ function AlternativesGeneral({ projectId }) {
         </div>
     );
 
-    /* ================= OBTENER GENERAL ================= */
+    /* ================= FUNCIÓN PARA ASEGURAR ÚNICO ACTIVO ================= */
+    const enforceSingleActive = (alternativesArray, currentIndex, newActiveValue) => {
+        // Si se está desmarcando el active, simplemente actualizamos esa fila sin tocar las demás
+        if (!newActiveValue) {
+            return alternativesArray.map((alt, idx) =>
+                idx === currentIndex ? { ...alt, active: false, state: "Vacío" } : alt
+            );
+        }
 
+        // Si se está marcando active = true, desactivar todas las demás y actualizar la actual
+        return alternativesArray.map((alt, idx) => {
+            if (idx === currentIndex) {
+                return { ...alt, active: true, state: "Completo" };
+            } else {
+                // Solo si la otra tenía active = true, la desactivamos y ponemos estado Vacío
+                return alt.active ? { ...alt, active: false, state: "Vacío" } : alt;
+            }
+        });
+    };
+
+    /* ================= OBTENER GENERAL ================= */
     const fetchAlternativesGeneral = async () => {
         try {
             const res = await api.get(`/alternatives_general/${projectId}`);
@@ -48,14 +67,29 @@ function AlternativesGeneral({ projectId }) {
             setCost(data.cost);
             setProfitability(data.profitability);
 
-            // 👇 ya vienen anidadas
-            setAlternatives(
-                (data.alternatives || []).map(a => ({
-                    ...a,
-                    isEditing: false
-                }))
-            );
+            // Validar consistencia: si hay más de un activo o estado incoherente, corregir
+            let correctedAlternatives = (data.alternatives || []).map(a => ({
+                ...a,
+                isEditing: false,
+                // Aseguramos que el estado coincida con active
+                state: a.active ? "Completo" : "Vacío"
+            }));
 
+            // Garantizar que solo una esté activa
+            let activeFound = false;
+            correctedAlternatives = correctedAlternatives.map(alt => {
+                if (alt.active) {
+                    if (activeFound) {
+                        // Ya había un activo, este se desactiva
+                        return { ...alt, active: false, state: "Vacío" };
+                    }
+                    activeFound = true;
+                    return alt;
+                }
+                return alt;
+            });
+
+            setAlternatives(correctedAlternatives);
         } catch (error) {
             setAlternativesGeneral(null);
             setAlternatives([]);
@@ -67,7 +101,6 @@ function AlternativesGeneral({ projectId }) {
     }, [projectId]);
 
     /* ================= CRUD ALTERNATIVAS ================= */
-
     const handleAddAlternative = () => {
         if (!alternativesGeneral) {
             showError("Primero debes guardar las alternativas generales");
@@ -79,8 +112,8 @@ function AlternativesGeneral({ projectId }) {
             {
                 id: null,
                 name: "",
-                active: true,
-                state: "",
+                active: false,      // Nueva alternativa comienza inactiva
+                state: "Vacío",     // Estado derivado
                 isEditing: true,
                 isNew: true
             }
@@ -94,9 +127,15 @@ function AlternativesGeneral({ projectId }) {
     };
 
     const handleChange = (index, field, value) => {
-        const copy = [...alternatives];
-        copy[index][field] = value;
-        setAlternatives(copy);
+        if (field === "active") {
+            // Aplicar regla de único activo y derivar estado
+            const updatedAlternatives = enforceSingleActive(alternatives, index, value);
+            setAlternatives(updatedAlternatives);
+        } else {
+            const copy = [...alternatives];
+            copy[index][field] = value;
+            setAlternatives(copy);
+        }
     };
 
     const handleCancel = (index) => {
@@ -107,16 +146,19 @@ function AlternativesGeneral({ projectId }) {
     };
 
     const handleSave = async (index) => {
-        const alt = alternatives[index];
+        let alt = alternatives[index];
+
+        // Antes de guardar, asegurar que el estado sea coherente con active
+        const stateToSend = alt.active ? "Completo" : "Vacío";
+        const updatedAlt = { ...alt, state: stateToSend };
 
         try {
-            if (alt.isNew) {
-
+            if (updatedAlt.isNew) {
                 const res = await api.post("/alternatives/", {
-                    name: alt.name,
-                    active: alt.active,
-                    state: alt.state,
-                    project_id: projectId   // ✅ CORRECTO
+                    name: updatedAlt.name,
+                    active: updatedAlt.active,
+                    state: updatedAlt.state,
+                    project_id: projectId
                 });
 
                 alternatives[index] = {
@@ -124,20 +166,21 @@ function AlternativesGeneral({ projectId }) {
                     isEditing: false,
                     isNew: false
                 };
-
             } else {
-
-                await api.put(`/alternatives/${alt.id}`, {
-                    name: alt.name,
-                    active: alt.active,
-                    state: alt.state
+                await api.put(`/alternatives/${updatedAlt.id}`, {
+                    name: updatedAlt.name,
+                    active: updatedAlt.active,
+                    state: updatedAlt.state
                 });
 
                 alternatives[index].isEditing = false;
+                alternatives[index].active = updatedAlt.active;
+                alternatives[index].state = updatedAlt.state;
+                alternatives[index].name = updatedAlt.name;
             }
 
             setAlternatives([...alternatives]);
-
+            showSuccess("Alternativa guardada correctamente.");
         } catch (err) {
             console.error(err);
             showError("Error guardando alternativa");
@@ -163,9 +206,7 @@ function AlternativesGeneral({ projectId }) {
     };
 
     /* ================= GUARDAR GENERAL ================= */
-
     const handleSubmit = async () => {
-
         const payload = {
             solution_alternatives: solutionAlternatives,
             cost,
@@ -174,38 +215,31 @@ function AlternativesGeneral({ projectId }) {
         };
 
         try {
-
             if (alternativesGeneral) {
-
                 await api.put(`/alternatives_general/${projectId}`, payload);
                 showSuccess("Actualizado correctamente.");
-
             } else {
-
                 const res = await api.post("/alternatives_general/", payload);
                 setAlternativesGeneral(res.data);
                 showSuccess("Creado correctamente.");
             }
-
         } catch (err) {
             showError("Error guardando");
         }
     };
 
     /* ================= RENDER ================= */
-
     return (
         <div className="container mt-4 mb-5">
-
             <h2>Alternativas Generales</h2>
 
             <div className="card mb-3 shadow-sm">
                 {renderSectionHeader("general", "Criterios Generales")}
                 {expandedSections.general && (
                     <div className="card-body">
-
                         <div className="form-check mb-2">
-                            <input type="checkbox"
+                            <input
+                                type="checkbox"
                                 className="form-check-input"
                                 checked={solutionAlternatives}
                                 onChange={e => setSolutionAlternatives(e.target.checked)}
@@ -214,7 +248,8 @@ function AlternativesGeneral({ projectId }) {
                         </div>
 
                         <div className="form-check mb-2">
-                            <input type="checkbox"
+                            <input
+                                type="checkbox"
                                 className="form-check-input"
                                 checked={cost}
                                 onChange={e => setCost(e.target.checked)}
@@ -223,7 +258,8 @@ function AlternativesGeneral({ projectId }) {
                         </div>
 
                         <div className="form-check mb-0">
-                            <input type="checkbox"
+                            <input
+                                type="checkbox"
                                 className="form-check-input"
                                 checked={profitability}
                                 onChange={e => setProfitability(e.target.checked)}
@@ -238,9 +274,7 @@ function AlternativesGeneral({ projectId }) {
                 {renderSectionHeader("table", "Alternativas")}
                 {expandedSections.table && (
                     <div className="card-body">
-
-                        <button className="btn btn-success btn-sm mb-3"
-                            onClick={handleAddAlternative}>
+                        <button className="btn btn-success btn-sm mb-3" onClick={handleAddAlternative}>
                             Crear Alternativa
                         </button>
 
@@ -249,75 +283,89 @@ function AlternativesGeneral({ projectId }) {
                                 <thead className="table-dark">
                                     <tr>
                                         <th>Nombre</th>
-                                        <th>Activo</th>
+                                        <th>Se evaluará con esta Herramienta</th>
                                         <th>Estado</th>
                                         <th>Acciones</th>
                                     </tr>
                                 </thead>
-
                                 <tbody>
-                                    {alternatives.length > 0 ? alternatives.map((a, i) => (
+                                    {alternatives.length > 0 ? (
+                                        alternatives.map((a, i) => (
+                                            <tr key={i}>
+                                                <td>
+                                                    {a.isEditing ? (
+                                                        <input
+                                                            className="form-control"
+                                                            value={a.name}
+                                                            onChange={e => handleChange(i, "name", e.target.value)}
+                                                        />
+                                                    ) : (
+                                                        a.name
+                                                    )}
+                                                </td>
 
-                                        <tr key={i}>
+                                                <td className="text-center">
+                                                    {a.isEditing ? (
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={a.active}
+                                                            onChange={e => handleChange(i, "active", e.target.checked)}
+                                                        />
+                                                    ) : (
+                                                        a.active ? "Sí" : "No"
+                                                    )}
+                                                </td>
 
-                                            <td>
-                                                {a.isEditing
-                                                    ? <input className="form-control"
-                                                        value={a.name}
-                                                        onChange={e => handleChange(i, "name", e.target.value)}
-                                                    />
-                                                    : a.name}
-                                            </td>
+                                                <td>
+                                                    {a.isEditing ? (
+                                                        <input
+                                                            type="text"
+                                                            className="form-control"
+                                                            value={a.active ? "Completo" : "Vacío"}
+                                                            readOnly
+                                                            disabled
+                                                        />
+                                                    ) : (
+                                                        a.state
+                                                    )}
+                                                </td>
 
-                                            <td className="text-center">
-                                                {a.isEditing
-                                                    ? <input type="checkbox"
-                                                        checked={a.active}
-                                                        onChange={e => handleChange(i, "active", e.target.checked)}
-                                                    />
-                                                    : a.active ? "Sí" : "No"}
-                                            </td>
-
-                                            <td>
-                                                {a.isEditing
-                                                    ? <input className="form-control"
-                                                        value={a.state || ""}
-                                                        onChange={e => handleChange(i, "state", e.target.value)}
-                                                    />
-                                                    : a.state}
-                                            </td>
-
-                                            <td>
-                                                {a.isEditing ? (
-                                                    <>
-                                                        <button className="btn btn-success btn-sm me-2"
-                                                            onClick={() => handleSave(i)}>
-                                                            Guardar
-                                                        </button>
-
-                                                        <button className="btn btn-secondary btn-sm"
-                                                            onClick={() => handleCancel(i)}>
-                                                            Cancelar
-                                                        </button>
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        <button className="btn btn-primary btn-sm me-2"
-                                                            onClick={() => handleEdit(i)}>
-                                                            Editar
-                                                        </button>
-
-                                                        <button className="btn btn-danger btn-sm"
-                                                            onClick={() => handleDelete(a.id, i)}>
-                                                            Eliminar
-                                                        </button>
-                                                    </>
-                                                )}
-                                            </td>
-
-                                        </tr>
-
-                                    )) : (
+                                                <td>
+                                                    {a.isEditing ? (
+                                                        <>
+                                                            <button
+                                                                className="btn btn-success btn-sm me-2"
+                                                                onClick={() => handleSave(i)}
+                                                            >
+                                                                Guardar
+                                                            </button>
+                                                            <button
+                                                                className="btn btn-secondary btn-sm"
+                                                                onClick={() => handleCancel(i)}
+                                                            >
+                                                                Cancelar
+                                                            </button>
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <button
+                                                                className="btn btn-primary btn-sm me-2"
+                                                                onClick={() => handleEdit(i)}
+                                                            >
+                                                                Editar
+                                                            </button>
+                                                            <button
+                                                                className="btn btn-danger btn-sm"
+                                                                onClick={() => handleDelete(a.id, i)}
+                                                            >
+                                                                Eliminar
+                                                            </button>
+                                                        </>
+                                                    )}
+                                                </td>
+                                            </tr>
+                                        ))
+                                    ) : (
                                         <tr>
                                             <td colSpan="4" className="text-center">
                                                 No hay alternativas registradas
@@ -332,17 +380,13 @@ function AlternativesGeneral({ projectId }) {
             </div>
 
             <div className="mt-4">
-                <button className="btn btn-secondary me-2"
-                    onClick={() => navigate("/projects")}>
+                <button className="btn btn-secondary me-2" onClick={() => navigate("/projects")}>
                     Regresar
                 </button>
-
-                <button className="btn btn-primary"
-                    onClick={handleSubmit}>
+                <button className="btn btn-primary" onClick={handleSubmit}>
                     Guardar Cambios
                 </button>
             </div>
-
         </div>
     );
 }

@@ -143,6 +143,21 @@ function LocalizationGeneral({ projectId }) {
     };
 
     // ==========================
+    // TOGGLE ALL CHECKBOXES
+    // ==========================
+
+    const toggleAllCheckboxes = () => {
+        // Determinar si todos están seleccionados
+        const allSelected = Object.values(form).every(value => value === true);
+        const newValue = !allSelected; // Si todos true, pasamos a false; si no, true
+        const newForm = {};
+        fields.forEach(field => {
+            newForm[field.key] = newValue;
+        });
+        setForm(newForm);
+    };
+
+    // ==========================
     // CREATE
     // ==========================
 
@@ -222,9 +237,14 @@ function LocalizationGeneral({ projectId }) {
                             ))}
                         </div>
 
-                        <button className="btn btn-primary mt-3" onClick={saveGeneral}>
-                            Guardar Factores
-                        </button>
+                        <div className="mt-3 d-flex gap-2">
+                            <button className="btn btn-outline-secondary" onClick={toggleAllCheckboxes}>
+                                {Object.values(form).every(v => v === true) ? "Deseleccionar todos" : "Seleccionar todos"}
+                            </button>
+                            <button className="btn btn-primary" onClick={saveGeneral}>
+                                Guardar Factores
+                            </button>
+                        </div>
                     </div>
                 )}
             </div>
@@ -386,7 +406,6 @@ function LocalizationGeneral({ projectId }) {
                                     {creating && (
                                         <tr>
                                             <td>Nuevo</td>
-
                                             <td>
                                                 <select className="form-control" value={newLoc.region}
                                                     onChange={(e) => setNewLoc({ ...newLoc, region: e.target.value, department: "", city: "" })}>

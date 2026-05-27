@@ -21,7 +21,7 @@ function buildParticipantOptions(csv) {
     return {
         actor: [...actorSet].sort(),
         entidad,
-        rol: ["A favor", "En contra", "Neutral", "No definida"],
+        rol: ["Beneficiario", "Cooperante", "Oponente", "Perjudicado"],
     };
 }
 
@@ -295,7 +295,7 @@ function ParticipantsGeneral({ projectId }) {
                                         <th>Actor</th>
                                         <th>Entidad</th>
                                         <th>Intereses / Expectativas</th>
-                                        <th>Rol</th>
+                                        <th>Posición</th>
                                         <th>Contribuciones / Conflictos</th>
                                         <th>Acciones</th>
                                     </tr>
@@ -465,7 +465,7 @@ function ParticipantsGeneral({ projectId }) {
                                                     onChange={(e) => handleNewChange("rol", e.target.value)}
                                                     required
                                                 >
-                                                    <option value="">Seleccione rol</option>
+                                                    <option value="Seleccione..."></option>
                                                     {rolOptions.map((r) => (
                                                         <option key={r} value={r}>{r}</option>
                                                     ))}

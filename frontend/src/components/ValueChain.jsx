@@ -1,6 +1,8 @@
+// ValueChain.jsx
 import React, { useState, useEffect } from "react";
 import api from "../services/api";
 import { useNotification } from "../context/NotificationContext";
+import productsCatalogCsv from "../data/products_catalog.csv?raw";
 
 const ValueChain = ({ projectId }) => {
     const { showSuccess, showError, showConfirmation } = useNotification();
@@ -8,12 +10,106 @@ const ValueChain = ({ projectId }) => {
     const [loading, setLoading] = useState(true);
     const [savingId, setSavingId] = useState(null);
 
+    // Estado para el sector del proyecto y el catálogo de productos
+    const [projectSector, setProjectSector] = useState(null);
+    const [catalogProducts, setCatalogProducts] = useState([]); // { productName, description, measuredThrough }
+    const [loadingCatalog, setLoadingCatalog] = useState(true);
+
+    // 1. Obtener el sector del proyecto actual
     useEffect(() => {
         if (projectId) {
-            fetchData();
+            const fetchProjectSector = async () => {
+                try {
+                    const res = await api.get(`/projects/${projectId}`);
+                    // Asumiendo que el proyecto tiene un campo 'sector'
+                    setProjectSector(res.data.sector);
+                } catch (error) {
+                    console.error("Error al obtener el sector del proyecto:", error);
+                }
+            };
+            fetchProjectSector();
         }
     }, [projectId]);
 
+    // 2. Cargar y parsear el catálogo de productos (una sola vez)
+    useEffect(() => {
+        const parseCatalog = () => {
+            try {
+                const lines = productsCatalogCsv.split(/\r?\n/).filter(line => line.trim() !== "");
+                if (lines.length <= 1) {
+                    setCatalogProducts([]);
+                    setLoadingCatalog(false);
+                    return;
+                }
+
+                // Obtener encabezados (primera línea)
+                const headers = lines[0].split(";").map(h => h.trim());
+                // Índices de columnas relevantes
+                const idxSector = headers.findIndex(h => h === "Sector");
+                const idxNombreSector = headers.findIndex(h => h === "Nombre  Sector");
+                const idxProducto = headers.findIndex(h => h === "Producto");
+                const idxDescripcion = headers.findIndex(h => h === "Descripcion");
+                const idxMedido = headers.findIndex(h => h === "Medido a través de");
+
+                const productsMap = new Map(); // para evitar duplicados por nombre de producto
+
+                for (let i = 1; i < lines.length; i++) {
+                    const values = lines[i].split(";").map(v => v.trim());
+                    const codSector = values[idxSector];
+                    const nombreSector = values[idxNombreSector];
+                    const productName = values[idxProducto];
+                    const description = values[idxDescripcion];
+                    const measuredThrough = values[idxMedido];
+
+                    if (!productName) continue;
+
+                    // Guardar la primera aparición de cada producto (no duplicados)
+                    if (!productsMap.has(productName)) {
+                        productsMap.set(productName, {
+                            productName,
+                            description,
+                            measuredThrough,
+                            sectorCod: codSector,
+                            sectorNombre: nombreSector,
+                        });
+                    }
+                }
+
+                setCatalogProducts(Array.from(productsMap.values()));
+            } catch (error) {
+                console.error("Error parseando catálogo de productos:", error);
+                setCatalogProducts([]);
+            } finally {
+                setLoadingCatalog(false);
+            }
+        };
+        parseCatalog();
+    }, []);
+
+    // 3. Obtener los productos del catálogo filtrados por el sector del proyecto
+    const filteredProducts = React.useMemo(() => {
+        if (!projectSector || !catalogProducts.length) return [];
+        // Comparar con código de sector o nombre de sector (insensible a mayúsculas/minúsculas)
+        const sectorNormalized = projectSector.toString().trim().toLowerCase();
+        return catalogProducts.filter(prod =>
+            prod.sectorCod?.toLowerCase() === sectorNormalized ||
+            prod.sectorNombre?.toLowerCase() === sectorNormalized
+        );
+    }, [projectSector, catalogProducts]);
+
+    // Mapa para obtener descripción y medida a partir del nombre del producto
+    const productDetailsMap = React.useMemo(() => {
+        const map = new Map();
+        filteredProducts.forEach(prod => {
+            map.set(prod.productName, {
+                description: prod.description,
+                measuredThrough: prod.measuredThrough
+            });
+        });
+        return map;
+    }, [filteredProducts]);
+
+    // 4. Cargar datos de la cadena de valor (objetivos, productos, actividades)
     const fetchData = async () => {
         try {
             setLoading(true);
@@ -41,18 +137,35 @@ const ValueChain = ({ projectId }) => {
         }
     };
 
-    const handleProductChange = (objId, prodId, field, value) => {
-        setObjectives(prev => prev.map(obj => {
-            if (obj.id !== objId) return obj;
-            return {
-                ...obj,
-                products: obj.products.map(p =>
-                    p.id === prodId ? { ...p, [field]: value } : p
-                )
-            };
-        }));
+    useEffect(() => {
+        if (projectId) {
+            fetchData();
+        }
+    }, [projectId]);
+
+    // Manejo de cambios en el selector de producto (nombre del producto)
+    const handleProductSelection = (objId, prodId, selectedProductName) => {
+        const details = productDetailsMap.get(selectedProductName);
+        if (details) {
+            setObjectives(prev => prev.map(obj => {
+                if (obj.id !== objId) return obj;
+                return {
+                    ...obj,
+                    products: obj.products.map(p =>
+                        p.id === prodId
+                            ? {
+                                ...p,
+                                description: details.description,
+                                measured_through: details.measuredThrough
+                            }
+                            : p
+                    )
+                };
+            }));
+        }
     };
 
+    // Resto de handlers (sin cambios relevantes)
     const handleActivityChange = (objId, prodId, actId, field, value) => {
         setObjectives(prev => prev.map(obj => {
             if (obj.id !== objId) return obj;
@@ -110,8 +223,11 @@ const ValueChain = ({ projectId }) => {
         const newProduct = {
             project_id: parseInt(projectId),
             value_chain_objective_id: objectiveId,
-            description: "Nuevo Producto",
-            measured_through: "", quantity: 0, cost: 0, stage: "Preinversión"
+            description: "",
+            measured_through: "",
+            quantity: 0,
+            cost: 0,
+            stage: "Preinversión"
         };
         await api.post("/products/", newProduct);
         fetchData();
@@ -122,7 +238,8 @@ const ValueChain = ({ projectId }) => {
             project_id: parseInt(projectId),
             product_id: productId,
             description: "Nueva Actividad",
-            cost: 0, stage: "Ejecución"
+            cost: 0,
+            stage: "Ejecución"
         };
         await api.post("/activities/", newActivity);
         fetchData();
@@ -145,11 +262,18 @@ const ValueChain = ({ projectId }) => {
         fetchData();
     };
 
-    if (loading) return <div className="text-center p-5 fw-bold text-primary">Cargando datos...</div>;
+    // Determina qué producto está seleccionado actualmente basado en la descripción
+    const getSelectedProductName = (productDescription) => {
+        const entry = filteredProducts.find(p => p.description === productDescription);
+        return entry ? entry.productName : "";
+    };
+
+    if (loading || loadingCatalog) return <div className="text-center p-5 fw-bold text-primary">Cargando datos...</div>;
+    if (!projectSector) return <div className="alert alert-warning">No se pudo determinar el sector del proyecto.</div>;
+    if (filteredProducts.length === 0) return <div className="alert alert-warning">No hay productos disponibles en el catálogo para el sector "{projectSector}".</div>;
 
     return (
         <div className="container-fluid py-3">
-            {/* Header del Componente */}
             <div className="d-flex justify-content-between align-items-center mb-4 bg-white p-3 rounded shadow-sm border">
                 <div>
                     <h4 className="text-primary mb-0 fw-bold">Cadena de Valor</h4>
@@ -162,7 +286,6 @@ const ValueChain = ({ projectId }) => {
 
             {objectives.map((obj) => (
                 <div key={obj.id} className="card mb-5 border-0 shadow-sm overflow-hidden border">
-                    {/* Encabezado del Objetivo */}
                     <div className="card-header bg-dark text-white p-3">
                         <div className="d-flex justify-content-between align-items-center">
                             <h5 className="mb-0 small fw-bold text-uppercase">
@@ -177,51 +300,90 @@ const ValueChain = ({ projectId }) => {
                     <div className="card-body p-4 bg-light">
                         {obj.products.map((prod) => (
                             <div key={prod.id} className="row mb-4 bg-white rounded-3 shadow-sm mx-0 border overflow-hidden">
-
                                 {/* COLUMNA IZQUIERDA: PRODUCTO */}
                                 <div className="col-md-5 p-4 border-end">
                                     <div className="d-flex justify-content-between align-items-start mb-2">
                                         <div className="flex-grow-1">
                                             <label className="text-uppercase fw-bold text-success d-block mb-1 small">
-                                                Descripción del Producto
+                                                Nombre del Producto
                                             </label>
-                                            <textarea
-                                                className="form-control border-0 ps-0 fw-bold"
-                                                rows="2"
-                                                placeholder="Ej: Construcción de alcantarillado..."
-                                                style={{ resize: "none", fontSize: "1rem", backgroundColor: "transparent" }}
-                                                value={prod.description || ""}
-                                                onChange={(e) => handleProductChange(obj.id, prod.id, 'description', e.target.value)}
-                                            />
+                                            <select
+                                                className="form-select"
+                                                value={getSelectedProductName(prod.description)}
+                                                onChange={(e) => handleProductSelection(obj.id, prod.id, e.target.value)}
+                                            >
+                                                <option value="">-- Seleccione un producto --</option>
+                                                {filteredProducts.map(p => (
+                                                    <option key={p.productName} value={p.productName}>
+                                                        {p.productName}
+                                                    </option>
+                                                ))}
+                                            </select>
                                         </div>
-                                        <button className="btn btn-sm btn-danger" onClick={() => handleDeleteProduct(prod.id)}>
+                                        <button className="btn btn-sm btn-danger ms-2" onClick={() => handleDeleteProduct(prod.id)}>
                                             Eliminar
                                         </button>
                                     </div>
 
                                     <div className="row g-2 p-3 rounded bg-light border">
                                         <div className="col-12">
+                                            <label className="small text-muted fw-bold mb-1">Descripción</label>
+                                            <textarea
+                                                className="form-control"
+                                                rows="2"
+                                                readOnly
+                                                value={prod.description || ""}
+                                                style={{ backgroundColor: "#f8f9fa" }}
+                                            />
+                                        </div>
+                                        <div className="col-12">
                                             <label className="small text-muted fw-bold mb-1">Medido a través de:</label>
                                             <input
-                                                type="text" className="form-control form-control-sm"
+                                                type="text"
+                                                className="form-control"
+                                                readOnly
                                                 value={prod.measured_through || ""}
-                                                onChange={(e) => handleProductChange(obj.id, prod.id, 'measured_through', e.target.value)}
+                                                style={{ backgroundColor: "#f8f9fa" }}
                                             />
                                         </div>
                                         <div className="col-6">
                                             <label className="small text-muted fw-bold mb-1">Cantidad</label>
                                             <input
-                                                type="number" className="form-control form-control-sm"
+                                                type="number"
+                                                className="form-control form-control-sm"
                                                 value={prod.quantity || 0}
-                                                onChange={(e) => handleProductChange(obj.id, prod.id, 'quantity', e.target.value)}
+                                                onChange={(e) => {
+                                                    const newQuantity = parseFloat(e.target.value) || 0;
+                                                    setObjectives(prev => prev.map(o => {
+                                                        if (o.id !== obj.id) return o;
+                                                        return {
+                                                            ...o,
+                                                            products: o.products.map(p =>
+                                                                p.id === prod.id ? { ...p, quantity: newQuantity } : p
+                                                            )
+                                                        };
+                                                    }));
+                                                }}
                                             />
                                         </div>
                                         <div className="col-6">
                                             <label className="small text-muted fw-bold mb-1">Costo Unitario</label>
                                             <input
-                                                type="number" className="form-control form-control-sm"
+                                                type="number"
+                                                className="form-control form-control-sm"
                                                 value={prod.cost || 0}
-                                                onChange={(e) => handleProductChange(obj.id, prod.id, 'cost', e.target.value)}
+                                                onChange={(e) => {
+                                                    const newCost = parseFloat(e.target.value) || 0;
+                                                    setObjectives(prev => prev.map(o => {
+                                                        if (o.id !== obj.id) return o;
+                                                        return {
+                                                            ...o,
+                                                            products: o.products.map(p =>
+                                                                p.id === prod.id ? { ...p, cost: newCost } : p
+                                                            )
+                                                        };
+                                                    }));
+                                                }}
                                             />
                                         </div>
                                         <div className="col-12">
@@ -229,7 +391,17 @@ const ValueChain = ({ projectId }) => {
                                             <select
                                                 className="form-select form-select-sm"
                                                 value={prod.stage || "Preinversión"}
-                                                onChange={(e) => handleProductChange(obj.id, prod.id, 'stage', e.target.value)}
+                                                onChange={(e) => {
+                                                    setObjectives(prev => prev.map(o => {
+                                                        if (o.id !== obj.id) return o;
+                                                        return {
+                                                            ...o,
+                                                            products: o.products.map(p =>
+                                                                p.id === prod.id ? { ...p, stage: e.target.value } : p
+                                                            )
+                                                        };
+                                                    }));
+                                                }}
                                             >
                                                 <option value="Preinversión">Preinversión</option>
                                                 <option value="Ejecución">Ejecución</option>
@@ -239,17 +411,14 @@ const ValueChain = ({ projectId }) => {
                                     </div>
                                 </div>
 
-                                {/* COLUMNA DERECHA: ACTIVIDADES */}
+                                {/* COLUMNA DERECHA: ACTIVIDADES (sin cambios) */}
                                 <div className="col-md-7 p-4 bg-white">
                                     <div className="d-flex justify-content-between align-items-center mb-3">
-                                        <h6 className="text-secondary fw-bold mb-0">
-                                            Actividades Relacionadas
-                                        </h6>
+                                        <h6 className="text-secondary fw-bold mb-0">Actividades Relacionadas</h6>
                                         <button className="btn btn-success btn-sm" onClick={() => handleAddActivity(prod.id)}>
                                             Agregar Actividad
                                         </button>
                                     </div>
-
                                     <div className="table-responsive">
                                         <table className="table table-striped table-bordered mb-0">
                                             <thead className="table-dark">
@@ -265,7 +434,8 @@ const ValueChain = ({ projectId }) => {
                                                     <tr key={act.id} className="align-middle">
                                                         <td>
                                                             <input
-                                                                type="text" className="form-control form-control-sm border-0 bg-transparent"
+                                                                type="text"
+                                                                className="form-control form-control-sm border-0 bg-transparent"
                                                                 placeholder="Nombre de la actividad..."
                                                                 value={act.description || ""}
                                                                 onChange={(e) => handleActivityChange(obj.id, prod.id, act.id, 'description', e.target.value)}
@@ -273,7 +443,8 @@ const ValueChain = ({ projectId }) => {
                                                         </td>
                                                         <td>
                                                             <input
-                                                                type="number" className="form-control form-control-sm border-0 bg-transparent"
+                                                                type="number"
+                                                                className="form-control form-control-sm border-0 bg-transparent"
                                                                 style={{ width: "90px" }}
                                                                 value={act.cost || 0}
                                                                 onChange={(e) => handleActivityChange(obj.id, prod.id, act.id, 'cost', e.target.value)}
@@ -306,8 +477,6 @@ const ValueChain = ({ projectId }) => {
                                             </tbody>
                                         </table>
                                     </div>
-
-                                    {/* Botón Guardar Bloque */}
                                     <div className="mt-3 text-end">
                                         <button
                                             className="btn btn-primary btn-sm fw-bold px-4"
