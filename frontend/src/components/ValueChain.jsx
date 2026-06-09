@@ -146,23 +146,21 @@ const ValueChain = ({ projectId }) => {
     // Manejo de cambios en el selector de producto (nombre del producto)
     const handleProductSelection = (objId, prodId, selectedProductName) => {
         const details = productDetailsMap.get(selectedProductName);
-        if (details) {
-            setObjectives(prev => prev.map(obj => {
-                if (obj.id !== objId) return obj;
-                return {
-                    ...obj,
-                    products: obj.products.map(p =>
-                        p.id === prodId
-                            ? {
-                                ...p,
-                                description: details.description,
-                                measured_through: details.measuredThrough
-                            }
-                            : p
-                    )
-                };
-            }));
-        }
+        setObjectives(prev => prev.map(obj => {
+            if (obj.id !== objId) return obj;
+            return {
+                ...obj,
+                products: obj.products.map(p => {
+                    if (p.id !== prodId) return p;
+                    return {
+                        ...p,
+                        name: selectedProductName || "",
+                        description: details?.description || "",
+                        measured_through: details?.measuredThrough || ""
+                    };
+                })
+            };
+        }));
     };
 
     // Resto de handlers (sin cambios relevantes)
@@ -190,6 +188,7 @@ const ValueChain = ({ projectId }) => {
             const productData = {
                 project_id: product.project_id,
                 value_chain_objective_id: product.value_chain_objective_id,
+                name: product.name || getSelectedProductName(product.description) || "",
                 description: product.description || "",
                 measured_through: product.measured_through || "",
                 quantity: parseFloat(product.quantity) || 0,
@@ -223,6 +222,7 @@ const ValueChain = ({ projectId }) => {
         const newProduct = {
             project_id: parseInt(projectId),
             value_chain_objective_id: objectiveId,
+            name: "",
             description: "",
             measured_through: "",
             quantity: 0,
@@ -309,7 +309,7 @@ const ValueChain = ({ projectId }) => {
                                             </label>
                                             <select
                                                 className="form-select"
-                                                value={getSelectedProductName(prod.description)}
+                                                value={prod.name || getSelectedProductName(prod.description)}
                                                 onChange={(e) => handleProductSelection(obj.id, prod.id, e.target.value)}
                                             >
                                                 <option value="">-- Seleccione un producto --</option>

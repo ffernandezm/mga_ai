@@ -58,14 +58,55 @@ function RequirementsGeneral({ projectId }) {
         last_projected_year: ""
     });
 
+    const parseOptionalYear = (value) => {
+        if (value === "" || value === null || value === undefined) {
+            return null;
+        }
+
+        const parsed = Number.parseInt(String(value), 10);
+        return Number.isNaN(parsed) ? null : parsed;
+    };
+
+    const normalizeText = (value) => (typeof value === "string" ? value.trim() : value);
+
+    const buildRequirementPayload = (requirement, generalId = requirementsGeneralId) => ({
+        good_service_name: normalizeText(requirement.good_service_name) || "",
+        good_service_description: normalizeText(requirement.good_service_description) || "",
+        supply_description: normalizeText(requirement.supply_description) || "",
+        demand_description: normalizeText(requirement.demand_description) || "",
+        unit_of_measure: normalizeText(requirement.unit_of_measure) || "",
+        start_year: parseOptionalYear(requirement.start_year),
+        end_year: parseOptionalYear(requirement.end_year),
+        last_projected_year: parseOptionalYear(requirement.last_projected_year),
+        requirements_general_id: generalId
+    });
+
+    const extractApiErrorMessage = (error, fallbackMessage) => {
+        const detail = error?.response?.data?.detail;
+
+        if (Array.isArray(detail) && detail.length > 0) {
+            return detail
+                .map((item) => `${item?.loc?.join(".") || "campo"}: ${item?.msg || "valor invalido"}`)
+                .join(" | ");
+        }
+
+        if (typeof detail === "string" && detail.trim()) {
+            return detail;
+        }
+
+        return fallbackMessage;
+    };
+
     // ---------- FETCH ----------
     const fetchRequirementsGeneral = async () => {
         try {
             const res = await api.get(`/requirements_general/${projectId}`);
-            if (res.data) {
-                setRequirementsGeneralId(res.data.id);
-                setRequirementsAnalysis(res.data.analysis || "");
-                setRequirements(res.data.requirements || []);
+            const data = Array.isArray(res.data) ? res.data[0] : res.data;
+
+            if (data) {
+                setRequirementsGeneralId(data.id);
+                setRequirementsAnalysis(data.requirements_analysis || data.analysis || "");
+                setRequirements(data.requirements || []);
             }
         } catch (error) {
             if (error.response?.status !== 404) {
@@ -87,14 +128,17 @@ function RequirementsGeneral({ projectId }) {
     };
 
     const handleSave = async () => {
+        const payload = buildRequirementPayload(editedRequirement, editedRequirement.requirements_general_id);
+
         try {
-            await api.put(`/requirements/${editingRequirementId}`, editedRequirement);
-            setRequirements(requirements.map(r => r.id === editingRequirementId ? editedRequirement : r));
+            const res = await api.put(`/requirements/${editingRequirementId}`, payload);
+            setRequirements(requirements.map(r => r.id === editingRequirementId ? res.data : r));
             setEditingRequirementId(null);
+            setEditedRequirement({});
             showSuccess("Necesidad actualizada exitosamente");
         } catch (error) {
             console.error(error);
-            showError("Error al actualizar la necesidad");
+            showError(extractApiErrorMessage(error, "Error al actualizar la necesidad"));
         }
     };
 
@@ -117,16 +161,20 @@ function RequirementsGeneral({ projectId }) {
     };
 
     const saveNewRequirement = async () => {
-        if (!newRequirement.good_service_name || !newRequirement.unit_of_measure) {
+        if (!newRequirement.good_service_name?.trim() || !newRequirement.unit_of_measure?.trim()) {
             showError("Por favor complete los campos requeridos");
             return;
         }
 
+        if (!requirementsGeneralId) {
+            showError("Primero guarde el análisis general para crear necesidades.");
+            return;
+        }
+
+        const payload = buildRequirementPayload(newRequirement);
+
         try {
-            const res = await api.post(`/requirements/`, {
-                ...newRequirement,
-                requirements_general_id: requirementsGeneralId
-            });
+            const res = await api.post(`/requirements/`, payload);
             setRequirements([...requirements, res.data]);
             setNewRequirement({
                 good_service_name: "",
@@ -142,21 +190,21 @@ function RequirementsGeneral({ projectId }) {
             showSuccess("Necesidad creada exitosamente");
         } catch (error) {
             console.error(error);
-            showError("Error al crear la necesidad");
+            showError(extractApiErrorMessage(error, "Error al crear la necesidad"));
         }
     };
 
     // ---------- GUARDAR ----------
     const handleSubmit = async () => {
         const payload = {
-            analysis: requirementsAnalysis,
+            requirements_analysis: requirementsAnalysis,
             project_id: projectId
         };
 
         try {
             if (requirementsGeneralId) {
                 // Actualizar (PUT)
-                await api.put(`/requirements_general/${projectId}`, payload);
+                await api.put(`/requirements_general/${requirementsGeneralId}`, payload);
             } else {
                 // Crear (POST)
                 const res = await api.post(`/requirements_general/`, payload);

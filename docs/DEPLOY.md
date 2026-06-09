@@ -100,7 +100,6 @@ Asegúrate de que `.env`, `venv_fastapi_new/` y `node_modules/` están ignorados
 | `GROQ_API_KEY` | `gsk_…` |
 | `GROQ_MODEL` | `llama-3.1-8b-instant` |
 | `FRONTEND_URL` | `https://mga-ai.vercel.app` |
-| `PDF_PATH` | `app/data/Documento_conceptual_2023.pdf` |
 
 ### Frontend (Vercel)
 | Variable | Ejemplo |

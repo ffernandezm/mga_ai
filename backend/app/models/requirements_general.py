@@ -52,9 +52,9 @@ class RequirementsGeneral(Base):
 # Pydantic Schemas
 
 class RequirementsGeneralBase(BaseModel):
-
-    requirements_analysis: str
     requirements_analysis: Optional[str] = None
+    # Campo legacy en frontend: se mantiene por compatibilidad.
+    analysis: Optional[str] = None
 
 
 class RequirementsGeneralCreate(RequirementsGeneralBase):
@@ -84,50 +84,48 @@ def create_requirements_general(
     requirement_general: RequirementsGeneralCreate,
     db: Session = Depends(get_db)
 ):
-
-    db_requirements_general = RequirementsGeneral(
-        requirements_analysis=requirement_general.requirements_analysis,
-        project_id=requirement_general.project_id
+    analysis_value = (
+        requirement_general.requirements_analysis
+        if requirement_general.requirements_analysis is not None
+        else requirement_general.analysis
     )
 
-    db.add(db_requirements_general)
+    # `project_id` es unico: si ya existe, actualizar en vez de intentar insertar.
+    db_requirements_general = db.query(RequirementsGeneral).filter(
+        RequirementsGeneral.project_id == requirement_general.project_id
+    ).first()
 
-    db.flush()
-
-
-    # Create children requirements
+    if db_requirements_general is None:
+        db_requirements_general = RequirementsGeneral(
+            requirements_analysis=analysis_value,
+            project_id=requirement_general.project_id,
+        )
+        db.add(db_requirements_general)
+        db.flush()
+    else:
+        db_requirements_general.requirements_analysis = analysis_value
+        # Reemplazar detalle completo para que el POST sea idempotente.
+        db.query(Requirement).filter(
+            Requirement.requirements_general_id == db_requirements_general.id
+        ).delete(synchronize_session=False)
+        db.flush()
 
     for r in requirement_general.requirements:
-
         db_requirement = Requirement(
-
             good_service_name=r.good_service_name,
-
             good_service_description=r.good_service_description,
-
             supply_description=r.supply_description,
-
             demand_description=r.demand_description,
-
             unit_of_measure=r.unit_of_measure,
-
             start_year=r.start_year,
-
             end_year=r.end_year,
-
             last_projected_year=r.last_projected_year,
-
-            requirements_general_id=db_requirements_general.id
-
+            requirements_general_id=db_requirements_general.id,
         )
-
         db.add(db_requirement)
 
-
     db.commit()
-
     db.refresh(db_requirements_general)
-
     return db_requirements_general
 
 
@@ -141,15 +139,20 @@ def get_requirements_general(
 
 
 
-@router.get("/{project_id}", response_model=List[RequirementsGeneralResponse])
+@router.get("/{project_id}", response_model=RequirementsGeneralResponse)
 def get_project_requirements_general(
     project_id: int,
     db: Session = Depends(get_db)
 ):
 
-    return db.query(RequirementsGeneral).filter(
+    record = db.query(RequirementsGeneral).filter(
         RequirementsGeneral.project_id == project_id
-    ).all()
+    ).first()
+
+    if not record:
+        raise HTTPException(status_code=404, detail="RequirementsGeneral not found")
+
+    return record
 
 
 
@@ -194,6 +197,12 @@ def update_requirements_general(
         RequirementsGeneral.id == requirement_general_id
     ).first()
 
+    # Compatibilidad: permitir actualizar usando project_id en la URL.
+    if not requirement_general:
+        requirement_general = db.query(RequirementsGeneral).filter(
+            RequirementsGeneral.project_id == requirement_general_id
+        ).first()
+
 
     if not requirement_general:
 
@@ -203,10 +212,17 @@ def update_requirements_general(
         )
 
 
-    for key, value in updated_data.dict(
+    update_data = updated_data.dict(
         exclude={"requirements"},
         exclude_unset=True
-    ).items():
+    )
+
+    if "analysis" in update_data and "requirements_analysis" not in update_data:
+        update_data["requirements_analysis"] = update_data["analysis"]
+
+    update_data.pop("analysis", None)
+
+    for key, value in update_data.items():
 
         setattr(requirement_general, key, value)
 

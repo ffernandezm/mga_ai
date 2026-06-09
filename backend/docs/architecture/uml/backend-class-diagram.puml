@@ -69,23 +69,6 @@ package "AI Layer" {
     +get_model()
   }
 
-  class DocumentRAG {
-    -pdf_path: str
-    -vectorstore
-    +retrieve_context(query, k, component)
-  }
-
-  class QueryProcessor {
-    -llm_model
-    -context: str
-    +ask(query)
-  }
-
-  class Document {
-    -file_path: str
-    +get_text()
-  }
-
   class BaseLLM {
     +generate_response(context, query)
   }
@@ -300,9 +283,6 @@ ChatHistoryRouter ..> LLMManager : ask()
 ProblemsRouter ..> ChatBotModel : response_ai
 
 ' AI relations
-LLMManager ..> DocumentRAG : optional context
-QueryProcessor ..> Document : extract text
-QueryProcessor ..> ChatBotModel : invoke
 GroqLLM ..|> BaseLLM
 OllamaLLM ..|> BaseLLM
 

@@ -29,7 +29,7 @@ class MgaPromptTemplate:
     Gestor de prompts especializados para la Metodología General Ajustada (MGA).
 
     Proporciona templates personalizados para cada componente del proyecto,
-    inyectando contexto de RAG, historial de chat y datos de otros componentes.
+    inyectando contexto, historial de chat y datos de otros componentes.
     """
 
     COMPONENT_PROMPTS: Dict[str, Dict[str, str]] = {

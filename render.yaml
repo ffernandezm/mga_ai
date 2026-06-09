@@ -17,10 +17,6 @@ services:
         value: groq
       - key: GROQ_MODEL
         value: llama-3.1-8b-instant
-      - key: PDF_PATH
-        value: app/data/Documento_conceptual_2023.pdf
-      - key: EMBED_MODEL
-        value: sentence-transformers/all-MiniLM-L6-v2
       # Estas se configuran manualmente en el dashboard:
       - key: DATABASE_URL
         sync: false

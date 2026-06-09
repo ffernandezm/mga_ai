@@ -19,7 +19,6 @@ from app.models.objectives_causes import ObjectivesCauses
 from app.models.objectives import Objectives
 
 from ..ai.llm_models.gemini_llm import ChatBotModel
-from app.ai.main import main
 
 # Conexión a la DB
 def get_db():
