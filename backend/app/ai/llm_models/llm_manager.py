@@ -48,7 +48,7 @@ class LLMManager:
     """
     
     def __init__(self):
-        """Inicializa el modelo LLM según la configuración del .env"""
+        """Inicializa el modelo LLM según la configuración del .env con LLM_PROVIDER"""
         self.llm_provider = os.getenv("LLM_PROVIDER", "groq").lower()
         self.templates = self._load_templates()
         self.model = self._initialize_llm()
