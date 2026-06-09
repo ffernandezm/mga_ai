@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import { ProjectProvider } from "./context/ProjectContext";
@@ -20,12 +21,17 @@ import Survey from "./pages/Survey";
 import "bootstrap/dist/css/bootstrap.min.css";
 
 function App() {
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+
   return (
     <Router>
       <ProjectProvider>
         <NotificationProvider>
-          <div className="app-layout">
-            <Navbar />
+          <div className={`app-layout ${sidebarCollapsed ? "sidebar-collapsed" : ""}`}>
+            <Navbar
+              isCollapsed={sidebarCollapsed}
+              onToggle={() => setSidebarCollapsed((current) => !current)}
+            />
             <main className="app-shell">
               <Routes>
                 <Route path="/projects" element={<ProjectList />} />
