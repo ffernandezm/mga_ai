@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import relationship, Session
+from sqlalchemy.orm import relationship, Session, joinedload
 from sqlalchemy import Column, Integer, Text, ForeignKey
 from pydantic import BaseModel
-from typing import List
+from typing import List, Optional
 
 from app.core.database import Base, SessionLocal
 
@@ -67,6 +67,12 @@ class Requirement(Base):
 
     )
 
+    @property
+    def requirements_analysis(self) -> Optional[str]:
+        if self.requirements_general is None:
+            return None
+        return self.requirements_general.requirements_analysis
+
 
 
 # Pydantic Schemas
@@ -103,6 +109,8 @@ class RequirementResponse(RequirementBase):
     id: int
 
     requirements_general_id: int
+
+    requirements_analysis: Optional[str] = None
 
 
     model_config = {
@@ -169,7 +177,9 @@ def get_requirements(
 
 ):
 
-    return db.query(Requirement).all()
+    return db.query(Requirement).options(
+        joinedload(Requirement.requirements_general)
+    ).all()
 
 
 
@@ -185,6 +195,10 @@ def get_project_requirements(
     requirements = db.query(Requirement).join(
 
         Requirement.requirements_general
+
+    ).options(
+
+        joinedload(Requirement.requirements_general)
 
     ).filter(
 

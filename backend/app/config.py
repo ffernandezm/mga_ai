@@ -68,16 +68,6 @@ class Config:
     OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "mistral")
     OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
     
-    # RAG Configuration
-    PDF_PATH = os.getenv(
-        "PDF_PATH",
-        "app/data/Documento_conceptual_2023.pdf"
-    )
-    EMBED_MODEL = os.getenv(
-        "EMBED_MODEL",
-        "sentence-transformers/all-MiniLM-L6-v2"
-    )
-    
     # CORS
     ALLOWED_ORIGINS: List[str] = [
         "http://localhost:5173",
@@ -155,17 +145,3 @@ def validate_llm_configuration() -> bool:
     
     return True
 
-
-def get_rag_config() -> dict:
-    """
-    Obtiene la configuración de RAG.
-    
-    Returns:
-        dict: Configuración de RAG
-    """
-    return {
-        "pdf_path": config.PDF_PATH,
-        "embed_model": config.EMBED_MODEL,
-        "chunk_size": 1000,
-        "chunk_overlap": 200,
-    }

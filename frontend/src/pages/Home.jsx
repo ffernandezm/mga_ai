@@ -31,10 +31,10 @@ function Home() {
           </div>
 
           <div className="home-feature-item">
-            <h2>LLM + RAG para chatbot</h2>
+            <h2>Asistente LLM para chatbot</h2>
             <p>
-              Integra un modelo de lenguaje con recuperacion aumentada para
-              brindar respuestas contextualizadas y asistencia oportuna.
+              Integra un modelo de lenguaje para brindar respuestas
+              contextualizadas y asistencia oportuna.
             </p>
           </div>
 
