@@ -15,16 +15,28 @@ def get_db():
     finally:
         db.close()
 
+FIELD_LABELS = {"indicator": "Indicador",
+                "unit": "Unidad",
+                "meta": "Meta",
+                "source_type": "Tipo de Fuente",
+                "source_validation": "Validación de Fuente"}
+
 # Modelo en SQLAlchemy
 class ObjectivesIndicator(Base):
     __tablename__ = "objectives_indicator"
+    __table_args__ = {
+        "info": {
+            "label_plural": "Indicadores de Objetivos",
+            "label_singular": "Indicador de Objetivo",
+        }
+    }
 
     id = Column(Integer, primary_key=True, index=True)
-    indicator = Column(Text, nullable=False)
-    unit = Column(Text, nullable=False)
-    meta = Column(Float, nullable=False, default=0.0)
-    source_type = Column(Text, nullable=False)
-    source_validation = Column(Text, nullable=False)
+    indicator = Column(Text, nullable=False, info={"label": FIELD_LABELS["indicator"]})
+    unit = Column(Text, nullable=False, info={"label": FIELD_LABELS["unit"]})
+    meta = Column(Float, nullable=False, default=0.0, info={"label": FIELD_LABELS["meta"]})
+    source_type = Column(Text, nullable=False, info={"label": FIELD_LABELS["source_type"]})
+    source_validation = Column(Text, nullable=False, info={"label": FIELD_LABELS["source_validation"]})
     
     objective_id = Column(Integer, ForeignKey("objectives.id"))
     objective = relationship("Objectives", back_populates="objectives_indicators")

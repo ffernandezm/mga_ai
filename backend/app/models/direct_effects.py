@@ -17,16 +17,26 @@ def get_db():
     finally:
         db.close()
 
+FIELD_LABELS = {
+    "description": "Efecto Directo"
+}
+
 
 # =========================
 # MODELO SQLALCHEMY
 # =========================
 class DirectEffect(Base):
     __tablename__ = "direct_effects"
+    __table_args__ = {
+        "info": {
+            "label_plural": "Efectos Directos",
+            "label_singular": "Efecto Directo",
+        }
+    }
 
     id = Column(Integer, primary_key=True, index=True)
     problem_id = Column(Integer, ForeignKey("problems.id", ondelete="CASCADE"))
-    description = Column(Text)
+    description = Column(Text, info={"label": FIELD_LABELS["description"]})
 
     # Relaciones
     problem = relationship("Problems", back_populates="direct_effects")

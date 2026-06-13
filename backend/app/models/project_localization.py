@@ -13,15 +13,25 @@ def get_db():
     finally:
         db.close()
 
+FIELD_LABELS = {"region": "Región",
+                "department": "Departamento",
+                "municipality": "Municipio"}
+
 # Modelo en SQLAlchemy
 class ProjectLocalization(Base):
     __tablename__ = "project_localizations"
+    __table_args__ = {
+        "info": {
+            "label_plural": "Localizaciones de Proyecto",
+            "label_singular": "Localización de Proyecto",
+        }
+    }
 
     id = Column(Integer, primary_key=True, index=True)
     project_id = Column(Integer, ForeignKey("projects.id"), nullable=False)
-    region = Column(String)
-    department = Column(String)
-    municipality = Column(String)
+    region = Column(String, info={"label": FIELD_LABELS["region"]})
+    department = Column(String, info={"label": FIELD_LABELS["department"]})
+    municipality = Column(String, info={"label": FIELD_LABELS["municipality"]})
 
     # Relación con Project
     project = relationship("Project", back_populates="project_localizations")

@@ -19,14 +19,25 @@ def get_db():
     finally:
         db.close()
 
+FIELD_LABELS = {"requirements_analysis": "Análisis de Requerimientos"}
+
 
 # SQLAlchemy Model
 class RequirementsGeneral(Base):
     __tablename__ = "requirements_general"
+    __table_args__ = {
+        "info": {
+            "label_plural": "Requerimientos Generales",
+            "label_singular": "Requerimiento General",
+        }
+    }
 
     id = Column(Integer, primary_key=True, index=True)
 
-    requirements_analysis = Column(Text)
+    requirements_analysis = Column(
+        Text,
+        info={"label": FIELD_LABELS["requirements_analysis"]}
+    )
 
     project_id = Column(
         Integer,

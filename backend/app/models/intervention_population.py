@@ -13,16 +13,28 @@ def get_db():
     finally:
         db.close()
 
+FIELD_LABELS = {"region": "Región",
+                "department": "Departamento",
+                "city": "Ciudad",
+                "population_center": "Centro Poblacional",
+                "location_entity": "Entidad de Ubicación"}
+
 # ──────────────────────── MODELO SQLALCHEMY ────────────────────────
 class InterventionPopulation(Base):
     __tablename__ = "intervention_population"
+    __table_args__ = {
+        "info": {
+            "label_plural": "Población de Intervención",
+            "label_singular": "Población de Intervención",
+        }
+    }
 
     id = Column(Integer, primary_key=True, index=True)
-    region = Column(Text, nullable=False)
-    department = Column(String, nullable=False)  # Corrige: era Integer pero representas texto
-    city = Column(Text, nullable=True)
-    population_center = Column(Text, nullable=True)
-    location_entity = Column(Text, nullable=True)
+    region = Column(Text, nullable=False, info={"label": FIELD_LABELS["region"]})
+    department = Column(String, nullable=False, info={"label": FIELD_LABELS["department"]})  # Corrige: era Integer pero representas texto
+    city = Column(Text, nullable=True, info={"label": FIELD_LABELS["city"]})
+    population_center = Column(Text, nullable=True, info={"label": FIELD_LABELS["population_center"]})
+    location_entity = Column(Text, nullable=True, info={"label": FIELD_LABELS["location_entity"]})
 
     population_id = Column(Integer, ForeignKey("population.id"), nullable=False)
     population = relationship("Population", back_populates="intervention_population")

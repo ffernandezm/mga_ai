@@ -13,15 +13,26 @@ def get_db():
     finally:
         db.close()
 
+FIELD_LABELS = {"classification": "Clasificación",
+                "detail": "Detalle",
+                "people_number": "Número de Personas",
+                "information": "Información"}
+
 # ──────────────────────── MODELO SQLALCHEMY ────────────────────────
 class CharacteristicsPopulation(Base):
     __tablename__ = "characteristics_population"
+    __table_args__ = {
+        "info": {
+            "label_plural": "Características de la Población",
+            "label_singular": "Característica de la Población",
+        }
+    }
 
     id = Column(Integer, primary_key=True, index=True)
-    classification = Column(Text, nullable=False)
-    detail = Column(String, nullable=False)  # Corrige: era Integer pero representas texto
-    people_number = Column(Integer, nullable=False) 
-    information = Column(Text, nullable=True)
+    classification = Column(Text, nullable=False, info={"label": FIELD_LABELS["classification"]})
+    detail = Column(String, nullable=False, info={"label": FIELD_LABELS["detail"]})  # Corrige: era Integer pero representas texto
+    people_number = Column(Integer, nullable=False, info={"label": FIELD_LABELS["people_number"]})
+    information = Column(Text, nullable=True, info={"label": FIELD_LABELS["information"]})
 
 
     population_id = Column(Integer, ForeignKey("population.id"), nullable=False)

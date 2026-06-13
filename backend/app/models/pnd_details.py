@@ -20,25 +20,46 @@ def get_db():
     finally:
         db.close()
 
+FIELD_LABELS = {"source_id": "ID Fuente",
+                "plan_id": "ID Plan",
+                "plan_name": "Nombre del Plan",
+                "pillar_id": "ID Pilar",
+                "objective_id": "ID Objetivo",
+                "strategy_id": "ID Estrategia",
+                "component_id": "ID Componente",
+                "pillar_description": "Descripción del Pilar",
+                "objective_description": "Descripción del Objetivo",
+                "strategy_description": "Descripción de la Estrategia",
+                "component_description": "Descripción del Componente",
+                "row_state": "Estado de la Fila",
+                "unique_identifier": "Identificador Único",
+                "selected_to_project": "Seleccionado para el Proyecto"}
+
 
 class PndDetail(Base):
     __tablename__ = "pnd_details"
+    __table_args__ = {
+        "info": {
+            "label_plural": "Detalles del PND",
+            "label_singular": "Detalle del PND",
+        }
+    }
 
     id = Column(Integer, primary_key=True, index=True)
-    source_id = Column(Integer)
-    plan_id = Column(Integer)
-    plan_name = Column(String)
-    pillar_id = Column(Integer)
-    objective_id = Column(Integer)
-    strategy_id = Column(Integer)
-    component_id = Column(Integer)
-    pillar_description = Column(Text)
-    objective_description = Column(Text)
-    strategy_description = Column(Text)
-    component_description = Column(Text)
-    row_state = Column(Integer)
-    unique_identifier = Column(String)
-    selected_to_project = Column(Boolean, default=False)
+    source_id = Column(Integer, info={"label": FIELD_LABELS["source_id"]})
+    plan_id = Column(Integer, info={"label": FIELD_LABELS["plan_id"]})
+    plan_name = Column(String, info={"label": FIELD_LABELS["plan_name"]})
+    pillar_id = Column(Integer, info={"label": FIELD_LABELS["pillar_id"]})
+    objective_id = Column(Integer, info={"label": FIELD_LABELS["objective_id"]})
+    strategy_id = Column(Integer, info={"label": FIELD_LABELS["strategy_id"]})
+    component_id = Column(Integer, info={"label": FIELD_LABELS["component_id"]})
+    pillar_description = Column(Text, info={"label": FIELD_LABELS["pillar_description"]})
+    objective_description = Column(Text, info={"label": FIELD_LABELS["objective_description"]})
+    strategy_description = Column(Text, info={"label": FIELD_LABELS["strategy_description"]})
+    component_description = Column(Text, info={"label": FIELD_LABELS["component_description"]})
+    row_state = Column(Integer, info={"label": FIELD_LABELS["row_state"]})
+    unique_identifier = Column(String, info={"label": FIELD_LABELS["unique_identifier"]})
+    selected_to_project = Column(Boolean, default=False, info={"label": FIELD_LABELS["selected_to_project"]})
 
 
 def _to_int(value: Optional[str]) -> Optional[int]:

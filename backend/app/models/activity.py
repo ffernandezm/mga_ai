@@ -13,16 +13,26 @@ def get_db():
     finally:
         db.close()
 
+FIELD_LABELS = {"cost": "Costo",
+                "stage": "Etapa",
+                "description": "Descripción"}
+
 # Modelo en SQLAlchemy
 class Activity(Base):
     __tablename__ = "activities"
+    __table_args__ = {
+        "info": {
+            "label_plural": "Actividades",
+            "label_singular": "Actividad",
+        }
+    }
 
     id = Column(Integer, primary_key=True, index=True)
     project_id = Column(Integer, ForeignKey("projects.id"), nullable=False)
     product_id = Column(Integer, ForeignKey("products.id"), nullable=False)
-    cost = Column(Float)
-    stage = Column(String)
-    description = Column(Text)
+    cost = Column(Float, info={"label": FIELD_LABELS["cost"]})
+    stage = Column(String, info={"label": FIELD_LABELS["stage"]})
+    description = Column(Text, info={"label": FIELD_LABELS["description"]})
 
     # Relación con Project
     project = relationship("Project", back_populates="activities")

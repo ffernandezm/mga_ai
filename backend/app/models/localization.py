@@ -18,6 +18,15 @@ def get_db():
     finally:
         db.close()
 
+FIELD_LABELS = {"region": "Región",
+                "department": "Departamento",
+                "city": "Ciudad",
+                "type_group": "Tipo de Grupo",
+                "group": "Grupo",
+                "entity": "Entidad",
+                "georeferencing": "Georreferenciación",
+                "latitude": "Latitud",
+                "longitude": "Longitud"}
 
 # ==========================
 # SQLAlchemy Model
@@ -25,20 +34,26 @@ def get_db():
 
 class Localization(Base):
     __tablename__ = "localization"
+    __table_args__ = {
+        "info": {
+            "label_plural": "Localizaciones",
+            "label_singular": "Localización",
+        }
+    }
 
     id = Column(Integer, primary_key=True)
 
-    region = Column(Text, nullable=True)
-    department = Column(Text, nullable=True)
-    city = Column(Text, nullable=True)
-    type_group = Column(Text, nullable=True)
-    group = Column(Text, nullable=True)
-    entity = Column(Text, nullable=True)
+    region = Column(Text, nullable=True, info={"label": FIELD_LABELS["region"]})
+    department = Column(Text, nullable=True, info={"label": FIELD_LABELS["department"]})
+    city = Column(Text, nullable=True, info={"label": FIELD_LABELS["city"]})
+    type_group = Column(Text, nullable=True, info={"label": FIELD_LABELS["type_group"]})
+    group = Column(Text, nullable=True, info={"label": FIELD_LABELS["group"]})
+    entity = Column(Text, nullable=True, info={"label": FIELD_LABELS["entity"]})
 
-    georeferencing = Column(Boolean, default=True)
+    georeferencing = Column(Boolean, default=True, info={"label": FIELD_LABELS["georeferencing"]})
 
-    latitude = Column(Float, nullable=True)
-    longitude = Column(Float, nullable=True)
+    latitude = Column(Float, nullable=True, info={"label": FIELD_LABELS["latitude"]})
+    longitude = Column(Float, nullable=True, info={"label": FIELD_LABELS["longitude"]})
 
     localization_general_id = Column(
         Integer,

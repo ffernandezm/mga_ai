@@ -22,6 +22,22 @@ def get_db():
         db.close()
 
 
+FIELD_LABELS = {
+    "program": "Programa",
+    "national_development_plan": "Plan Nacional de Desarrollo",
+    "departmental_or_sectoral_development_plan": "Plan de Desarrollo Departamental o Sectorial",
+    "strategy_departmental": "Estrategia Departamental",
+    "program_departmental": "Programa Departamental",
+    "district_or_municipal_development_plan": "Plan de Desarrollo Distrital o Municipal",
+    "strategy_district": "Estrategia Distrital",
+    "program_district": "Programa Distrital",
+    "community_type": "Tipo de Comunidad (Indígena, Afrodescendiente, etc.)",
+    "ethnic_group_planning_instruments": "Instrumentos de Planeación de Grupos Étnicos",
+    "other_development_plan": "Otros Instrumentos de Planeación",
+    "strategy_other": "Estrategia Otros",
+    "program_other": "Programa Otros"
+}
+
 # ----------------------------
 # Modelo SQLAlchemy
 # ----------------------------
@@ -30,23 +46,23 @@ class DevelopmentPlans(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     # Contribución al Plan Nacional de Desarrollo
-    program = Column(String, nullable=True)
-    national_development_plan = Column(String, nullable=True)
+    program = Column(String, nullable=True, info={"label": FIELD_LABELS["program"]})
+    national_development_plan = Column(String, nullable=True, info={"label": FIELD_LABELS["national_development_plan"]})
     # Plan de Desarrollo Departamental o Sectorial
-    departmental_or_sectoral_development_plan = Column(String, nullable=True)
-    strategy_departmental = Column(String, nullable=True)
-    program_departmental = Column(String, nullable=True)
+    departmental_or_sectoral_development_plan = Column(String, nullable=True, info={"label": FIELD_LABELS["departmental_or_sectoral_development_plan"]})
+    strategy_departmental = Column(String, nullable=True, info={"label": FIELD_LABELS["strategy_departmental"]})
+    program_departmental = Column(String, nullable=True, info={"label": FIELD_LABELS["program_departmental"]})
     # Plan de Desarrollo Distrital o Municipal
-    district_or_municipal_development_plan = Column(String, nullable=True)
-    strategy_district = Column(String, nullable=True)
-    program_district = Column(String, nullable=True)
+    district_or_municipal_development_plan = Column(String, nullable=True, info={"label": FIELD_LABELS["district_or_municipal_development_plan"]})
+    strategy_district = Column(String, nullable=True, info={"label": FIELD_LABELS["strategy_district"]})
+    program_district = Column(String, nullable=True, info={"label": FIELD_LABELS["program_district"]})
     # Instrumentos de Planeación de Grupos Étnicos
-    community_type = Column(String, nullable=True)
-    ethnic_group_planning_instruments = Column(String, nullable=True)
+    community_type = Column(String, nullable=True, info={"label": FIELD_LABELS["community_type"]})
+    ethnic_group_planning_instruments = Column(String, nullable=True, info={"label": FIELD_LABELS["ethnic_group_planning_instruments"]})
     # Otros Instrumentos de Planeación
-    other_development_plan = Column(String, nullable=True)
-    strategy_other = Column(String, nullable=True)
-    program_other = Column(String, nullable=True)
+    other_development_plan = Column(String, nullable=True, info={"label": FIELD_LABELS["other_development_plan"]})
+    strategy_other = Column(String, nullable=True, info={"label": FIELD_LABELS["strategy_other"]})
+    program_other = Column(String, nullable=True, info={"label": FIELD_LABELS["program_other"]})
 
     project_id = Column(Integer, ForeignKey("projects.id"), nullable=False, unique=True)
     project = relationship("Project", back_populates="development_plan")

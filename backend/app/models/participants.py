@@ -13,16 +13,28 @@ def get_db():
     finally:
         db.close()
 
+FIELD_LABELS = {"participant_actor": "Actor Participante",
+                "participant_entity": "Entidad Participante",
+                "interest_expectative": "Intereses y Expectativas",
+                "rol": "Rol",
+                "contribution_conflicts": "Contribuciones y Conflictos"}
+
 # Modelo en SQLAlchemy
 class Participants(Base):
     __tablename__ = "participants"
+    __table_args__ = {
+        "info": {
+            "label_plural": "Participantes",
+            "label_singular": "Participante",
+        }
+    }
 
     id = Column(Integer, primary_key=True)
-    participant_actor = Column(Text)
-    participant_entity = Column(Text)
-    interest_expectative = Column(Text)
-    rol = Column(Text)
-    contribution_conflicts = Column(Text)
+    participant_actor = Column(Text, info={"label": FIELD_LABELS["participant_actor"]})
+    participant_entity = Column(Text, info={"label": FIELD_LABELS["participant_entity"]})
+    interest_expectative = Column(Text, info={"label": FIELD_LABELS["interest_expectative"]})
+    rol = Column(Text, info={"label": FIELD_LABELS["rol"]})
+    contribution_conflicts = Column(Text, info={"label": FIELD_LABELS["contribution_conflicts"]})
     participants_general_id = Column(Integer, ForeignKey("participants_general.id"), nullable=False)
 
     # Relación declarada, sin importar circularidad porque es por nombre (string)

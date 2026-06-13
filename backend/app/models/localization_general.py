@@ -19,6 +19,21 @@ def get_db():
     finally:
         db.close()
 
+FIELD_LABELS = {"administrative_political_factors": "Factores Político-Administrativos",
+                "proximity_to_target_population": "Proximidad a la Población Objetivo",
+                "proximity_to_supply_sources": "Proximidad a Fuentes de Abastecimiento",
+                "communications": "Comunicaciones",
+                "land_cost_and_availability": "Costo y Disponibilidad de Terreno",
+                "public_services_availability": "Disponibilidad de Servicios Públicos",
+                "labor_availability_and_cost": "Disponibilidad y Costo de Mano de Obra",
+                "tax_and_legal_structure": "Estructura Fiscal y Legal",
+                "environmental_factors": "Factores Ambientales",
+                "gender_equity_impact": "Impacto en la Equidad de Género",
+                "transport_means_and_costs": "Medios de Transporte y Costos",
+                "public_order": "Orden Público",
+                "other_factors": "Otros Factores",
+                "topography": "Topografía"}
+
 
 # ==========================
 # SQLAlchemy Model
@@ -26,24 +41,30 @@ def get_db():
 
 class LocalizationGeneral(Base):
     __tablename__ = "localization_general"
+    __table_args__ = {
+        "info": {
+            "label_plural": "Localización General",
+            "label_singular": "Localización General",
+        }
+    }
 
     id = Column(Integer, primary_key=True, index=True)
 
     # 14 Boolean Fields
-    administrative_political_factors = Column(Boolean, default=False)
-    proximity_to_target_population = Column(Boolean, default=False)
-    proximity_to_supply_sources = Column(Boolean, default=False)
-    communications = Column(Boolean, default=False)
-    land_cost_and_availability = Column(Boolean, default=False)
-    public_services_availability = Column(Boolean, default=False)
-    labor_availability_and_cost = Column(Boolean, default=False)
-    tax_and_legal_structure = Column(Boolean, default=False)
-    environmental_factors = Column(Boolean, default=False)
-    gender_equity_impact = Column(Boolean, default=False)
-    transport_means_and_costs = Column(Boolean, default=False)
-    public_order = Column(Boolean, default=False)
-    other_factors = Column(Boolean, default=False)
-    topography = Column(Boolean, default=False)
+    administrative_political_factors = Column(Boolean, default=False, info={"label": FIELD_LABELS["administrative_political_factors"]})
+    proximity_to_target_population = Column(Boolean, default=False, info={"label": FIELD_LABELS["proximity_to_target_population"]})
+    proximity_to_supply_sources = Column(Boolean, default=False, info={"label": FIELD_LABELS["proximity_to_supply_sources"]})
+    communications = Column(Boolean, default=False, info={"label": FIELD_LABELS["communications"]})
+    land_cost_and_availability = Column(Boolean, default=False, info={"label": FIELD_LABELS["land_cost_and_availability"]})
+    public_services_availability = Column(Boolean, default=False, info={"label": FIELD_LABELS["public_services_availability"]})
+    labor_availability_and_cost = Column(Boolean, default=False, info={"label": FIELD_LABELS["labor_availability_and_cost"]})
+    tax_and_legal_structure = Column(Boolean, default=False, info={"label": FIELD_LABELS["tax_and_legal_structure"]})
+    environmental_factors = Column(Boolean, default=False, info={"label": FIELD_LABELS["environmental_factors"]})
+    gender_equity_impact = Column(Boolean, default=False, info={"label": FIELD_LABELS["gender_equity_impact"]})
+    transport_means_and_costs = Column(Boolean, default=False, info={"label": FIELD_LABELS["transport_means_and_costs"]})
+    public_order = Column(Boolean, default=False, info={"label": FIELD_LABELS["public_order"]})
+    other_factors = Column(Boolean, default=False, info={"label": FIELD_LABELS["other_factors"]})
+    topography = Column(Boolean, default=False, info={"label": FIELD_LABELS["topography"]})
 
     project_id = Column(
         Integer,

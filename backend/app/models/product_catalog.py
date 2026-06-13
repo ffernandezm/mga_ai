@@ -19,26 +19,48 @@ def get_db():
     finally:
         db.close()
 
+FIELD_LABELS = {"sector_code": "Código del Sector",
+                "sector_name": "Nombre del Sector",
+                "program_code": "Código del Programa",
+                "program_name": "Nombre del Programa",
+                "product_code": "Código del Producto",
+                "product_name": "Nombre del Producto",
+                "description": "Descripción",
+                "measured_through": "Medido a través de",
+                "indicator_code": "Código del Indicador",
+                "product_indicator": "Indicador de Producto",
+                "measurement_unit": "Unidad de Medida",
+                "main_indicator": "Indicador Principal",
+                "is_national": "Es Nacional",
+                "is_territorial": "Es Territorial",
+                "selected_to_project": "Seleccionado para el Proyecto"}
+
 # Modelo en SQLAlchemy
 class ProductCatalog(Base):
     __tablename__ = "product_catalogs"
+    __table_args__ = {
+        "info": {
+            "label_plural": "Catálogo de Productos",
+            "label_singular": "Producto",
+        }
+    }
 
     id = Column(Integer, primary_key=True, index=True)
-    sector_code = Column(Integer)
-    sector_name = Column(String)
-    program_code = Column(Integer)
-    program_name = Column(String)
-    product_code = Column(Integer)
-    product_name = Column(String)
-    description = Column(Text)
-    measured_through = Column(String)
-    indicator_code = Column(Integer)
-    product_indicator = Column(String)
-    measurement_unit = Column(String)
-    main_indicator = Column(String)
-    is_national = Column(String)
-    is_territorial = Column(String)
-    selected_to_project = Column(Boolean, default=False)
+    sector_code = Column(Integer, info={"label": FIELD_LABELS["sector_code"]})
+    sector_name = Column(String, info={"label": FIELD_LABELS["sector_name"]})
+    program_code = Column(Integer, info={"label": FIELD_LABELS["program_code"]})
+    program_name = Column(String, info={"label": FIELD_LABELS["program_name"]})
+    product_code = Column(Integer, info={"label": FIELD_LABELS["product_code"]})
+    product_name = Column(String, info={"label": FIELD_LABELS["product_name"]})
+    description = Column(Text, info={"label": FIELD_LABELS["description"]})
+    measured_through = Column(String, info={"label": FIELD_LABELS["measured_through"]})
+    indicator_code = Column(Integer, info={"label": FIELD_LABELS["indicator_code"]})
+    product_indicator = Column(String, info={"label": FIELD_LABELS["product_indicator"]})
+    measurement_unit = Column(String, info={"label": FIELD_LABELS["measurement_unit"]})
+    main_indicator = Column(String, info={"label": FIELD_LABELS["main_indicator"]})
+    is_national = Column(String, info={"label": FIELD_LABELS["is_national"]})
+    is_territorial = Column(String, info={"label": FIELD_LABELS["is_territorial"]})
+    selected_to_project = Column(Boolean, default=False, info={"label": FIELD_LABELS["selected_to_project"]})
 
 
 def seed_product_catalogs():

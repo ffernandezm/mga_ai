@@ -36,11 +36,24 @@ def get_db():
     finally:
         db.close()
 
+FIELD_LABELS = {"population_type_affected": "Tipo de Población Afectada",
+                "population_number_affected": "Número de Población Afectada",
+                "population_info_affected": "Información de Población Afectada",
+                "population_type_intervention": "Tipo de Población de Intervención",
+                "population_number_intervention": "Número de Población de Intervención",
+                "population_info_intervention": "Información de Población de Intervención"}
+
 # —————————————————————————————————————————
 #  Modelo SQLAlchemy: Population
 # —————————————————————————————————————————
 class Population(Base):
     __tablename__ = "population"
+    __table_args__ = {
+        "info": {
+            "label_plural": "Población",
+            "label_singular": "Población",
+        }
+    }
 
     id = Column(Integer, primary_key=True, index=True)
     project_id = Column(Integer, ForeignKey("projects.id"), nullable=False, unique=True)
@@ -48,18 +61,18 @@ class Population(Base):
     # Relaciones
     project = relationship("Project", back_populates="population")
     
-    population_type_affected = Column(Text, nullable=False, default="Personas")
-    population_number_affected = Column(Integer, nullable=True)
-    population_info_affected = Column(Text, nullable=True)
+    population_type_affected = Column(Text, nullable=False, default="Personas", info={"label": FIELD_LABELS["population_type_affected"]})
+    population_number_affected = Column(Integer, nullable=True, info={"label": FIELD_LABELS["population_number_affected"]})
+    population_info_affected = Column(Text, nullable=True, info={"label": FIELD_LABELS["population_info_affected"]})
     affected_population = relationship(
         "AffectedPopulation",
         back_populates="population",
         cascade="all, delete-orphan",
     )
     
-    population_type_intervention = Column(Text, nullable=False, default="Personas")
-    population_number_intervention = Column(Integer, nullable=True)
-    population_info_intervention = Column(Text, nullable=True)
+    population_type_intervention = Column(Text, nullable=False, default="Personas", info={"label": FIELD_LABELS["population_type_intervention"]})
+    population_number_intervention = Column(Integer, nullable=True, info={"label": FIELD_LABELS["population_number_intervention"]})
+    population_info_intervention = Column(Text, nullable=True, info={"label": FIELD_LABELS["population_info_intervention"]})
     intervention_population = relationship(
         "InterventionPopulation",
         back_populates="population",

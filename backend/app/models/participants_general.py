@@ -18,13 +18,21 @@ def get_db():
     finally:
         db.close()
 
+FIELD_LABELS = {"participants_analisis": "Análisis de Participantes"}
+
 
 # Modelo en SQLAlchemy
 class ParticipantsGeneral(Base):
     __tablename__ = "participants_general"
+    __table_args__ = {
+        "info": {
+            "label_plural": "Participantes Generales",
+            "label_singular": "Participante General",
+        }
+    }
 
     id = Column(Integer, primary_key=True, index=True)
-    participants_analisis = Column(Text)
+    participants_analisis = Column(Text, info={"label": FIELD_LABELS["participants_analisis"]})
 
     project_id = Column(Integer, ForeignKey("projects.id"), nullable=False, unique=True)
     project = relationship(

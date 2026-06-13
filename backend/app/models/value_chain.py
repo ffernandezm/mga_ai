@@ -13,13 +13,21 @@ def get_db():
     finally:
         db.close()
 
+FIELD_LABELS = {"name": "Nombre"}
+
 # Modelo en SQLAlchemy
 class ValueChain(Base):
     __tablename__ = "value_chains"
+    __table_args__ = {
+        "info": {
+            "label_plural": "Cadenas de Valor",
+            "label_singular": "Cadena de Valor",
+        }
+    }
 
     id = Column(Integer, primary_key=True, index=True)
     project_id = Column(Integer, ForeignKey("projects.id"), nullable=False)
-    name = Column(String, index=True)  # Assuming a name field, adjust if needed
+    name = Column(String, index=True, info={"label": FIELD_LABELS["name"]})  # Assuming a name field, adjust if needed
 
     # Relación con Project
     project = relationship("Project", back_populates="value_chains")

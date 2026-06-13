@@ -28,16 +28,29 @@ def get_db():
     finally:
         db.close()
 
+FIELD_LABELS = {
+    "central_problem": "Problema Central",
+    "current_description": "Descripción Actual",
+    "magnitude_problem": "Magnitud del Problema",
+    "problem_tree_json": "Árbol del Problema (JSON)",
+}
+
 # Modelo en SQLAlchemy
 class Problems(Base):
     __tablename__ = "problems"
+    __table_args__ = {
+        "info": {
+            "label_plural": "Problemas",
+            "label_singular": "Problema",
+        }
+    }
 
     id = Column(Integer, primary_key=True, index=True)
-    central_problem = Column(Text, nullable=False, default="")
-    current_description = Column(Text, nullable=False, default="")
-    magnitude_problem = Column(Text, nullable=False, default="")
+    central_problem = Column(Text, nullable=False, default="", info={"label": FIELD_LABELS["central_problem"]})
+    current_description = Column(Text, nullable=False, default="", info={"label": FIELD_LABELS["current_description"]})
+    magnitude_problem = Column(Text, nullable=False, default="", info={"label": FIELD_LABELS["magnitude_problem"]})
     # Campos JSON opcionales
-    problem_tree_json = Column(JSON, nullable=True)
+    problem_tree_json = Column(JSON, nullable=True, info={"label": FIELD_LABELS["problem_tree_json"]})
     
     # Relación con Project (CORREGIDO)
     project_id = Column(Integer, ForeignKey("projects.id"), nullable=False, unique=True)

@@ -15,6 +15,10 @@ def get_db():
     finally:
         db.close()
 
+FIELD_LABELS = {
+    "description": "Causa Directa"
+}
+
 # Importar modelos relacionados para objectives_causes
 from app.models.objectives_causes import ObjectivesCauses
 from app.models.objectives import Objectives
@@ -26,10 +30,16 @@ from app.models.indirect_causes import IndirectCause as IndirectCauseModel
 # =========================
 class DirectCause(Base):
     __tablename__ = "direct_causes"
+    __table_args__ = {
+        "info": {
+            "label_plural": "Causas Directas",
+            "label_singular": "Causa Directa",
+        }
+    }
 
     id = Column(Integer, primary_key=True, index=True)
     problem_id = Column(Integer, ForeignKey("problems.id", ondelete="CASCADE"))
-    description = Column(Text)
+    description = Column(Text, info={"label": FIELD_LABELS["description"]})
 
     problem = relationship("Problems", back_populates="direct_causes")
     indirect_causes = relationship(
