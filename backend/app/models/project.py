@@ -27,20 +27,36 @@ def get_db():
     finally:
         db.close()
 
+FIELD_LABELS = {"name": "Nombre",
+                "description": "Descripción",
+                "process": "Proceso",
+                "object_desc": "Objeto",
+                "intervention_type": "Tipo de Intervención",
+                "project_typology": "Tipología del Proyecto",
+                "main_product": "Producto Principal",
+                "sector": "Sector",
+                "indicator_code": "Código de Indicador"}
+
 # Modelo en SQLAlchemy
 class Project(Base):
     __tablename__ = "projects"
+    __table_args__ = {
+        "info": {
+            "label_plural": "Proyectos",
+            "label_singular": "Proyecto",
+        }
+    }
 
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, index=True)
-    description = Column(String)
-    process = Column(String)
-    object_desc = Column(String) # 'objeto' es palabra reservada en algunos contextos, uso object_desc
-    intervention_type = Column(String)
-    project_typology = Column(String)
-    main_product = Column(String)
-    sector = Column(String)
-    indicator_code = Column(String)
+    name = Column(String, index=True, info={"label": FIELD_LABELS["name"]})
+    description = Column(String, info={"label": FIELD_LABELS["description"]})
+    process = Column(String, info={"label": FIELD_LABELS["process"]})
+    object_desc = Column(String, info={"label": FIELD_LABELS["object_desc"]}) # 'objeto' es palabra reservada en algunos contextos, uso object_desc
+    intervention_type = Column(String, info={"label": FIELD_LABELS["intervention_type"]})
+    project_typology = Column(String, info={"label": FIELD_LABELS["project_typology"]})
+    main_product = Column(String, info={"label": FIELD_LABELS["main_product"]})
+    sector = Column(String, info={"label": FIELD_LABELS["sector"]})
+    indicator_code = Column(String, info={"label": FIELD_LABELS["indicator_code"]})
 
     # Relación con Problems (CORREGIDO)
     problem = relationship(

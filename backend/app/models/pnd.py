@@ -15,18 +15,28 @@ def get_db():
     finally:
         db.close()
 
+FIELD_LABELS = {"transformation": "Transformación",
+                "pillar": "Pilar",
+                "catalyst": "Catalizador",
+                "component": "Componente"}
 
 # ----------------------------
 # Modelo SQLAlchemy
 # ----------------------------
 class Pnd(Base):
     __tablename__ = "pnds"
+    __table_args__ = {
+        "info": {
+            "label_plural": "Planes Nacionales de Desarrollo",
+            "label_singular": "Plan Nacional de Desarrollo",
+        }
+    }
 
     id = Column(Integer, primary_key=True, index=True)
-    transformation = Column(String, nullable=True)
-    pillar = Column(String, nullable=True)
-    catalyst = Column(String, nullable=True)
-    component = Column(String, nullable=True)
+    transformation = Column(String, nullable=True, info={"label": FIELD_LABELS["transformation"]})
+    pillar = Column(String, nullable=True, info={"label": FIELD_LABELS["pillar"]})
+    catalyst = Column(String, nullable=True, info={"label": FIELD_LABELS["catalyst"]})
+    component = Column(String, nullable=True, info={"label": FIELD_LABELS["component"]})
 
     development_plan_id = Column(Integer, ForeignKey("development_plans.id"), nullable=False)
     development_plan = relationship("DevelopmentPlans", back_populates="pnds")

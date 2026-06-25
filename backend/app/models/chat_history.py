@@ -18,6 +18,7 @@ from pydantic import BaseModel
 
 from app.core.database import Base, SessionLocal, engine
 from app.ai.llm_models.llm_manager import LLMManager
+from app.utils.model_labels import get_column_label, get_table_label
 import json
 
 # Configurar logging
@@ -516,6 +517,7 @@ def format_module_data_for_prompt(data: dict, max_items: int = 50) -> str:
         
         # Mapeo de nombres de módulos a descripciones
         module_names = {
+            "development_plans": "Plan de Desarrollo",
             "problems": "Árbol de Problemas",
             "population": "Población",
             "participants_general": "Actores del Proyecto",
@@ -551,16 +553,17 @@ def format_module_data_for_prompt(data: dict, max_items: int = 50) -> str:
                 return str(val)
             return str(val)[:200]  # Truncar valores muy largos
         
-        def format_record(record, indent=0, depth=0):
+        def format_record(record, indent=0, depth=0, current_table=None):
             """Formatea un registro de forma natural, incluyendo relaciones anidadas."""
             prefix = "  " * indent
             parts = []
+            table_name = current_table or module
 
             # 1) Campos simples
             for key, value in record.items():
                 if isinstance(value, list):
                     continue
-                clean_key = key.replace('_', ' ').title()
+                clean_key = get_column_label(table_name, key)
                 clean_val = format_value(value)
                 if clean_val != "(sin información)":
                     parts.append(f"{prefix}• {clean_key}: {clean_val}")
@@ -571,7 +574,8 @@ def format_module_data_for_prompt(data: dict, max_items: int = 50) -> str:
                     continue
 
                 total_count = len(value)
-                list_label = key.replace('_', ' ').title()
+                list_label = get_table_label(key)
+                item_label = get_table_label(key, singular=True)
                 shown_items = value[:max_items]
                 parts.append(f"{prefix}• {list_label}: {total_count} registro{'s' if total_count > 1 else ''}")
 
@@ -581,9 +585,9 @@ def format_module_data_for_prompt(data: dict, max_items: int = 50) -> str:
 
                 for idx, item in enumerate(shown_items, 1):
                     item_prefix = "  " * (indent + 1)
-                    parts.append(f"{item_prefix}- {list_label[:-1] if list_label.endswith('s') else list_label} {idx}:")
+                    parts.append(f"{item_prefix}- {item_label} {idx}:")
                     if isinstance(item, dict):
-                        nested = format_record(item, indent=indent + 2, depth=depth + 1)
+                        nested = format_record(item, indent=indent + 2, depth=depth + 1, current_table=key)
                         if nested:
                             parts.append(nested)
                     else:
@@ -600,7 +604,7 @@ def format_module_data_for_prompt(data: dict, max_items: int = 50) -> str:
         for idx, record in enumerate(records, 1):
             if len(records) > 1:
                 lines.append(f"\nRegistro {idx}:")
-            lines.append(format_record(record))
+            lines.append(format_record(record, current_table=module))
         
         lines.append("-" * 60)
         
@@ -742,8 +746,8 @@ def get_module_data(db: Session, project_id: int, tab: str) -> str:
                     else:
                         value_str = str(value)
                     
-                    # Nombre de columna en formato legible
-                    readable_name = col_name.replace('_', ' ').title()
+                    # Priorizar etiqueta definida en el modelo (info['name'] / info['label'])
+                    readable_name = get_column_label(tab, col_name)
                     context_lines.append(f"  • {readable_name}: {value_str}")
                 
                 context_lines.append("")  # Línea en blanco entre registros

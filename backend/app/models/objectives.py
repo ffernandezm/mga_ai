@@ -29,15 +29,24 @@ def get_db():
     finally:
         db.close()
 
+FIELD_LABELS = {"general_problem": "Problema General",
+                "general_objective": "Objetivo General"}
+
 # Modelo SQLAlchemy
 class Objectives(Base):
     __tablename__ = "objectives"
+    __table_args__ = {
+        "info": {
+            "label_plural": "Objetivos",
+            "label_singular": "Objetivo",
+        }
+    }
 
     id = Column(Integer, primary_key=True, index=True)
     project_id = Column(Integer, ForeignKey("projects.id"), nullable=False, unique=True)
     project = relationship("Project", back_populates="objetives")
-    general_problem = Column(Text, nullable=False, default="")
-    general_objective = Column(Text, nullable=False, default="")
+    general_problem = Column(Text, nullable=False, default="", info={"label": FIELD_LABELS["general_problem"]})
+    general_objective = Column(Text, nullable=False, default="", info={"label": FIELD_LABELS["general_objective"]})
 
     objectives_indicators = relationship(
         "ObjectivesIndicator",

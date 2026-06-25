@@ -13,19 +13,32 @@ def get_db():
     finally:
         db.close()
 
+FIELD_LABELS = {"measured_through": "Medido a través de",
+                "quantity": "Cantidad",
+                "cost": "Costo",
+                "stage": "Etapa",
+                "name": "Nombre",
+                "description": "Descripción"}
+
 # Modelo en SQLAlchemy
 class Product(Base):
     __tablename__ = "products"
+    __table_args__ = {
+        "info": {
+            "label_plural": "Productos",
+            "label_singular": "Producto",
+        }
+    }
 
     id = Column(Integer, primary_key=True, index=True)
     project_id = Column(Integer, ForeignKey("projects.id"), nullable=False)
     value_chain_objective_id = Column(Integer, ForeignKey("value_chain_objectives.id"), nullable=False)
-    measured_through = Column(String)
-    quantity = Column(Float)
-    cost = Column(Float)
-    stage = Column(String)
-    name = Column(String)
-    description = Column(Text)
+    measured_through = Column(String, info={"label": FIELD_LABELS["measured_through"]})
+    quantity = Column(Float, info={"label": FIELD_LABELS["quantity"]})
+    cost = Column(Float, info={"label": FIELD_LABELS["cost"]})
+    stage = Column(String, info={"label": FIELD_LABELS["stage"]})
+    name = Column(String, info={"label": FIELD_LABELS["name"]})
+    description = Column(Text, info={"label": FIELD_LABELS["description"]})
 
     # Relación con Project
     project = relationship("Project", back_populates="products")

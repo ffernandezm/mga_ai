@@ -13,14 +13,24 @@ def get_db():
     finally:
         db.close()
 
+FIELD_LABELS = {"active": "Activo",
+                "state": "Estado",
+                "name": "Nombre"}
+
 # Modelo en SQLAlchemy
 class Alternatives(Base):
     __tablename__ = "alternatives"
+    __table_args__ = {
+        "info": {
+            "label_plural": "Alternativas",
+            "label_singular": "Alternativa",
+        }
+    }
 
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(Text)
-    active = Column(Boolean, nullable=False, default=False)
-    state = Column(Text)
+    name = Column(Text, info={"label": FIELD_LABELS["name"]})
+    active = Column(Boolean, nullable=False, default=False, info={"label": FIELD_LABELS["active"]})
+    state = Column(Text, info={"label": FIELD_LABELS["state"]})
     
     alternative_id = Column(Integer, ForeignKey("alternatives_general.id"), nullable=False)
     alternative = relationship("AlternativesGeneral", back_populates="alternatives")

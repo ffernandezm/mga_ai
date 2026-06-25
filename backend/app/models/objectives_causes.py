@@ -18,16 +18,28 @@ def get_db():
     finally:
         db.close()
 
+FIELD_LABELS = {"type": "Tipo de Causa",
+                "cause_related": "Causa Relacionada",
+                "specifics_objectives": "Objetivos Específicos",
+                "cause_id": "ID de Causa",
+                "value_chain_objective_id": "ID de Objetivo de Cadena de Valor"}
+
 # Modelo en SQLAlchemy
 class ObjectivesCauses(Base):
     __tablename__ = "objectives_causes"
+    __table_args__ = {
+        "info": {
+            "label_plural": "Causas de Objetivos",
+            "label_singular": "Causa de Objetivo",
+        }
+    }
 
     id = Column(Integer, primary_key=True, index=True)
-    type = Column(Text, nullable=True)
-    cause_related = Column(Text, nullable=True)
-    specifics_objectives = Column(Text, nullable=True)
-    cause_id = Column(Integer, nullable=True)  # ID de la causa (directa o indirecta)
-    value_chain_objective_id = Column(Integer, ForeignKey("value_chain_objectives.id"), nullable=True)  # Relación con ValueChainObjectives
+    type = Column(Text, nullable=True, info={"label": FIELD_LABELS["type"]})
+    cause_related = Column(Text, nullable=True, info={"label": FIELD_LABELS["cause_related"]})
+    specifics_objectives = Column(Text, nullable=True, info={"label": FIELD_LABELS["specifics_objectives"]})
+    cause_id = Column(Integer, nullable=True, info={"label": FIELD_LABELS["cause_id"]})  # ID de la causa (directa o indirecta)
+    value_chain_objective_id = Column(Integer, ForeignKey("value_chain_objectives.id"), nullable=True, info={"label": FIELD_LABELS["value_chain_objective_id"]})  # Relación con ValueChainObjectives
     
     objective_id = Column(Integer, ForeignKey("objectives.id"))
     objective = relationship("Objectives", back_populates="objectives_causes")

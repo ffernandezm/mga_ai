@@ -21,17 +21,27 @@ def get_db():
     finally:
         db.close()
 
+FIELD_LABELS = {"solution_alternatives": "Alternativas de Solución",
+                "cost": "Costo",
+                "profitability": "Rentabilidad"}
+
 
 # ----------------------------
 # Modelo SQLAlchemy
 # ----------------------------
 class AlternativesGeneral(Base):
     __tablename__ = "alternatives_general"
+    __table_args__ = {
+        "info": {
+            "label_plural": "Alternativas Generales",
+            "label_singular": "Alternativa General",
+        }
+    }
 
     id = Column(Integer, primary_key=True, index=True)
-    solution_alternatives = Column(Boolean, nullable=False, default=False)
-    cost = Column(Boolean, nullable=False, default=False)
-    profitability = Column(Boolean, nullable=False, default=False)
+    solution_alternatives = Column(Boolean, nullable=False, default=False, info={"label": FIELD_LABELS["solution_alternatives"]})
+    cost = Column(Boolean, nullable=False, default=False, info={"label": FIELD_LABELS["cost"]})
+    profitability = Column(Boolean, nullable=False, default=False, info={"label": FIELD_LABELS["profitability"]})
     project_id = Column(Integer, ForeignKey("projects.id"), nullable=False, unique=True)
     project = relationship("Project", back_populates="alternatives_general")
 

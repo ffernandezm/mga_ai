@@ -17,7 +17,8 @@ def get_db():
         yield db
     finally:
         db.close()
-
+    
+FIELD_LABELS = {"analysis": "Análisis Técnico"}
 
 # ==========================
 # SQLALCHEMY MODEL
@@ -25,10 +26,16 @@ def get_db():
 
 class TechnicalAnalysis(Base):
     __tablename__ = "technical_analysis"
+    __table_args__ = {
+        "info": {
+            "label_plural": "Análisis Técnicos",
+            "label_singular": "Análisis Técnico",
+        }
+    }
 
     id = Column(Integer, primary_key=True, index=True)
 
-    analysis = Column(Text, nullable=True)
+    analysis = Column(Text, nullable=True, info={"label": FIELD_LABELS["analysis"]})
 
     project_id = Column(
         Integer,

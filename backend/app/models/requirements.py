@@ -18,6 +18,14 @@ def get_db():
     finally:
         db.close()
 
+FIELD_LABELS = {"good_service_name": "Nombre del Bien o Servicio",
+                "good_service_description": "Descripción del Bien o Servicio",
+                "supply_description": "Descripción de la Oferta",
+                "demand_description": "Descripción de la Demanda",
+                "unit_of_measure": "Unidad de Medida",
+                "start_year": "Año de Inicio",
+                "end_year": "Año de Fin",
+                "last_projected_year": "Último Año Proyectado"}
 
 
 # SQLAlchemy Model
@@ -25,27 +33,33 @@ def get_db():
 class Requirement(Base):
 
     __tablename__ = "requirements"
+    __table_args__ = {
+        "info": {
+            "label_plural": "Requerimientos",
+            "label_singular": "Requerimiento",
+        }
+    }
 
 
     id = Column(Integer, primary_key=True)
 
 
-    good_service_name = Column(Text)
+    good_service_name = Column(Text, info={"label": FIELD_LABELS["good_service_name"]})
 
-    good_service_description = Column(Text)
+    good_service_description = Column(Text, info={"label": FIELD_LABELS["good_service_description"]})
 
-    supply_description = Column(Text)
+    supply_description = Column(Text, info={"label": FIELD_LABELS["supply_description"]})
 
-    demand_description = Column(Text)
+    demand_description = Column(Text, info={"label": FIELD_LABELS["demand_description"]})
 
-    unit_of_measure = Column(Text)
+    unit_of_measure = Column(Text, info={"label": FIELD_LABELS["unit_of_measure"]})
 
 
-    start_year = Column(Integer)
+    start_year = Column(Integer, info={"label": FIELD_LABELS["start_year"]})
 
-    end_year = Column(Integer)
+    end_year = Column(Integer, info={"label": FIELD_LABELS["end_year"]})
 
-    last_projected_year = Column(Integer)
+    last_projected_year = Column(Integer, info={"label": FIELD_LABELS["last_projected_year"]})
 
 
     requirements_general_id = Column(

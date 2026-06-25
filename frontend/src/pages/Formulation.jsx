@@ -27,6 +27,14 @@ function Formulation() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
+    const [chatOpen, setChatOpen] = useState(() => {
+        const savedState = localStorage.getItem("mga_chat_open");
+
+        return savedState !== null
+            ? JSON.parse(savedState)
+            : true;
+    });
+
     // 👇 Detectar el parámetro ?tab= en la URL
     useEffect(() => {
         const params = new URLSearchParams(location.search);
@@ -49,6 +57,17 @@ function Formulation() {
         };
         fetchProject();
     }, [id]);
+
+    useEffect(() => {
+        localStorage.setItem(
+            "mga_chat_open",
+            JSON.stringify(chatOpen)
+        );
+    }, [chatOpen]);
+
+    const toggleChat = () => {
+        setChatOpen(previousState => !previousState);
+    };
 
     const handleTabChange = (tab) => {
         setActiveTab(tab);
@@ -91,7 +110,7 @@ function Formulation() {
 
     return (
         <section className="formulation-route">
-            <div className="formulation-layout">
+            <div className={`formulation-layout ${chatOpen ? "chat-open" : "chat-closed"}`}>
                 <div className="formulation-main">
                     <div className="px-4 pt-3 formulation-header-surface">
                         <ProjectHeader id={id} project={project} loading={loading} error={error} />
@@ -186,8 +205,23 @@ function Formulation() {
                     </main>
                 </div>
 
-                <div className="formulation-chat-panel">
-                    <Chatbot projectId={id} activeTab={activeTab} />
+                <div className={`formulation-chat-panel ${chatOpen ? "open" : "closed"}`}>
+
+                    <button
+                        className="chat-toggle-btn"
+                        onClick={toggleChat}
+                        title={chatOpen ? "Ocultar asistente IA" : "Mostrar asistente IA"}
+                    >
+                        {chatOpen ? "❯" : "❮"}
+                    </button>
+
+                    {chatOpen && (
+                        <Chatbot
+                            projectId={id}
+                            activeTab={activeTab}
+                        />
+                    )}
+
                 </div>
             </div>
         </section>
