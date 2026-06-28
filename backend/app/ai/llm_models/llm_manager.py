@@ -9,6 +9,7 @@ import os
 import json
 import logging
 import re
+from pathlib import Path
 from typing import Optional
 from dotenv import load_dotenv
 
@@ -20,8 +21,9 @@ from langchain_core.output_parsers import StrOutputParser
 from app.core.database import SessionLocal
 from sqlalchemy.orm import Session
 
-# Configurar logging
-load_dotenv()
+# Configurar logging y cargar .env del root del backend de forma explícita
+_ENV_PATH = Path(__file__).resolve().parents[3] / ".env"
+load_dotenv(dotenv_path=_ENV_PATH)
 logger = logging.getLogger(__name__)
 
 # ==============================
@@ -182,8 +184,12 @@ class LLMManager:
 
     def _is_invoke_skipped(self) -> bool:
         """Permite desactivar llamadas al LLM durante debug para evitar consumo de tokens."""
-        #raw_value = os.getenv("SKIP_LLM_INVOKE", os.getenv("DEBUG_SKIP_LLM_INVOKE", "true"))
-        raw_value = True
+        # Recarga .env para reflejar cambios recientes sin depender de reinicio del proceso.
+        load_dotenv(dotenv_path=_ENV_PATH, override=True)
+
+        # SKIP_LLM_INVOKE tiene prioridad solo si viene con valor no vacío.
+        raw_skip = os.getenv("SKIP_LLM_INVOKE")
+        raw_value = raw_skip if raw_skip is not None and raw_skip.strip() else os.getenv("DEBUG_SKIP_LLM_INVOKE", "false")
         return str(raw_value).strip().lower() in {"1", "true", "yes", "on"}
 
 
