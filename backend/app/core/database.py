@@ -6,7 +6,7 @@ import os
 # Configuración de PostgreSQL
 DATABASE_URL = os.getenv(
     "DATABASE_URL",
-    "postgresql://postgres:ffernandez@localhost:5432/mga_db",
+    "postgresql:///mga_db",
 )
 
 # Algunos proveedores (Neon, Render) entregan la URL como 'postgres://'.
