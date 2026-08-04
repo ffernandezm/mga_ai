@@ -51,7 +51,7 @@ class Config:
     # Base de datos
     DATABASE_URL = os.getenv(
         "DATABASE_URL",
-        "postgresql://neondb_owner:npg_ev24ApZHWdcM@ep-round-wave-aqj51cr3.c-8.us-east-1.aws.neon.tech/neondb?sslmode=require"
+        "postgresql:///mga_db"
     )
     
     # LLM Configuration

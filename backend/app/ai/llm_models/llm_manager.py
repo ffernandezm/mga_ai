@@ -9,6 +9,7 @@ import os
 import json
 import logging
 import re
+from pathlib import Path
 from typing import Optional
 from dotenv import load_dotenv
 
@@ -18,10 +19,12 @@ from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 
 from app.core.database import SessionLocal
+from app.ai.rag import RAGManager
 from sqlalchemy.orm import Session
 
-# Configurar logging
-load_dotenv()
+# Configurar logging y cargar .env del root del backend de forma explícita
+_ENV_PATH = Path(__file__).resolve().parents[3] / ".env"
+load_dotenv(dotenv_path=_ENV_PATH)
 logger = logging.getLogger(__name__)
 
 # ==============================
@@ -51,6 +54,7 @@ class LLMManager:
         """Inicializa el modelo LLM según la configuración del .env con LLM_PROVIDER"""
         self.llm_provider = os.getenv("LLM_PROVIDER", "groq").lower()
         self.templates = self._load_templates()
+        self.rag_manager = RAGManager()
         self.model = self._initialize_llm()
         logger.info(f"✅ LLMManager inicializado con provider: {self.llm_provider}")
 
@@ -182,9 +186,28 @@ class LLMManager:
 
     def _is_invoke_skipped(self) -> bool:
         """Permite desactivar llamadas al LLM durante debug para evitar consumo de tokens."""
-        #raw_value = os.getenv("SKIP_LLM_INVOKE", os.getenv("DEBUG_SKIP_LLM_INVOKE", "true"))
-        raw_value = True
+        # Recarga .env para reflejar cambios recientes sin depender de reinicio del proceso.
+        load_dotenv(dotenv_path=_ENV_PATH, override=True)
+
+        # SKIP_LLM_INVOKE tiene prioridad solo si viene con valor no vacío.
+        raw_skip = os.getenv("SKIP_LLM_INVOKE")
+        raw_value = raw_skip if raw_skip is not None and raw_skip.strip() else os.getenv("DEBUG_SKIP_LLM_INVOKE", "false")
         return str(raw_value).strip().lower() in {"1", "true", "yes", "on"}
+
+    def _merge_project_and_rag_context(self, project_context: str, rag_context: str) -> str:
+        """Combina el contexto funcional del proyecto con el contexto recuperado por RAG."""
+        project_context = (project_context or "").strip()
+        rag_context = (rag_context or "").strip()
+
+        if project_context and rag_context:
+            return (
+                "Informacion del proyecto (BD):\n"
+                f"{project_context}\n\n"
+                f"{rag_context}"
+            )
+        if rag_context:
+            return rag_context
+        return project_context
 
 
     def ask(
@@ -210,7 +233,7 @@ class LLMManager:
         """
         try:
             if self._is_invoke_skipped():
-                logger.info(f"⏭️ LLM invoke omitido por SKIP_LLM_INVOKE para tab={tab}, session={session_id}")
+                logger.info(f"LLM invoke omitido por SKIP_LLM_INVOKE para tab={tab}, session={session_id}")
                 return (
                     "[DEBUG] Llamada al modelo omitida (SKIP_LLM_INVOKE=true). "
                     "Desactiva esta variable para volver a consultar el LLM real."
@@ -218,20 +241,27 @@ class LLMManager:
 
             # Obtener template
             prompt = self.get_prompt_template(tab)
+
+            # Recuperar contexto RAG del documento conceptual según la pregunta
+            rag_context = self.rag_manager.get_relevant_context(question)
+            merged_context = self._merge_project_and_rag_context(context, rag_context)
             
             # Crear cadena LLM
             chain = prompt | self.model | StrOutputParser()
             response = chain.invoke({
-                "project_context": context or "",
+                "project_context": merged_context,
                 "chat_history": self._build_chat_context(chat_history) if chat_history else "",
                 "question": question,
             })
             
-            logger.info(f"✅ Respuesta generada para tab={tab}, session={session_id}, con historial={bool(chat_history)}, con datos={bool(context)}")
+            logger.info(
+                f"Respuesta generada para tab={tab}, session={session_id}, "
+                f"con historial={bool(chat_history)}, con datos={bool(context)}, con rag={bool(rag_context)}"
+            )
             return response
             
         except Exception as e:
-            logger.error(f"❌ Error en LLM ({tab}): {str(e)}", exc_info=True)
+            logger.error(f"Error en LLM ({tab}): {str(e)}", exc_info=True)
             return "Lo siento, ocurrió un error al procesar tu pregunta. Intenta de nuevo."
 
     def validate_configuration(self) -> bool:
@@ -250,6 +280,6 @@ class LLMManager:
             )
             return bool(test_response)
         except Exception as e:
-            logger.error(f"❌ Error validando configuración: {str(e)}")
+            logger.error(f"Error validando configuración: {str(e)}")
             return False
 
