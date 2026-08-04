@@ -3,10 +3,13 @@ import { ProjectContext } from "../context/ProjectContext";
 import { Link } from "react-router-dom";
 import api from "../services/api";
 import { useNotification } from "../context/NotificationContext";
+import { exportProjectToPdf } from "../utils/projectPdfExport";
+import { useState } from "react";
 
 function ProjectList() {
     const { projects, setProjects, deleteProject } = useContext(ProjectContext);
     const { showSuccess, showError, showConfirmation } = useNotification();
+    const [exportingProjectId, setExportingProjectId] = useState(null);
 
     useEffect(() => {
         const fetchProjects = async () => {
@@ -33,6 +36,19 @@ function ProjectList() {
             } catch {
                 showError("Error al eliminar el proyecto.");
             }
+        }
+    };
+
+    const handleExport = async (project) => {
+        try {
+            setExportingProjectId(project.id);
+            await exportProjectToPdf(project.id);
+            showSuccess(`PDF exportado para el proyecto \"${project.name}\".`);
+        } catch (error) {
+            console.error("Error exporting project PDF:", error);
+            showError("No se pudo exportar el PDF del proyecto.");
+        } finally {
+            setExportingProjectId(null);
         }
     };
 
@@ -67,6 +83,13 @@ function ProjectList() {
                                     <Link to={`/edit-project/${project.id}`} className="btn btn-sm btn-primary me-2">
                                         Editar
                                     </Link>
+                                    <button
+                                        className="btn btn-sm btn-outline-secondary me-2"
+                                        onClick={() => handleExport(project)}
+                                        disabled={exportingProjectId === project.id}
+                                    >
+                                        {exportingProjectId === project.id ? "Exportando..." : "Exportar"}
+                                    </button>
                                     <button className="btn btn-sm btn-danger" onClick={() => handleDelete(project.id)}>
                                         Eliminar
                                     </button>

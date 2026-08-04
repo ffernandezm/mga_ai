@@ -1,9 +1,11 @@
 import { useMemo, useState } from "react";
-import { motion } from "framer-motion";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../services/api";
 import { surveyQuestions } from "../data/surveyQuestions";
 import "./Survey.css";
+
+import SurveyQuestionCard from "../components/survey/SurveyQuestionCard";
+import SurveyProgress from "../components/survey/SurveyProgress";
 
 function Survey() {
     const { projectId } = useParams();
@@ -17,7 +19,10 @@ function Survey() {
     const [error, setError] = useState(null);
 
     const handleChange = (id, value) => {
-        setResponses((prev) => ({ ...prev, [id]: Number(value) }));
+        setResponses(prev => ({
+            ...prev,
+            [id]: Number(value),
+        }));
     };
 
     const answeredCount = useMemo(() => Object.keys(responses).length, [responses]);
@@ -26,19 +31,7 @@ function Survey() {
         [answeredCount]
     );
 
-    const scorePreview = useMemo(() => {
-        const values = Object.values(responses);
-        if (!values.length) return null;
 
-        const avg = values.reduce((acc, n) => acc + Number(n), 0) / values.length;
-        const normalized = Math.round(avg * 10);
-
-        if (normalized >= 90) return { label: "Excelente", tone: "excellent" };
-        if (normalized >= 75) return { label: "Muy bueno", tone: "great" };
-        if (normalized >= 60) return { label: "Bueno", tone: "good" };
-        if (normalized >= 45) return { label: "Regular", tone: "regular" };
-        return { label: "Por mejorar", tone: "improve" };
-    }, [responses]);
 
     const calculateScoreSummary = () => {
         const getAvg = (ids) => {
@@ -93,7 +86,15 @@ function Survey() {
     };
 
     const handleSubmit = async () => {
-        if (answeredCount < surveyQuestions.length) return;
+        if (answeredCount < surveyQuestions.length) {
+            setError("Completa todas las preguntas antes de enviar.");
+            return;
+        }
+
+        if (!projectId) {
+            setError("No se pudo identificar el proyecto asociado a la encuesta.");
+            return;
+        }
 
         setError(null);
         setSubmitting(true);
@@ -101,6 +102,8 @@ function Survey() {
         try {
             const summary = calculateScoreSummary();
             const payload = {
+                project_id: projectId,
+                is_completed: true,
                 survey_json: responses,
                 score_summary: summary,
                 comment: comment.trim(),
@@ -110,7 +113,12 @@ function Survey() {
             setSubmitted(true);
         } catch (err) {
             console.error("Error al enviar encuesta:", err);
-            setError("Ocurrió un error al enviar la encuesta. Intenta nuevamente.");
+            const message =
+                err?.response?.data?.detail ||
+                err?.response?.data?.message ||
+                err?.message ||
+                "Ocurrió un error al enviar la encuesta. Intenta nuevamente.";
+            setError(message);
         } finally {
             setSubmitting(false);
         }
@@ -138,17 +146,12 @@ function Survey() {
         URL.revokeObjectURL(url);
     };
 
-    // 🟢 Botones de navegación
     const goToFormulation = () => navigate(`/edit-project/${projectId}`);
     const goToProjectsList = () => navigate(`/projects`);
 
     if (submitted) {
         return (
-            <motion.div
-                className="survey-thankyou"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1, y: [10, 0] }}
-            >
+            <div className="survey-thankyou">
                 <div className="survey-thankyou-icon" aria-hidden>
                     ✓
                 </div>
@@ -183,7 +186,7 @@ function Survey() {
                         🏠 Volver a Proyectos
                     </button>
                 </div>
-            </motion.div>
+            </div>
         );
     }
 
@@ -191,11 +194,7 @@ function Survey() {
         <section className="survey-page">
             <div className="survey-page-bg survey-page-bg-left" aria-hidden />
             <div className="survey-page-bg survey-page-bg-right" aria-hidden />
-            <motion.div
-                className="survey-shell"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-            >
+            <div className="survey-shell">
                 <header className="survey-hero">
                     <p className="survey-overline">Evaluacion de experiencia</p>
                     <h1>Encuesta de validacion del sistema</h1>
@@ -205,58 +204,17 @@ function Survey() {
                     </p>
                 </header>
 
-                <section className="survey-status-card">
-                    <div className="survey-status-top">
-                        <strong>Progreso de respuesta</strong>
-                        <span>
-                            {answeredCount}/{surveyQuestions.length} respondidas
-                        </span>
-                    </div>
-                    <div className="survey-progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow={completion}>
-                        <div className="survey-progress-fill" style={{ width: `${completion}%` }} />
-                    </div>
-                    <div className="survey-status-bottom">
-                        <span>{completion}% completado</span>
-                        {scorePreview && (
-                            <span className={`survey-pill survey-pill-${scorePreview.tone}`}>
-                                Tendencia actual: {scorePreview.label}
-                            </span>
-                        )}
-                    </div>
-                </section>
-
+                <SurveyProgress completion={completion} answered={answeredCount} total={surveyQuestions.length} />
                 <div className="survey-question-list">
-                    {surveyQuestions.map((q, index) => (
-                        <motion.article
-                            key={q.id}
-                            className="survey-question-card"
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: index * 0.03 }}
-                        >
-                            <div className="survey-question-head">
-                                <span>Pregunta {q.id}</span>
-                                <strong>{responses[q.id] ?? "-"}</strong>
-                            </div>
-                            <p>{q.text}</p>
-                            <div className="survey-range-wrap">
-                                <span>1</span>
-                                <input
-                                    type="range"
-                                    className="form-range"
-                                    min="1"
-                                    max="10"
-                                    step="1"
-                                    value={responses[q.id] ?? 5}
-                                    onChange={(e) => handleChange(q.id, e.target.value)}
-                                />
-                                <span>10</span>
-                            </div>
-                            <div className="survey-range-labels">
-                                <small>Muy bajo</small>
-                                <small>Excelente</small>
-                            </div>
-                        </motion.article>
+                    {surveyQuestions.map((question) => (
+                        <SurveyQuestionCard
+                            key={question.id}
+                            question={question}
+                            value={responses[question.id]}
+                            onChange={(value) =>
+                                handleChange(question.id, value)
+                            }
+                        />
                     ))}
                 </div>
 
@@ -301,7 +259,7 @@ function Survey() {
                         🏠 Volver a Proyectos
                     </button>
                 </div>
-            </motion.div>
+            </div>
         </section>
     );
 }
