@@ -7,7 +7,9 @@ Almacena y recupera conversaciones entre usuarios y el asistente MGA.
 
 import uuid
 import logging
+import os
 from datetime import datetime
+from time import perf_counter
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Body
@@ -23,6 +25,32 @@ import json
 
 # Configurar logging
 logger = logging.getLogger(__name__)
+
+
+_VALID_TABS_CACHE: dict = {"expires_at": 0.0, "valid_tabs": []}
+_VALID_TABS_CACHE_TTL_SECONDS = max(int(os.getenv("CHAT_VALID_TABS_CACHE_TTL_SECONDS", "300")), 10)
+_DEFAULT_CONTEXT_MESSAGES = max(int(os.getenv("CHAT_HISTORY_CONTEXT_MESSAGES", "12")), 2)
+_DEFAULT_CONTEXT_ITEMS = max(int(os.getenv("CHAT_MODULE_CONTEXT_MAX_ITEMS", "20")), 1)
+_DEFAULT_CONTEXT_CHARS = max(int(os.getenv("CHAT_MODULE_CONTEXT_MAX_CHARS", "9000")), 1000)
+
+
+def _get_valid_tabs(db: Session) -> List[str]:
+    """Obtiene tabs válidos con cache para evitar reflect del schema en cada request."""
+    now = datetime.utcnow().timestamp()
+    cached_tabs = _VALID_TABS_CACHE.get("valid_tabs") or []
+    if cached_tabs and now < float(_VALID_TABS_CACHE.get("expires_at", 0.0)):
+        return cached_tabs
+
+    from sqlalchemy import inspect as sa_inspect
+
+    inspector = sa_inspect(db.bind)
+    available_tables = inspector.get_table_names()
+    excluded_tables = ['projects', 'chat_history', 'survey', 'alembic_version']
+    valid_tabs = [t for t in available_tables if t not in excluded_tables]
+
+    _VALID_TABS_CACHE["valid_tabs"] = valid_tabs
+    _VALID_TABS_CACHE["expires_at"] = now + _VALID_TABS_CACHE_TTL_SECONDS
+    return valid_tabs
 
 
 # ==============================
@@ -790,19 +818,13 @@ def chat_with_ai(
     Returns:
         Respuesta del bot con metadatos
     """
+    total_start = perf_counter()
     try:
         logger.info(f"📨 Chat recibido: project={project_id}, tab={tab}")
-        
-        # 🆕 Validar tab dinámicamente contra tablas disponibles en BD
-        from sqlalchemy import MetaData
-        
-        metadata = MetaData()
-        metadata.reflect(bind=db.bind)
-        available_tables = list(metadata.tables.keys())
-        
-        # Tablas que no son módulos MGA (excluir del chat)
-        excluded_tables = ['projects', 'chat_history', 'survey', 'alembic_version']
-        valid_tabs = [t for t in available_tables if t not in excluded_tables]
+
+        tab_validation_start = perf_counter()
+        valid_tabs = _get_valid_tabs(db)
+        tab_validation_ms = (perf_counter() - tab_validation_start) * 1000
         
         # Normalizar singular/plural para comodidad del usuario
         normalized_tab = tab
@@ -824,7 +846,9 @@ def chat_with_ai(
             tab = normalized_tab  # usar versión corregida en adelante
         
         # Obtener o crear sesión
+        session_start = perf_counter()
         session_id = get_existing_session_id(db, project_id, tab) or str(uuid.uuid4())
+        session_ms = (perf_counter() - session_start) * 1000
         logger.info(f"🔗 Session ID: {session_id[:8]}...")
 
         # Guardar pregunta del usuario
@@ -832,6 +856,7 @@ def chat_with_ai(
 
         # 🆕 Recuperar historial de chat anterior para contexto
         logger.info(f"📜 Recuperando historial de chat para contexto...")
+        history_start = perf_counter()
         previous_messages = (
             db.query(ChatHistory)
             .filter(
@@ -839,9 +864,13 @@ def chat_with_ai(
                 ChatHistory.tab == tab,
                 ChatHistory.session_id == session_id
             )
-            .order_by(ChatHistory.timestamp.asc())
+            .order_by(ChatHistory.timestamp.desc())
+            .limit(_DEFAULT_CONTEXT_MESSAGES + 1)
             .all()
         )
+
+        previous_messages.reverse()
+        history_ms = (perf_counter() - history_start) * 1000
         
         # Convertir mensajes ORM a diccionarios para el LLM
         chat_history = [
@@ -857,15 +886,22 @@ def chat_with_ai(
 
         # 🆕 MEJORADO: Recuperar datos COMPLETOS del módulo con estructura jerárquica
         logger.info(f"📊 Recuperando datos COMPLETOS del módulo {tab} (incluyendo subtablas)...")
+        module_data_start = perf_counter()
         comprehensive_data = get_comprehensive_module_data(db, project_id, tab)
+        module_data_ms = (perf_counter() - module_data_start) * 1000
         
         # Formatear datos para el prompt
-        module_context = format_module_data_for_prompt(comprehensive_data, max_items=50)
+        format_start = perf_counter()
+        module_context = format_module_data_for_prompt(comprehensive_data, max_items=_DEFAULT_CONTEXT_ITEMS)
+        if len(module_context) > _DEFAULT_CONTEXT_CHARS:
+            module_context = module_context[:_DEFAULT_CONTEXT_CHARS]
+        format_ms = (perf_counter() - format_start) * 1000
         
         logger.info(f"✅ Contexto del módulo {tab} recuperado ({comprehensive_data.get('total_records', 0)} registros en BD)")
 
         # Llamar modelo LLM con historial Y datos COMPLETOS del módulo
         logger.info(f"🤖 Invocando LLM para tab={tab} con contexto completo de chat y módulo")
+        llm_start = perf_counter()
         answer = llm_manager.ask(
             question=question,
             tab=tab,
@@ -873,16 +909,36 @@ def chat_with_ai(
             chat_history=chat_history if chat_history else None,  # Pasar historial si existe
             session_id=session_id
         )
+        llm_ms = (perf_counter() - llm_start) * 1000
 
         # Guardar respuesta del bot
         bot_message = save_chat_message(db, project_id, tab, session_id, "bot", answer)
         logger.info(f"✅ Respuesta guardada (id={bot_message.id}, con historial de {len(chat_history)} msgs)")
+        total_ms = (perf_counter() - total_start) * 1000
+        logger.info(
+            "⏱️ Chat endpoint timing | project=%s tab=%s total_ms=%.1f tab_validation_ms=%.1f "
+            "session_ms=%.1f history_ms=%.1f module_data_ms=%.1f format_ms=%.1f llm_ms=%.1f "
+            "question_chars=%s module_context_chars=%s",
+            project_id,
+            tab,
+            total_ms,
+            tab_validation_ms,
+            session_ms,
+            history_ms,
+            module_data_ms,
+            format_ms,
+            llm_ms,
+            len(question or ""),
+            len(module_context or ""),
+        )
 
         return bot_message
         
     except HTTPException:
         raise
     except Exception as e:
+        total_ms = (perf_counter() - total_start) * 1000
+        logger.error("⏱️ Chat endpoint fallo | project=%s tab=%s total_ms=%.1f", project_id, tab, total_ms)
         logger.error(f"❌ Error en chat_with_ai: {str(e)}", exc_info=True)
         raise HTTPException(
             status_code=500, 

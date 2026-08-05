@@ -9,6 +9,7 @@ import os
 import json
 import logging
 import re
+from time import perf_counter
 from pathlib import Path
 from typing import Optional
 from dotenv import load_dotenv
@@ -55,6 +56,8 @@ class LLMManager:
         self.llm_provider = os.getenv("LLM_PROVIDER", "groq").lower()
         self.templates = self._load_templates()
         self.rag_manager = RAGManager()
+        self.max_chat_history_messages = max(int(os.getenv("LLM_MAX_CHAT_HISTORY_MESSAGES", "6")), 1)
+        self.max_project_context_chars = max(int(os.getenv("LLM_MAX_PROJECT_CONTEXT_CHARS", "12000")), 1000)
         self.model = self._initialize_llm()
         logger.info(f"✅ LLMManager inicializado con provider: {self.llm_provider}")
 
@@ -174,8 +177,8 @@ class LLMManager:
         context_lines.append("Contexto de la conversación anterior:")
         context_lines.append("-" * 50)
         
-        # Usar últimos 8 mensajes para no exceder límite
-        for msg in chat_history[-8:]:
+        # Usar una ventana pequeña para reducir latencia/tokens.
+        for msg in chat_history[-self.max_chat_history_messages:]:
             sender = "Tú" if msg.get("sender") == "user" else "Yo"
             message_text = msg.get("message", "")[:400]  # Truncar mensajes largos
             context_lines.append(f"{sender}: {message_text}")
@@ -197,6 +200,8 @@ class LLMManager:
     def _merge_project_and_rag_context(self, project_context: str, rag_context: str) -> str:
         """Combina el contexto funcional del proyecto con el contexto recuperado por RAG."""
         project_context = (project_context or "").strip()
+        if len(project_context) > self.max_project_context_chars:
+            project_context = project_context[: self.max_project_context_chars]
         rag_context = (rag_context or "").strip()
 
         if project_context and rag_context:
@@ -231,6 +236,7 @@ class LLMManager:
         Returns:
             Respuesta del LLM
         """
+        total_start = perf_counter()
         try:
             if self._is_invoke_skipped():
                 logger.info(f"LLM invoke omitido por SKIP_LLM_INVOKE para tab={tab}, session={session_id}")
@@ -243,24 +249,43 @@ class LLMManager:
             prompt = self.get_prompt_template(tab)
 
             # Recuperar contexto RAG del documento conceptual según la pregunta
+            rag_start = perf_counter()
             rag_context = self.rag_manager.get_relevant_context(question)
+            rag_ms = (perf_counter() - rag_start) * 1000
             merged_context = self._merge_project_and_rag_context(context, rag_context)
             
             # Crear cadena LLM
             chain = prompt | self.model | StrOutputParser()
+            llm_start = perf_counter()
             response = chain.invoke({
                 "project_context": merged_context,
                 "chat_history": self._build_chat_context(chat_history) if chat_history else "",
                 "question": question,
             })
+            llm_ms = (perf_counter() - llm_start) * 1000
+            total_ms = (perf_counter() - total_start) * 1000
             
             logger.info(
                 f"Respuesta generada para tab={tab}, session={session_id}, "
                 f"con historial={bool(chat_history)}, con datos={bool(context)}, con rag={bool(rag_context)}"
             )
+            logger.info(
+                "⏱️ LLM timing | tab=%s session=%s rag_ms=%.1f llm_ms=%.1f total_ms=%.1f "
+                "question_chars=%s context_chars=%s rag_chars=%s",
+                tab,
+                session_id,
+                rag_ms,
+                llm_ms,
+                total_ms,
+                len(question or ""),
+                len(merged_context or ""),
+                len(rag_context or ""),
+            )
             return response
             
         except Exception as e:
+            total_ms = (perf_counter() - total_start) * 1000
+            logger.error("⏱️ LLM timing fallo | tab=%s session=%s total_ms=%.1f", tab, session_id, total_ms)
             logger.error(f"Error en LLM ({tab}): {str(e)}", exc_info=True)
             return "Lo siento, ocurrió un error al procesar tu pregunta. Intenta de nuevo."
 

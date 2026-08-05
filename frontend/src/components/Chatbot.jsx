@@ -8,6 +8,7 @@ const Chatbot = ({ projectId, activeTab }) => {
     const { showError, showConfirmation } = useNotification();
     const [messages, setMessages] = useState([]);
     const [input, setInput] = useState("");
+    const [isThinking, setIsThinking] = useState(false);
 
     // 🔹 Cargar historial al iniciar
     useEffect(() => {
@@ -43,12 +44,13 @@ const Chatbot = ({ projectId, activeTab }) => {
     }, [projectId, activeTab]);
 
     const handleSend = async () => {
-        if (input.trim() === "") return;
+        if (input.trim() === "" || isThinking) return;
 
         // Agregar mensaje del usuario al estado
         setMessages((prev) => [...prev, { text: input, sender: "user" }]);
         const userMessage = input;
         setInput("");
+        setIsThinking(true);
 
         try {
             const response = await api.post(
@@ -75,6 +77,8 @@ const Chatbot = ({ projectId, activeTab }) => {
                 ...prev,
                 { text: "Error al obtener respuesta.", sender: "bot" }
             ]);
+        } finally {
+            setIsThinking(false);
         }
     };
 
@@ -112,6 +116,13 @@ const Chatbot = ({ projectId, activeTab }) => {
                         <MessageRenderer text={msg.text} />
                     </div>
                 ))}
+                {isThinking && (
+                    <div className="message bot thinking-message" aria-live="polite" aria-label="El asistente esta escribiendo">
+                        <span className="thinking-dot" />
+                        <span className="thinking-dot" />
+                        <span className="thinking-dot" />
+                    </div>
+                )}
             </div>
             <div className="input-box">
                 <input
@@ -120,8 +131,9 @@ const Chatbot = ({ projectId, activeTab }) => {
                     onChange={(e) => setInput(e.target.value)}
                     placeholder="Escribe un mensaje..."
                     onKeyDown={(e) => e.key === "Enter" && handleSend()}
+                    disabled={isThinking}
                 />
-                <button onClick={handleSend}>➤</button>
+                <button onClick={handleSend} disabled={isThinking}>➤</button>
             </div>
         </div>
     );
