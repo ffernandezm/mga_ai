@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 from typing import Dict, List
 
+import numpy as np
 from scipy import sparse
 
 from .document_processor import DocumentChunk
@@ -69,11 +70,21 @@ class LocalVectorStore:
             return []
 
         query_vector = self._embedding_model.transform([query]).tocsr()
-        scores = (self._matrix @ query_vector.T).toarray().ravel().tolist()
-        ranked = sorted(enumerate(scores), key=lambda item: item[1], reverse=True)
+        scores = (self._matrix @ query_vector.T).toarray().ravel()
+
+        candidate_size = min(len(scores), max(top_k * 3, top_k))
+        if candidate_size <= 0:
+            return []
+
+        if candidate_size < len(scores):
+            top_indices = np.argpartition(-scores, candidate_size - 1)[:candidate_size]
+            ranked_indices = top_indices[np.argsort(-scores[top_indices])]
+        else:
+            ranked_indices = np.argsort(-scores)
 
         results: List[Dict] = []
-        for chunk_index, score in ranked[:top_k * 3]:
+        for chunk_index in ranked_indices:
+            score = float(scores[chunk_index])
             if score < min_similarity:
                 continue
             chunk = self._chunks[chunk_index]

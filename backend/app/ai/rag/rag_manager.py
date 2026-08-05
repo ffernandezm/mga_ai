@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 from pathlib import Path
 from threading import Lock
+from time import perf_counter
 from typing import List
 
 from .config import RAGConfig
@@ -63,18 +64,31 @@ class RAGManager:
         if not query:
             return ""
 
+        total_start = perf_counter()
         try:
+            index_start = perf_counter()
             self._index_if_needed()
+            index_ms = (perf_counter() - index_start) * 1000
             if not self.config.enabled:
                 return ""
 
+            search_start = perf_counter()
             results = self.vector_store.similarity_search(
                 query=query,
                 top_k=self.config.top_k,
                 min_similarity=self.config.min_similarity,
             )
+            search_ms = (perf_counter() - search_start) * 1000
 
             if not results:
+                total_ms = (perf_counter() - total_start) * 1000
+                logger.info(
+                    "⏱️ RAG timing | enabled=%s index_ms=%.1f search_ms=%.1f total_ms=%.1f hits=0",
+                    self.config.enabled,
+                    index_ms,
+                    search_ms,
+                    total_ms,
+                )
                 return ""
 
             blocks: List[str] = ["Contexto recuperado (RAG) del documento conceptual:"]
@@ -87,8 +101,21 @@ class RAGManager:
                 )
 
             merged = "\n".join(blocks)
-            return merged[: self.config.max_context_chars]
+            final_context = merged[: self.config.max_context_chars]
+            total_ms = (perf_counter() - total_start) * 1000
+            logger.info(
+                "⏱️ RAG timing | enabled=%s index_ms=%.1f search_ms=%.1f total_ms=%.1f hits=%s context_chars=%s",
+                self.config.enabled,
+                index_ms,
+                search_ms,
+                total_ms,
+                len(results),
+                len(final_context),
+            )
+            return final_context
         except Exception as exc:
+            total_ms = (perf_counter() - total_start) * 1000
+            logger.warning("⏱️ RAG timing fallo | total_ms=%.1f", total_ms)
             logger.warning("No fue posible recuperar contexto RAG: %s", exc, exc_info=True)
             return ""
 
