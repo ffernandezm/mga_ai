@@ -124,28 +124,49 @@ origins = [
     "http://127.0.0.1:5173",
     "http://127.0.0.1:3000",
 ]
+allow_origin_regex = None
 
 env = os.getenv("ENVIRONMENT", "development").lower()
 if env == "production":
-    # En producción, leer una o varias URLs desde FRONTEND_URL
+    # En producción, leer una o varias URLs desde FRONTEND_URL o FRONTEND_URLS
     # separadas por coma. Ej: "https://app.vercel.app,https://otra.com"
-    frontend_url = os.getenv("FRONTEND_URL", "")
-    origins = [u.strip() for u in frontend_url.split(",") if u.strip()]
-    if not origins:
-        # Fallback permisivo para que no quede totalmente bloqueado
+    frontend_urls = ",".join(
+        [
+            os.getenv("FRONTEND_URL", ""),
+            os.getenv("FRONTEND_URLS", ""),
+        ]
+    )
+    origins = []
+    for raw_url in frontend_urls.split(","):
+        url = raw_url.strip().rstrip("/")
+        if url and url not in origins:
+            origins.append(url)
+
+    # Opcional: regex para previews de Vercel (ej: ^https://.*\\.vercel\\.app$)
+    allow_origin_regex = os.getenv("CORS_ALLOW_ORIGIN_REGEX", "").strip() or None
+
+    if not origins and not allow_origin_regex:
+        # Evitar servicio bloqueado si falta configurar dominios en Render
         origins = ["*"]
 else:
     # En desarrollo, permitir todos los orígenes
     origins = ["*"]
 
+# CORS no permite combinar allow_credentials=True con allow_origins=["*"]
+allow_credentials = origins != ["*"]
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
-    allow_credentials=True,
+    allow_origin_regex=allow_origin_regex,
+    allow_credentials=allow_credentials,
     allow_methods=["*"],
     allow_headers=["*"],
 )
-logger.info(f"✅ CORS configurado para: {origins}")
+logger.info(
+    f"✅ CORS configurado para origins={origins}, "
+    f"regex={allow_origin_regex}, allow_credentials={allow_credentials}"
+)
 
 
 # ==============================
