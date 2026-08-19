@@ -109,6 +109,7 @@
 }
 
 .message.bot {
+    max-width: 90%;
     align-self: flex-start;
     background: linear-gradient(135deg, #ffffff 0%, #e8f4ff 100%);
     border: 2px solid rgba(77, 184, 255, 0.3);

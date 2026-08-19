@@ -1,20 +1,25 @@
 // MessageRenderer.jsx
 import React from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import '../styles/MessageRender.css';
+
+const components = {
+    table: ({ children }) => (
+        <div className="table-wrapper">
+            <table>{children}</table>
+        </div>
+    ),
+};
 
 const MessageRenderer = ({ text }) => {
-    const formatText = (text) => {
-        // Convertir saltos de línea a <br/>
-        let formattedText = text.replace(/\n/g, "<br/>");
-
-        // Convertir negritas (palabras entre **)
-        formattedText = formattedText.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
-
-        // Puedes agregar más reglas para otros formatos, como listas, itálicas, etc.
-
-        return formattedText;
-    };
-
-    return <div dangerouslySetInnerHTML={{ __html: formatText(text) }} />;
+    return (
+        <div className="message-markdown">
+            <ReactMarkdown remarkPlugins={[remarkGfm]} components={components}>
+                {text}
+            </ReactMarkdown>
+        </div>
+    );
 };
 
 export default MessageRenderer;
