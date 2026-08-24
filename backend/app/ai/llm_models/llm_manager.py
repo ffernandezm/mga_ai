@@ -16,11 +16,13 @@ from dotenv import load_dotenv
 
 from langchain_groq import ChatGroq
 from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_openai import ChatOpenAI
 from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 
 from app.core.database import SessionLocal
 from app.ai.rag import RAGManager
+from app.ai.llm_models.openai_llm import DEFAULT_OPENAI_MODEL, OPENAI_MODEL_PROFILES, resolve_openai_model
 from sqlalchemy.orm import Session
 
 # Configurar logging y cargar .env del root del backend de forma explícita
@@ -87,6 +89,26 @@ class LLMManager:
                 model="gemini-2.5-flash",
                 google_api_key=api_key,
                 convert_system_message_to_human=True,
+            )
+        elif self.llm_provider == "openai":
+            api_key = os.getenv("OPENAI_API_KEY")
+            configured_model = os.getenv("OPENAI_MODEL", DEFAULT_OPENAI_MODEL)
+
+            if not api_key:
+                raise ValueError("OPENAI_API_KEY no configurada en .env")
+
+            model_name = resolve_openai_model(configured_model)
+            model_usage = OPENAI_MODEL_PROFILES[model_name].usage
+
+            logger.info(
+                "Inicializando OpenAI LLM con modelo: %s (%s)",
+                model_name,
+                model_usage,
+            )
+            return ChatOpenAI(
+                model=model_name,
+                api_key=api_key,
+                temperature=0.7,
             )
         else:
             raise ValueError(f"LLM Provider no soportado: {self.llm_provider}")

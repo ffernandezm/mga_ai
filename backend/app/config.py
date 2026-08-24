@@ -24,6 +24,7 @@ class LLMProvider(str, Enum):
     GROQ = "groq"
     OLLAMA = "ollama"
     GEMINI = "gemini"
+    OPENAI = "openai"
     HUGGINGFACE = "huggingface"
 
 
@@ -60,9 +61,13 @@ class Config:
     # API Keys
     GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY", "")
     GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
+    OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
     
     # Groq Configuration
     GROQ_MODEL = os.getenv("GROQ_MODEL", "llama-3.1-8b-instant")
+
+    # OpenAI Configuration
+    OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-5.6-luna")
     
     # Ollama Configuration
     OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "mistral")
@@ -104,6 +109,11 @@ LLM_PROVIDER_CONFIGS = {
         "requires_api_key": True,
         "env_var": "GOOGLE_API_KEY",
         "model": "gemini-2.5-flash",
+    },
+    "openai": {
+        "requires_api_key": True,
+        "env_var": "OPENAI_API_KEY",
+        "model": config.OPENAI_MODEL,
     },
     "ollama": {
         "requires_api_key": False,
