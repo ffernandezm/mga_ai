@@ -1,5 +1,5 @@
 /**
- * EJEMPLO: Componente con Validación de Módulo
+ * EJEMPLO: Componente con Validación de Sección
  * Este archivo muestra cómo implementar la validación de campos obligatorios
  * en un componente de formulation.
  * 
@@ -7,7 +7,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import { useModuleValidation } from '../hooks/useModuleValidation';
+import { useSectionValidation } from '../hooks/useSectionValidation';
 import { useNotification } from '../context/NotificationContext';
 import api from '../services/api';
 
@@ -20,8 +20,8 @@ import api from '../services/api';
  */
 function ExampleComponentWithValidation({ projectId }) {
     // ========== Hooks ==========
-    const { saveAndValidate, validateArray } = useModuleValidation(
-        'participants_general',           // moduleId
+    const { saveAndValidate, validateArray } = useSectionValidation(
+        'participants_general',           // sectionKey
         '/participants',                  // endpoint
         []                                // requiredFields (validamos items del array en su lugar)
     );
@@ -99,7 +99,7 @@ function ExampleComponentWithValidation({ projectId }) {
             // 1. Validar campos obligatorios
             // 2. Agregar is_completed: true
             // 3. Guardar en el backend
-            // 4. Marcar el módulo como completado
+            // 4. Marcar la sección como completada
             await saveAndValidate({
                 participants,
                 is_completed: true
@@ -120,9 +120,9 @@ function ExampleComponentWithValidation({ projectId }) {
     }
 
     return (
-        <div className="module-container">
+        <div className="section-container">
             {/* Encabezado */}
-            <div className="module-header mb-4">
+            <div className="section-header mb-4">
                 <h3>Participantes del Proyecto</h3>
                 <p className="text-muted">
                     {participants.length > 0
@@ -253,10 +253,10 @@ export default ExampleComponentWithValidation;
 /**
  * RESUMEN DE LA IMPLEMENTACIÓN:
  * 
- * 1. Hook useModuleValidation proporciona:
+ * 1. Hook useSectionValidation proporciona:
  *    - validateArray(): valida que el array tenga items con campos requeridos
  *    - saveAndValidate(): valida y guarda automáticamente
- *    - projectId, moduleId: información contextual
+ *    - projectId, sectionKey: información contextual
  * 
  * 2. Validaciones:
  *    - Frontend: verificamos antes de guardar
@@ -267,8 +267,8 @@ export default ExampleComponentWithValidation;
  *    - Usuario hace click en "Guardar"
  *    - saveAndValidate() valida y envía al backend
  *    - Backend retorna is_completed: true
- *    - Sistema marca módulo como completo
- *    - Siguiente módulo se desbloquea
+ *    - Sistema marca sección como completa
+ *    - Siguiente sección se desbloquea
  * 
  * 4. Manejo de Errores:
  *    - toast.error() para errores del usuario

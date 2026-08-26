@@ -1,10 +1,10 @@
-# Sistema de Validación de Módulos en Formulation
+# Sistema de Validación de Secciones en Formulation
 
 ## Descripción General
 
-El sistema valida que cada módulo tenga los campos obligatorios completados antes de permitir acceso al siguiente. Esto se controla a través de un campo `is_completed` en cada respuesta del API.
+El sistema valida que cada sección tenga los campos obligatorios completados antes de permitir acceso a la siguiente. Esto se controla a través de un campo `is_completed` en cada respuesta del API.
 
-## Campos Requeridos por Módulo
+## Campos Requeridos por Sección
 
 ### 1. **Plan de Desarrollo** (development_plans)
 - Campos obligatorios: `name`, `description`
@@ -58,7 +58,7 @@ import { useFormulation, validateRequiredFields } from '../context/FormulationCo
 
 ```jsx
 function MiComponente({ projectId }) {
-    const { markModuleAsComplete, updateModuleCompletion } = useFormulation();
+    const { markSectionAsComplete, updateSectionCompletion } = useFormulation();
     const [formData, setFormData] = useState({...});
     
     // Definir campos obligatorios
@@ -79,8 +79,8 @@ function MiComponente({ projectId }) {
             // Guardar datos
             const response = await api.post(`/mi-endpoint/${projectId}`, formData);
             
-            // Marcar módulo como completado
-            await markModuleAsComplete('mi_modulo_id');
+            // Marcar sección como completada
+            await markSectionAsComplete('mi_section_key');
             
             toast.success('Guardado exitosamente');
         } catch (err) {
@@ -108,12 +108,12 @@ El backend debe devolver `is_completed: true` cuando valide que los campos oblig
 ```
 1. Usuario abre formulación
 2. Sistema verifica datos en backend
-3. Módulo 1 se marca como accesible (siempre)
-4. Usuario completa campos obligatorios en Módulo 1
+3. Sección 1 se marca como accesible (siempre)
+4. Usuario completa campos obligatorios en Sección 1
 5. Usuario guarda datos
 6. Sistema marca is_completed = true en backend
-7. Sistema verifica completitud y desbloquea Módulo 2
-8. Proceso se repite para cada módulo
+7. Sistema verifica completitud y desbloquea Sección 2
+8. Proceso se repite para cada sección
 ```
 
 ## Estructura del Backend Response
@@ -123,20 +123,20 @@ El backend debe devolver `is_completed: true` cuando valide que los campos oblig
 {
     "id": 1,
     "projectId": 123,
-    // ... otros campos del módulo
-    "is_completed": true  // ✅ Módulo desbloqueado
+    // ... otros campos de la sección
+    "is_completed": true  // ✅ Sección desbloqueada
 }
 
 // Respuesta con datos pero sin validar
 {
     "id": 1,
     "projectId": 123,
-    // ... otros campos del módulo
-    "is_completed": false  // 🔒 Módulo bloqueado
+    // ... otros campos de la sección
+    "is_completed": false  // 🔒 Sección bloqueada
 }
 
 // Sin datos
-404 o []  // 🔒 Módulo bloqueado
+404 o []  // 🔒 Sección bloqueada
 ```
 
 ## Ejemplo Completo: Componente de Participantes
@@ -146,7 +146,7 @@ import { useFormulation, validateRequiredFields } from '../context/FormulationCo
 import { useNotification } from '../context/NotificationContext';
 
 function Participants({ projectId }) {
-    const { markModuleAsComplete } = useFormulation();
+    const { markSectionAsComplete } = useFormulation();
     const { toast } = useNotification();
     const [participants, setParticipants] = useState([]);
     const [newParticipant, setNewParticipant] = useState({
@@ -178,7 +178,7 @@ function Participants({ projectId }) {
                 is_completed: true
             });
 
-            await markModuleAsComplete('participants_general');
+            await markSectionAsComplete('participants_general');
             toast.success('Participantes guardados');
         } catch (err) {
             toast.error(err.message);
@@ -196,10 +196,10 @@ function Participants({ projectId }) {
 
 ## Verificación Manual
 
-El sistema verifica cada módulo cuando:
+El sistema verifica cada sección cuando:
 
-1. **La página carga**: `checkModuleCompletion(projectId)` en el useEffect
-2. **Se guarda un módulo**: `markModuleAsComplete(module)` después de guardar
+1. **La página carga**: `checkSectionCompletion(projectId)` en el useEffect
+2. **Se guarda una sección**: `markSectionAsComplete(sectionKey)` después de guardar
 3. **El usuario cambia de pestaña**: Se valida que sea accesible
 
 ## Notas Importantes
@@ -208,4 +208,4 @@ El sistema verifica cada módulo cuando:
 - ⚠️ El backend DEBE retornar `is_completed: true` cuando valide campos obligatorios
 - ⚠️ Los campos obligatorios deben validarse ANTES de guardar en el frontend
 - ✅ Usar `validateRequiredFields()` del contexto para consistencia
-- ✅ Siempre llamar a `markModuleAsComplete()` después de guardar exitosamente
+- ✅ Siempre llamar a `markSectionAsComplete()` después de guardar exitosamente

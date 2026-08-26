@@ -131,7 +131,7 @@ function Formulation() {
                                     }`}
                                 onClick={() => handleTabChange("problems")}
                             >
-                                Árbol de Problemas
+                                Problemática
                             </button>
                             <button
                                 className={`btn btn-sm ${activeTab === "participants_general"

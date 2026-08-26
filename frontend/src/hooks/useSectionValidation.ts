@@ -3,14 +3,14 @@ import { useFormulation, validateRequiredFields } from '../context/FormulationCo
 import api from '../services/api';
 
 /**
- * Hook para validar y guardar módulos en la formulation
- * @param {string} moduleId - ID del módulo (ej: 'participants_general')
+ * Hook para validar y guardar secciones en la formulation
+ * @param {string} sectionKey - Clave de la sección (ej: 'participants_general')
  * @param {string} endpoint - Endpoint del API (ej: '/participants')
  * @param {Array<string>} requiredFields - Campos que deben estar llenos
- * @returns {Object} Métodos y estado para manejo del módulo
+ * @returns {Object} Métodos y estado para manejo de la sección
  */
-export const useModuleValidation = (moduleId, endpoint, requiredFields = []) => {
-    const { markModuleAsComplete, updateModuleCompletion, projectId } = useFormulation();
+export const useSectionValidation = (sectionKey, endpoint, requiredFields = []) => {
+    const { markSectionAsComplete, updateSectionCompletion, projectId } = useFormulation();
 
     /**
      * Valida que los campos obligatorios estén completados
@@ -34,7 +34,7 @@ export const useModuleValidation = (moduleId, endpoint, requiredFields = []) => 
     }, [requiredFields]);
 
     /**
-     * Guarda los datos en el backend y marca el módulo como completado
+    * Guarda los datos en el backend y marca la sección como completada
      * @param {Object} data - Datos a guardar
      * @param {boolean} skipValidation - Si true, no valida campos
      * @returns {Promise<Object>} Respuesta del servidor
@@ -57,16 +57,16 @@ export const useModuleValidation = (moduleId, endpoint, requiredFields = []) => 
             // Guardar en backend
             const response = await api.post(`${endpoint}/${projectId}`, payloadWithValidation);
 
-            // Marcar módulo como completado en el estado local
-            await markModuleAsComplete(moduleId);
+            // Marcar sección como completada en el estado local
+            await markSectionAsComplete(sectionKey);
 
             return response.data;
         } catch (err) {
-            // Si hay error, marcar como incompleto
-            await updateModuleCompletion(moduleId, false);
+            // Si hay error, marcar como incompleta
+            await updateSectionCompletion(sectionKey, false);
             throw err;
         }
-    }, [moduleId, endpoint, projectId, markModuleAsComplete, updateModuleCompletion, validateData]);
+    }, [sectionKey, endpoint, projectId, markSectionAsComplete, updateSectionCompletion, validateData]);
 
     /**
      * Valida que un array tenga al menos items con ciertos campos
@@ -93,8 +93,8 @@ export const useModuleValidation = (moduleId, endpoint, requiredFields = []) => 
         saveAndValidate,
         validateArray,
         projectId,
-        moduleId
+        sectionKey
     };
 };
 
-export default useModuleValidation;
+export default useSectionValidation;

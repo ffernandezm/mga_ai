@@ -2,16 +2,16 @@
 
 ## ✅ Lo Nuevo
 
-Sistema que **requiere validación de campos obligatorios** antes de desbloquear el siguiente módulo.
+Sistema que **requiere validación de campos obligatorios** antes de desbloquear la siguiente sección.
 
 ### Cambios Clave:
 
 1. **Nuevo campo `is_completed`** en respuestas del API
-   - `true` → módulo completado, desbloquea siguiente
-   - `false` → módulo incomplete, bloquea siguiente
+    - `true` → sección completada, desbloquea siguiente
+    - `false` → sección incompleta, bloquea siguiente
    - ausente → fallback a validación de datos
 
-2. **Hook `useModuleValidation()`** - Simplifica implementación
+2. **Hook `useSectionValidation()`** - Simplifica implementación
 3. **Función `validateRequiredFields()`** - Valida campos
 4. **Función `validateArray()`** - Valida arrays de elementos
 
@@ -22,11 +22,11 @@ Sistema que **requiere validación de campos obligatorios** antes de desbloquear
 ### En tu Componente:
 
 ```jsx
-import { useModuleValidation } from '../hooks/useModuleValidation';
+import { useSectionValidation } from '../hooks/useSectionValidation';
 
 function MiComponente({ projectId }) {
-    const { saveAndValidate, validateArray } = useModuleValidation(
-        'mi_modulo_id',           // ← Nombre del módulo
+    const { saveAndValidate, validateArray } = useSectionValidation(
+        'mi_section_key',         // ← Clave de la sección
         '/mi-endpoint',            // ← Endpoint del API
         ['nombre', 'descripcion']  // ← Campos obligatorios
     );
@@ -73,11 +73,11 @@ function MiComponente({ projectId }) {
 ## 🔒 Orden de Desbloqueo
 
 ```
-Módulo 1 ✅ (siempre accesible)
+Sección 1 ✅ (siempre accesible)
   ↓ (si is_completed: true)
-Módulo 2 (se desbloquea)
+Sección 2 (se desbloquea)
   ↓ (si is_completed: true)
-Módulo 3 (se desbloquea)
+Sección 3 (se desbloquea)
   ... y así...
 ```
 
@@ -86,7 +86,7 @@ Módulo 3 (se desbloquea)
 ## 📚 Para Arrays (Participantes, Poblaciones, etc.)
 
 ```jsx
-const { validateArray } = useModuleValidation(...);
+const { validateArray } = useSectionValidation(...);
 
 // Validar que hay al menos 1 participante con nombre y rol
 const isValid = validateArray(
@@ -103,7 +103,7 @@ const isValid = validateArray(
 - `src/types/project.ts` - Tipos con campo `is_completed`
 - `src/pages/Formulation.jsx` - Lógica de validación mejorada
 - `src/context/FormulationContext.jsx` - Helpers de validación
-- `src/hooks/useModuleValidation.ts` - **NUEVO** Hook principal
+- `src/hooks/useSectionValidation.ts` - **NUEVO** Hook principal
 - `src/VALIDATION_GUIDE.md` - Documentación completa
 - `src/components/ExampleComponentWithValidation.jsx` - Ejemplo real
 
@@ -111,20 +111,20 @@ const isValid = validateArray(
 
 ## ⚠️ Checklist de Implementación
 
-Para cada componente de módulo:
+Para cada componente de sección:
 
-- [ ] Importar `useModuleValidation` desde hooks
-- [ ] Definir campos obligatorios del módulo
+- [ ] Importar `useSectionValidation` desde hooks
+- [ ] Definir campos obligatorios de la sección
 - [ ] Crear función de validación (o usar `validateArray`)
 - [ ] Envolver guardado con `saveAndValidate()`
 - [ ] Backend retorna `is_completed: true` cuando valida
-- [ ] Probar que módulo siguiente se desbloquea
+- [ ] Probar que la sección siguiente se desbloquea
 
 ---
 
 ## 🐛 Troubleshooting
 
-**Módulo no se desbloquea:**
+**La sección no se desbloquea:**
 - ✓ Revisar que backend retorna `is_completed: true`
 - ✓ Revisar console por errores
 - ✓ Verificar endpoint correcto
@@ -147,4 +147,4 @@ Para cada componente de módulo:
 - Documentación completa: `VALIDATION_GUIDE.md`
 - Ejemplo completo: `ExampleComponentWithValidation.jsx`
 - Contexto: `src/context/FormulationContext.jsx`
-- Hook: `src/hooks/useModuleValidation.ts`
+- Hook: `src/hooks/useSectionValidation.ts`

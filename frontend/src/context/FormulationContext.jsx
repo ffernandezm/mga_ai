@@ -9,9 +9,9 @@ export const useFormulation = () => {
     if (!context) {
         console.warn('useFormulation debe usarse dentro de FormulationProvider');
         return {
-            markModuleAsComplete: () => { },
-            updateModuleCompletion: () => { },
-            checkModuleCompletion: () => { }
+            markSectionAsComplete: () => { },
+            updateSectionCompletion: () => { },
+            checkSectionCompletion: () => { }
         };
     }
     return context;
