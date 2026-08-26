@@ -151,21 +151,21 @@ class LLMManager:
 
         tab_key = (tab or "general").lower()
         general_template = _strip_question_placeholder(self.templates.get("general", ""))
-        module_template = _strip_question_placeholder(
+        section_template = _strip_question_placeholder(
             self.templates.get(tab_key, self.templates.get("default"))
         )
 
-        if not module_template:
-            module_template = _strip_question_placeholder(
+        if not section_template:
+            section_template = _strip_question_placeholder(
                 self.templates.get("default", "Responde de forma clara y concisa.")
             )
 
-        # Regla solicitada: el prompt final debe ser general + módulo.
-        # Si el módulo ya es "general", evitar duplicarlo.
+        # Regla solicitada: el prompt final debe ser general + sección.
+        # Si la sección ya es "general", evitar duplicarla.
         if general_template and tab_key != "general":
-            instruction_block = f"{general_template}\n\n{module_template}"
+            instruction_block = f"{general_template}\n\n{section_template}"
         else:
-            instruction_block = module_template or general_template or "Responde de forma clara y concisa."
+            instruction_block = section_template or general_template or "Responde de forma clara y concisa."
 
         template_text = (
             f"{instruction_block}\n\n"

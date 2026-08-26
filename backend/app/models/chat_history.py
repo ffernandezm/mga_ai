@@ -30,8 +30,8 @@ logger = logging.getLogger(__name__)
 _VALID_TABS_CACHE: dict = {"expires_at": 0.0, "valid_tabs": []}
 _VALID_TABS_CACHE_TTL_SECONDS = max(int(os.getenv("CHAT_VALID_TABS_CACHE_TTL_SECONDS", "300")), 10)
 _DEFAULT_CONTEXT_MESSAGES = max(int(os.getenv("CHAT_HISTORY_CONTEXT_MESSAGES", "12")), 2)
-_DEFAULT_CONTEXT_ITEMS = max(int(os.getenv("CHAT_MODULE_CONTEXT_MAX_ITEMS", "20")), 1)
-_DEFAULT_CONTEXT_CHARS = max(int(os.getenv("CHAT_MODULE_CONTEXT_MAX_CHARS", "9000")), 1000)
+_DEFAULT_CONTEXT_ITEMS = max(int(os.getenv("CHAT_SECTION_CONTEXT_MAX_ITEMS", "20")), 1)
+_DEFAULT_CONTEXT_CHARS = max(int(os.getenv("CHAT_SECTION_CONTEXT_MAX_CHARS", "9000")), 1000)
 
 
 def _get_valid_tabs(db: Session) -> List[str]:
@@ -177,22 +177,22 @@ def get_existing_session_id(db: Session, project_id: int, tab: str) -> Optional[
         return None
 
 
-def get_comprehensive_module_data(db: Session, project_id: int, tab: str) -> dict:
+def get_comprehensive_section_data(db: Session, project_id: int, tab: str) -> dict:
     """
-    Recupera TODA la información de un módulo incluyendo sus tablas relacionadas (subtablas).
+    Recupera TODA la información de una sección incluyendo sus tablas relacionadas (subtablas).
     Estructura jerárquica completa con todos los campos excepto JSON y campos internos.
     
     Args:
         db: Sesión de BD
         project_id: ID del proyecto
-        tab: Nombre de la tabla/módulo principal
+        tab: Nombre de la tabla/sección principal
         
     Returns:
         Dict con estructura jerárquica de datos con formato JSON
         
     Ejemplo:
         {
-            "module": "problems",
+            "mga_section": "problems",
             "table": "problems",
             "total_records": 1,
             "records": [
@@ -232,8 +232,8 @@ def get_comprehensive_module_data(db: Session, project_id: int, tab: str) -> dic
             'technical_analysis': [],  # tabla plana, sin hijas
         }
 
-        # Tablas cuyo módulo Python o clase difiere del nombre de la tabla en BD
-        module_name_overrides = {
+        # Tablas cuyo archivo Python o clase difiere del nombre de la tabla en BD
+        section_name_overrides = {
             'value_chains': 'value_chain',
         }
         class_name_overrides = {
@@ -340,7 +340,7 @@ def get_comprehensive_module_data(db: Session, project_id: int, tab: str) -> dic
             
             if not parent_table:
                 return {
-                    "module": tab,
+                    "mga_section": tab,
                     "table": tab,
                     "status": "unsupported",
                     "message": f"Tabla '{tab}' no soportada o no es una tabla principal"
@@ -348,16 +348,16 @@ def get_comprehensive_module_data(db: Session, project_id: int, tab: str) -> dic
         
         # Importar modelos dinámicamente
         try:
-            module_file = module_name_overrides.get(tab, tab)
+            section_file = section_name_overrides.get(tab, tab)
             class_name = class_name_overrides.get(
                 tab, ''.join(word.capitalize() for word in tab.split('_'))
             )
-            module = __import__(f'app.models.{module_file}', fromlist=[class_name])
-            model_class = getattr(module, class_name, None)
+            imported_section = __import__(f'app.models.{section_file}', fromlist=[class_name])
+            model_class = getattr(imported_section, class_name, None)
 
             if not model_class:
                 return {
-                    "module": tab,
+                    "mga_section": tab,
                     "table": tab,
                     "status": "error",
                     "message": f"No se pudo cargar el modelo para '{tab}'"
@@ -365,7 +365,7 @@ def get_comprehensive_module_data(db: Session, project_id: int, tab: str) -> dic
         except ImportError as e:
             logger.error(f"❌ Error importando modelo {tab}: {str(e)}")
             return {
-                "module": tab,
+                "mga_section": tab,
                 "table": tab,
                 "status": "error",
                 "message": f"Error al importar modelo: {str(e)}"
@@ -457,7 +457,7 @@ def get_comprehensive_module_data(db: Session, project_id: int, tab: str) -> dic
         
         if not main_records:
             return {
-                "module": tab,
+                "mga_section": tab,
                 "table": tab,
                 "total_records": 0,
                 "records": []
@@ -504,7 +504,7 @@ def get_comprehensive_module_data(db: Session, project_id: int, tab: str) -> dic
             records_data.append(record_data)
         
         return {
-            "module": tab,
+                "mga_section": tab,
             "table": tab,
             "total_records": len(main_records),
             "records": records_data
@@ -513,20 +513,20 @@ def get_comprehensive_module_data(db: Session, project_id: int, tab: str) -> dic
     except Exception as e:
         logger.error(f"❌ Error recuperando datos completos de {tab}: {str(e)}")
         return {
-            "module": tab,
+            "mga_section": tab,
             "table": tab,
             "status": "error",
             "message": str(e)
         }
 
 
-def format_module_data_for_prompt(data: dict, max_items: int = 50) -> str:
+def format_section_data_for_prompt(data: dict, max_items: int = 50) -> str:
     """
-    Convierte los datos del módulo a formato natural para el prompt.
+    Convierte los datos de la sección a formato natural para el prompt.
     Evita JSON técnico y presenta los datos de forma legible.
     
     Args:
-        data: Dict con estructura de datos del módulo
+        data: Dict con estructura de datos de la sección
         max_items: Máximo de items a incluir por tabla
         
     Returns:
@@ -538,13 +538,13 @@ def format_module_data_for_prompt(data: dict, max_items: int = 50) -> str:
         
         total_records = data.get("total_records", 0)
         records = data.get("records", [])[:max_items]
-        module = data.get("module", "módulo")
+        section = data.get("mga_section", "sección")
         
         if total_records == 0:
-            return f"(No hay información registrada en {module})"
+            return f"(No hay información registrada en {section})"
         
-        # Mapeo de nombres de módulos a descripciones
-        module_names = {
+        # Mapeo de nombres de secciones a descripciones
+        section_names = {
             "development_plans": "Plan de Desarrollo",
             "problems": "Árbol de Problemas",
             "population": "Población",
@@ -564,11 +564,11 @@ def format_module_data_for_prompt(data: dict, max_items: int = 50) -> str:
             "objectives_indicators": "Indicadores del Objetivo"
         }
         
-        module_display = module_names.get(module, module)
+        section_display = section_names.get(section, section)
         
         # Construir resumen natural
         lines = []
-        lines.append(f"INFORMACIÓN REGISTRADA EN {module_display.upper()}:")
+        lines.append(f"INFORMACIÓN REGISTRADA EN {section_display.upper()}:")
         lines.append("-" * 60)
         
         def format_value(val):
@@ -585,7 +585,7 @@ def format_module_data_for_prompt(data: dict, max_items: int = 50) -> str:
             """Formatea un registro de forma natural, incluyendo relaciones anidadas."""
             prefix = "  " * indent
             parts = []
-            table_name = current_table or module
+            table_name = current_table or section
 
             # 1) Campos simples
             for key, value in record.items():
@@ -632,7 +632,7 @@ def format_module_data_for_prompt(data: dict, max_items: int = 50) -> str:
         for idx, record in enumerate(records, 1):
             if len(records) > 1:
                 lines.append(f"\nRegistro {idx}:")
-            lines.append(format_record(record, current_table=module))
+            lines.append(format_record(record, current_table=section))
         
         lines.append("-" * 60)
         
@@ -644,19 +644,19 @@ def format_module_data_for_prompt(data: dict, max_items: int = 50) -> str:
         
     except Exception as e:
         logger.error(f"❌ Error formateando datos: {str(e)}")
-        return f"(Error al procesar los datos del módulo: {str(e)[:50]})"
+        return f"(Error al procesar los datos de la sección: {str(e)[:50]})"
 
 
 
-def get_module_data(db: Session, project_id: int, tab: str) -> str:
+def get_section_data(db: Session, project_id: int, tab: str) -> str:
     """
-    Recupera TODOS los datos registrados en cualquier tabla/módulo del proyecto.
+    Recupera TODOS los datos registrados en cualquier tabla/sección del proyecto.
     Funciona dinámicamente sin hardcodear campos específicos.
     
     Args:
         db: Sesión de BD
         project_id: ID del proyecto
-        tab: Nombre de la tabla/módulo
+        tab: Nombre de la tabla/sección
         
     Returns:
         String formateado con toda la información disponible
@@ -783,11 +783,11 @@ def get_module_data(db: Session, project_id: int, tab: str) -> str:
         context_lines.append("="*70)
         
         context = "\n".join(context_lines)
-        logger.info(f"📊 Contexto del módulo {tab} recuperado ({len(context)} chars, {len(result) if result else 0} registros)")
+        logger.info(f"📊 Contexto de la sección {tab} recuperado ({len(context)} chars, {len(result) if result else 0} registros)")
         return context
         
     except Exception as e:
-        logger.warning(f"⚠️ Error recuperando datos del módulo {tab}: {str(e)}")
+        logger.warning(f"⚠️ Error recuperando datos de la sección {tab}: {str(e)}")
         return ""
 
 
@@ -884,28 +884,28 @@ def chat_with_ai(
         
         logger.info(f"📚 Historial de {len(chat_history)} mensajes anteriores recuperado")
 
-        # 🆕 MEJORADO: Recuperar datos COMPLETOS del módulo con estructura jerárquica
-        logger.info(f"📊 Recuperando datos COMPLETOS del módulo {tab} (incluyendo subtablas)...")
-        module_data_start = perf_counter()
-        comprehensive_data = get_comprehensive_module_data(db, project_id, tab)
-        module_data_ms = (perf_counter() - module_data_start) * 1000
+        # 🆕 MEJORADO: Recuperar datos COMPLETOS de la sección con estructura jerárquica
+        logger.info(f"📊 Recuperando datos COMPLETOS de la sección {tab} (incluyendo subtablas)...")
+        section_data_start = perf_counter()
+        comprehensive_data = get_comprehensive_section_data(db, project_id, tab)
+        section_data_ms = (perf_counter() - section_data_start) * 1000
         
         # Formatear datos para el prompt
         format_start = perf_counter()
-        module_context = format_module_data_for_prompt(comprehensive_data, max_items=_DEFAULT_CONTEXT_ITEMS)
-        if len(module_context) > _DEFAULT_CONTEXT_CHARS:
-            module_context = module_context[:_DEFAULT_CONTEXT_CHARS]
+        section_context = format_section_data_for_prompt(comprehensive_data, max_items=_DEFAULT_CONTEXT_ITEMS)
+        if len(section_context) > _DEFAULT_CONTEXT_CHARS:
+            section_context = section_context[:_DEFAULT_CONTEXT_CHARS]
         format_ms = (perf_counter() - format_start) * 1000
         
-        logger.info(f"✅ Contexto del módulo {tab} recuperado ({comprehensive_data.get('total_records', 0)} registros en BD)")
+        logger.info(f"✅ Contexto de la sección {tab} recuperado ({comprehensive_data.get('total_records', 0)} registros en BD)")
 
-        # Llamar modelo LLM con historial Y datos COMPLETOS del módulo
-        logger.info(f"🤖 Invocando LLM para tab={tab} con contexto completo de chat y módulo")
+        # Llamar modelo LLM con historial Y datos COMPLETOS de la sección
+        logger.info(f"🤖 Invocando LLM para tab={tab} con contexto completo de chat y sección")
         llm_start = perf_counter()
         answer = llm_manager.ask(
             question=question,
             tab=tab,
-            context=module_context,  # 🆕 Datos COMPLETOS con estructura jerárquica
+            context=section_context,  # 🆕 Datos COMPLETOS con estructura jerárquica
             chat_history=chat_history if chat_history else None,  # Pasar historial si existe
             session_id=session_id
         )
@@ -917,19 +917,19 @@ def chat_with_ai(
         total_ms = (perf_counter() - total_start) * 1000
         logger.info(
             "⏱️ Chat endpoint timing | project=%s tab=%s total_ms=%.1f tab_validation_ms=%.1f "
-            "session_ms=%.1f history_ms=%.1f module_data_ms=%.1f format_ms=%.1f llm_ms=%.1f "
-            "question_chars=%s module_context_chars=%s",
+            "session_ms=%.1f history_ms=%.1f section_data_ms=%.1f format_ms=%.1f llm_ms=%.1f "
+            "question_chars=%s section_context_chars=%s",
             project_id,
             tab,
             total_ms,
             tab_validation_ms,
             session_ms,
             history_ms,
-            module_data_ms,
+            section_data_ms,
             format_ms,
             llm_ms,
             len(question or ""),
-            len(module_context or ""),
+            len(section_context or ""),
         )
 
         return bot_message
