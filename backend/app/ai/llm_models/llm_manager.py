@@ -22,6 +22,7 @@ from langchain_core.output_parsers import StrOutputParser
 
 from app.core.database import SessionLocal
 from app.ai.rag import RAGManager
+from app.ai.context.context_manager import ContextManager
 from app.ai.llm_models.openai_llm import DEFAULT_OPENAI_MODEL, OPENAI_MODEL_PROFILES, resolve_openai_model
 from sqlalchemy.orm import Session
 
@@ -29,6 +30,15 @@ from sqlalchemy.orm import Session
 _ENV_PATH = Path(__file__).resolve().parents[3] / ".env"
 load_dotenv(dotenv_path=_ENV_PATH)
 logger = logging.getLogger(__name__)
+
+# Claves canónicas (ver app.ai.context.normalize_section) sin entrada propia
+# en prompt_templates.json: reutilizan el prompt especializado del nombre de
+# tabla legado para no duplicar contenido ni perder compatibilidad.
+_TEMPLATE_KEY_ALIASES = {
+    "requirements": "requirements_general",
+    "localization": "localization_general",
+}
+
 
 # ==============================
 # 🔹 DEPENDENCIA DB
@@ -58,6 +68,7 @@ class LLMManager:
         self.llm_provider = os.getenv("LLM_PROVIDER", "groq").lower()
         self.templates = self._load_templates()
         self.rag_manager = RAGManager()
+        self.context_manager = ContextManager()
         self.max_chat_history_messages = max(int(os.getenv("LLM_MAX_CHAT_HISTORY_MESSAGES", "6")), 1)
         self.max_project_context_chars = max(int(os.getenv("LLM_MAX_PROJECT_CONTEXT_CHARS", "12000")), 1000)
         self.model = self._initialize_llm()
@@ -130,10 +141,14 @@ class LLMManager:
     def get_prompt_template(self, tab: str) -> PromptTemplate:
         """
         Obtiene la plantilla de prompt para un componente MGA.
-        
+
         Args:
-            tab: Componente MGA (problems, participants, population, etc)
-            
+            tab: Sección MGA. Acepta tanto los nombres de tabla legados
+                (p. ej. "requirements_general", "localization_general") como
+                las claves canónicas producidas por
+                `app.ai.context.normalize_section` (p. ej. "requirements",
+                "localization"). Ver `_TEMPLATE_KEY_ALIASES`.
+
         Returns:
             PromptTemplate configurado
         """
@@ -151,8 +166,12 @@ class LLMManager:
 
         tab_key = (tab or "general").lower()
         general_template = _strip_question_placeholder(self.templates.get("general", ""))
+        # Algunas claves canónicas (requirements, localization) no tienen
+        # entrada propia en prompt_templates.json; reutilizan el prompt
+        # especializado ya existente bajo el nombre legado de tabla.
+        template_key = tab_key if tab_key in self.templates else _TEMPLATE_KEY_ALIASES.get(tab_key, tab_key)
         section_template = _strip_question_placeholder(
-            self.templates.get(tab_key, self.templates.get("default"))
+            self.templates.get(template_key, self.templates.get("default"))
         )
 
         if not section_template:
@@ -169,17 +188,19 @@ class LLMManager:
 
         template_text = (
             f"{instruction_block}\n\n"
-            "Informacion del proyecto:\n"
+            "=== INFORMACIÓN REGISTRADA DEL PROYECTO ===\n"
             "{project_context}\n\n"
-            "Contexto de la conversacion:\n"
+            "=== CONTEXTO METODOLÓGICO MGA (RAG) ===\n"
+            "{rag_context}\n\n"
+            "=== HISTORIAL RECIENTE ===\n"
             "{chat_history}\n\n"
-            "Pregunta del usuario:\n"
+            "=== PREGUNTA DEL USUARIO ===\n"
             "{question}"
         )
-        
+
         return PromptTemplate(
             template=template_text,
-            input_variables=["project_context", "chat_history", "question"]
+            input_variables=["project_context", "rag_context", "chat_history", "question"]
         )
 
     def _build_chat_context(self, chat_history: list) -> str:
@@ -220,21 +241,47 @@ class LLMManager:
         return str(raw_value).strip().lower() in {"1", "true", "yes", "on"}
 
     def _merge_project_and_rag_context(self, project_context: str, rag_context: str) -> str:
-        """Combina el contexto funcional del proyecto con el contexto recuperado por RAG."""
-        project_context = (project_context or "").strip()
+        """DEPRECADO: ya no se usa en `ask()` (generaba RAG duplicado en el prompt,
+        una vez dentro de `project_context` y otra en `{rag_context}`). Se
+        conserva temporalmente por si algún consumidor externo la usa; el
+        camino nuevo separa `project_context`/`rag_context` en
+        `_prepare_contexts_for_prompt`.
+        """
+        project_context = self.context_manager.sanitize_context_text(project_context or "")
+        rag_context = self.context_manager.sanitize_context_text(rag_context or "")
+
         if len(project_context) > self.max_project_context_chars:
             project_context = project_context[: self.max_project_context_chars]
-        rag_context = (rag_context or "").strip()
+        if len(rag_context) > self.max_project_context_chars:
+            rag_context = rag_context[: self.max_project_context_chars]
 
         if project_context and rag_context:
             return (
                 "Informacion del proyecto (BD):\n"
                 f"{project_context}\n\n"
-                f"{rag_context}"
+                f"Contexto recuperado (RAG):\n{rag_context}"
             )
         if rag_context:
             return rag_context
         return project_context
+
+    def _prepare_contexts_for_prompt(self, project_context: str, rag_context: str) -> tuple[str, str]:
+        """Sanitiza y trunca project_context/rag_context SIN mezclarlos.
+
+        Mantiene ambos bloques separados en el prompt final
+        (=== INFORMACIÓN REGISTRADA DEL PROYECTO === vs
+        === CONTEXTO METODOLÓGICO MGA (RAG) ===), evitando la duplicación
+        del contexto RAG que producía `_merge_project_and_rag_context`.
+        """
+        project_context = self.context_manager.sanitize_context_text(project_context or "")
+        rag_context = self.context_manager.sanitize_context_text(rag_context or "")
+
+        if len(project_context) > self.max_project_context_chars:
+            project_context = project_context[: self.max_project_context_chars]
+        if len(rag_context) > self.max_project_context_chars:
+            rag_context = rag_context[: self.max_project_context_chars]
+
+        return project_context, rag_context
 
 
     def ask(
@@ -274,13 +321,17 @@ class LLMManager:
             rag_start = perf_counter()
             rag_context = self.rag_manager.get_relevant_context(question)
             rag_ms = (perf_counter() - rag_start) * 1000
-            merged_context = self._merge_project_and_rag_context(context, rag_context)
-            
+            # project_context y rag_context viajan SEPARADOS al prompt (no se
+            # mezclan): el proyecto es responsabilidad de ContextManager y el
+            # RAG de RAGManager, cada uno bajo su propia etiqueta.
+            project_context, rag_context = self._prepare_contexts_for_prompt(context, rag_context)
+
             # Crear cadena LLM
             chain = prompt | self.model | StrOutputParser()
             llm_start = perf_counter()
             response = chain.invoke({
-                "project_context": merged_context,
+                "project_context": project_context,
+                "rag_context": rag_context,
                 "chat_history": self._build_chat_context(chat_history) if chat_history else "",
                 "question": question,
             })
@@ -289,7 +340,7 @@ class LLMManager:
             
             logger.info(
                 f"Respuesta generada para tab={tab}, session={session_id}, "
-                f"con historial={bool(chat_history)}, con datos={bool(context)}, con rag={bool(rag_context)}"
+                f"con historial={bool(chat_history)}, con datos={bool(project_context)}, con rag={bool(rag_context)}"
             )
             logger.info(
                 "⏱️ LLM timing | tab=%s session=%s rag_ms=%.1f llm_ms=%.1f total_ms=%.1f "
@@ -300,7 +351,7 @@ class LLMManager:
                 llm_ms,
                 total_ms,
                 len(question or ""),
-                len(merged_context or ""),
+                len(project_context or ""),
                 len(rag_context or ""),
             )
             return response

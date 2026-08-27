@@ -20,6 +20,8 @@ from pydantic import BaseModel
 
 from app.core.database import Base, SessionLocal, engine
 from app.ai.llm_models.llm_manager import LLMManager
+from app.ai.context.context_manager import ContextManager, render_semantic_context
+from app.ai.context.module_dependencies import UnknownSectionError, normalize_section
 from app.utils.model_labels import get_column_label, get_table_label
 import json
 
@@ -796,6 +798,7 @@ def get_section_data(db: Session, project_id: int, tab: str) -> str:
 # ==============================
 router = APIRouter(prefix="/chat_history", tags=["chat"])
 llm_manager = LLMManager()
+context_manager = ContextManager()
 
 
 @router.post("/chat/{project_id}/{tab}", response_model=ChatMessageResponse)
@@ -884,28 +887,59 @@ def chat_with_ai(
         
         logger.info(f"📚 Historial de {len(chat_history)} mensajes anteriores recuperado")
 
-        # 🆕 MEJORADO: Recuperar datos COMPLETOS de la sección con estructura jerárquica
-        logger.info(f"📊 Recuperando datos COMPLETOS de la sección {tab} (incluyendo subtablas)...")
-        section_data_start = perf_counter()
-        comprehensive_data = get_comprehensive_section_data(db, project_id, tab)
-        section_data_ms = (perf_counter() - section_data_start) * 1000
-        
-        # Formatear datos para el prompt
-        format_start = perf_counter()
-        section_context = format_section_data_for_prompt(comprehensive_data, max_items=_DEFAULT_CONTEXT_ITEMS)
-        if len(section_context) > _DEFAULT_CONTEXT_CHARS:
-            section_context = section_context[:_DEFAULT_CONTEXT_CHARS]
-        format_ms = (perf_counter() - format_start) * 1000
-        
-        logger.info(f"✅ Contexto de la sección {tab} recuperado ({comprehensive_data.get('total_records', 0)} registros en BD)")
+        # normalize_section(tab) traduce el tab de persistencia (nombre de
+        # tabla, p. ej. "requirements_general") a la clave canónica que usa
+        # la capa de IA (p. ej. "requirements"). El historial de chat sigue
+        # indexado por el `tab` original para no perder conversaciones
+        # existentes (tab de persistencia vs canonical section para IA).
+        try:
+            canonical_section = normalize_section(tab)
+        except UnknownSectionError:
+            logger.warning("⚠️ No se pudo normalizar tab='%s' a una sección canónica; se usa tal cual", tab)
+            canonical_section = tab
 
-        # Llamar modelo LLM con historial Y datos COMPLETOS de la sección
-        logger.info(f"🤖 Invocando LLM para tab={tab} con contexto completo de chat y sección")
+        section_data_start = perf_counter()
+        try:
+            logger.info(
+                "📊 Construyendo contexto semántico (ContextManager) para project=%s section=%s",
+                project_id,
+                canonical_section,
+            )
+            semantic_context = context_manager.build_semantic_context(
+                db=db,
+                project_id=project_id,
+                section=canonical_section,
+                mode="generation",
+            )
+            section_context = render_semantic_context(semantic_context)
+        except Exception as context_error:
+            # FALLBACK LEGADO — eliminar cuando la capa semántica quede
+            # consolidada en producción. Se registra el error explícitamente
+            # (no se oculta) y se usa el camino anterior para no romper el chat.
+            logger.error(
+                "❌ ContextManager falló construyendo contexto semántico (project=%s, tab=%s): %s. "
+                "Usando fallback legado get_comprehensive_section_data/format_section_data_for_prompt.",
+                project_id,
+                tab,
+                context_error,
+                exc_info=True,
+            )
+            comprehensive_data = get_comprehensive_section_data(db, project_id, tab)
+            section_context = format_section_data_for_prompt(comprehensive_data, max_items=_DEFAULT_CONTEXT_ITEMS)
+            if len(section_context) > _DEFAULT_CONTEXT_CHARS:
+                section_context = section_context[:_DEFAULT_CONTEXT_CHARS]
+        section_data_ms = (perf_counter() - section_data_start) * 1000
+        format_ms = 0.0
+
+        logger.info(f"✅ Contexto de la sección {canonical_section} preparado ({len(section_context)} chars)")
+
+        # Llamar modelo LLM con historial y el contexto semántico de la sección
+        logger.info(f"🤖 Invocando LLM para section={canonical_section} (tab persistido={tab})")
         llm_start = perf_counter()
         answer = llm_manager.ask(
             question=question,
-            tab=tab,
-            context=section_context,  # 🆕 Datos COMPLETOS con estructura jerárquica
+            tab=canonical_section,
+            context=section_context,  # contexto MGA (proyecto); RAG se agrega/separa dentro de LLMManager
             chat_history=chat_history if chat_history else None,  # Pasar historial si existe
             session_id=session_id
         )
