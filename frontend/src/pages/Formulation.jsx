@@ -15,6 +15,7 @@ import ValueChain from "../components/ValueChain";
 import Chatbot from "../components/Chatbot";
 import ProjectHeader from "../components/ProjectHeader";
 import api from "../services/api";
+import { MGASection, MGA_SECTION_METADATA } from "../utils/constants";
 import "./Formulation.css";
 
 function Formulation() {
@@ -77,9 +78,10 @@ function Formulation() {
 
     const renderContent = () => {
         switch (activeTab) {
-            case "development_plans":
+            case MGASection.DEVELOPMENT_PLAN:
                 return <DevelopmentPlan projectId={id} />;
-            case "problems":
+            case MGASection.PROBLEM:
+                // Dominio: Problemática | Técnica: Árbol de Problemas
                 return (
                     <ProblemsTree
                         projectId={id}
@@ -87,21 +89,21 @@ function Formulation() {
                         ProjectDescription={project?.description}
                     />
                 );
-            case "participants_general":
+            case MGASection.PARTICIPANTS:
                 return <Participants projectId={id} />;
-            case "population":
+            case MGASection.POPULATION:
                 return <Population projectId={id} />;
-            case "objectives":
+            case MGASection.OBJECTIVES:
                 return <Objectives projectId={id} />;
-            case "alternatives_general":
+            case MGASection.ALTERNATIVES:
                 return <AlternativesGeneral projectId={id} />;
-            case "requirements_general":
+            case MGASection.REQUIREMENTS:
                 return <RequirementsGeneral projectId={id} />;
-            case "technical_analysis":
+            case MGASection.TECHNICAL_ANALYSIS:
                 return <TechnicalAnalysis projectId={id} />;
-            case "localization_general":
+            case MGASection.LOCALIZATION:
                 return <LocalizationGeneral projectId={id} />;
-            case "value_chain":
+            case MGASection.VALUE_CHAIN:
                 return <ValueChain projectId={id} />;
             default:
                 return <div>Componente no disponible</div>;
@@ -120,82 +122,82 @@ function Formulation() {
                         {/* Barra de navegación */}
                         <nav className="formulation-tabs px-4 py-2 d-flex gap-3 flex-wrap">
                             <button
-                                className={`btn btn-sm ${activeTab === "development_plans" ? "btn-primary" : "btn-outline-primary"
+                                className={`btn btn-sm ${activeTab === MGASection.DEVELOPMENT_PLAN ? "btn-primary" : "btn-outline-primary"
                                     }`}
-                                onClick={() => handleTabChange("development_plans")}
+                                onClick={() => handleTabChange(MGASection.DEVELOPMENT_PLAN)}
                             >
-                                Plan de Desarrollo
+                                {MGA_SECTION_METADATA[MGASection.DEVELOPMENT_PLAN].label}
                             </button>
                             <button
-                                className={`btn btn-sm ${activeTab === "problems" ? "btn-primary" : "btn-outline-primary"
+                                className={`btn btn-sm ${activeTab === MGASection.PROBLEM ? "btn-primary" : "btn-outline-primary"
                                     }`}
-                                onClick={() => handleTabChange("problems")}
+                                onClick={() => handleTabChange(MGASection.PROBLEM)}
+                                title={`Técnica MGA: ${MGA_SECTION_METADATA[MGASection.PROBLEM].technique}`}
                             >
-                                Problemática
+                                {MGA_SECTION_METADATA[MGASection.PROBLEM].label}
                             </button>
                             <button
-                                className={`btn btn-sm ${activeTab === "participants_general"
+                                className={`btn btn-sm ${activeTab === MGASection.PARTICIPANTS
                                     ? "btn-primary"
                                     : "btn-outline-primary"
                                     }`}
-                                onClick={() => handleTabChange("participants_general")}
+                                onClick={() => handleTabChange(MGASection.PARTICIPANTS)}
                             >
-                                Participantes
+                                {MGA_SECTION_METADATA[MGASection.PARTICIPANTS].label}
                             </button>
                             <button
-                                className={`btn btn-sm ${activeTab === "population" ? "btn-primary" : "btn-outline-primary"
+                                className={`btn btn-sm ${activeTab === MGASection.POPULATION ? "btn-primary" : "btn-outline-primary"
                                     }`}
-                                onClick={() => handleTabChange("population")}
+                                onClick={() => handleTabChange(MGASection.POPULATION)}
                             >
-                                Población
+                                {MGA_SECTION_METADATA[MGASection.POPULATION].label}
                             </button>
                             <button
-                                className={`btn btn-sm ${activeTab === "objectives" ? "btn-primary" : "btn-outline-primary"
+                                className={`btn btn-sm ${activeTab === MGASection.OBJECTIVES ? "btn-primary" : "btn-outline-primary"
                                     }`}
-                                onClick={() => handleTabChange("objectives")}
+                                onClick={() => handleTabChange(MGASection.OBJECTIVES)}
                             >
-                                Objetivos
+                                {MGA_SECTION_METADATA[MGASection.OBJECTIVES].label}
                             </button>
                             <button
-                                className={`btn btn-sm ${activeTab === "alternatives_general" ? "btn-primary" : "btn-outline-primary"
+                                className={`btn btn-sm ${activeTab === MGASection.ALTERNATIVES ? "btn-primary" : "btn-outline-primary"
                                     }`}
-                                onClick={() => handleTabChange("alternatives_general")}
+                                onClick={() => handleTabChange(MGASection.ALTERNATIVES)}
                             >
-                                Alternativas
+                                {MGA_SECTION_METADATA[MGASection.ALTERNATIVES].label}
                             </button>
                         </nav>
                         <nav className="formulation-tabs px-4 py-2 d-flex gap-3 flex-wrap">
                             <button
-                                className={`btn btn-sm ${activeTab === "requirements_general" ? "btn-primary" : "btn-outline-primary"
+                                className={`btn btn-sm ${activeTab === MGASection.REQUIREMENTS ? "btn-primary" : "btn-outline-primary"
                                     }`}
-                                onClick={() => handleTabChange("requirements_general")}
+                                onClick={() => handleTabChange(MGASection.REQUIREMENTS)}
                             >
-                                Necesidades
+                                {MGA_SECTION_METADATA[MGASection.REQUIREMENTS].label}
                             </button>
                             <button
-                                className={`btn btn-sm ${activeTab === "technical_analysis"
+                                className={`btn btn-sm ${activeTab === MGASection.TECHNICAL_ANALYSIS
                                     ? "btn-primary"
                                     : "btn-outline-primary"
                                     }`}
-                                onClick={() => handleTabChange("technical_analysis")}
+                                onClick={() => handleTabChange(MGASection.TECHNICAL_ANALYSIS)}
                             >
-                                Análisis Técnico
+                                {MGA_SECTION_METADATA[MGASection.TECHNICAL_ANALYSIS].label}
                             </button>
                             <button
-                                className={`btn btn-sm ${activeTab === "localization_general" ? "btn-primary" : "btn-outline-primary"
+                                className={`btn btn-sm ${activeTab === MGASection.LOCALIZATION ? "btn-primary" : "btn-outline-primary"
                                     }`}
-                                onClick={() => handleTabChange("localization_general")}
+                                onClick={() => handleTabChange(MGASection.LOCALIZATION)}
                             >
-                                Localización
+                                {MGA_SECTION_METADATA[MGASection.LOCALIZATION].label}
                             </button>
 
-                            {/* Aqui cambiar a la nueva tab que se llamará value_chain */}
                             <button
-                                className={`btn btn-sm ${activeTab === "value_chain" ? "btn-primary" : "btn-outline-primary"
+                                className={`btn btn-sm ${activeTab === MGASection.VALUE_CHAIN ? "btn-primary" : "btn-outline-primary"
                                     }`}
-                                onClick={() => handleTabChange("value_chain")}
+                                onClick={() => handleTabChange(MGASection.VALUE_CHAIN)}
                             >
-                                Cadeba de Valor
+                                {MGA_SECTION_METADATA[MGASection.VALUE_CHAIN].label}
                             </button>
                         </nav>
 

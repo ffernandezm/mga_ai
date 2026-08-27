@@ -28,8 +28,25 @@ class LLMProvider(str, Enum):
     HUGGINGFACE = "huggingface"
 
 
+class MGASection(str, Enum):
+    """
+    Secciones metodológicas de la MGA (Dominio conceptual).
+
+    """
+    DEVELOPMENT_PLAN = "development_plans"
+    PROBLEM = "problems"
+    PARTICIPANTS = "participants_general"
+    POPULATION = "population"
+    OBJECTIVES = "objectives"
+    ALTERNATIVES = "alternatives_general"
+    REQUIREMENTS = "requirements_general"
+    TECHNICAL_ANALYSIS = "technical_analysis"
+    LOCALIZATION = "localization_general"
+    VALUE_CHAIN = "value_chain"
+
+
 class MgaComponent(str, Enum):
-    """Componentes de la Metodología General Ajustada"""
+    """Componentes de la Metodología General Ajustada (Compatibilidad)"""
     PROBLEMS = "problems"
     PARTICIPANTS = "participants"
     POPULATION = "population"

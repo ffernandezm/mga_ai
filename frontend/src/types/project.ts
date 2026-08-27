@@ -2,6 +2,24 @@
  * Tipos relacionados con Proyectos y MGA
  */
 
+/**
+ * Secciones metodológicas de la MGA (Dominio)
+ * MGASection.PROBLEM representa la sección conceptual de "Problemática",
+ * donde la técnica MGA empleada es el "Árbol de Problemas".
+ */
+export enum MGASection {
+    DEVELOPMENT_PLAN = 'development_plans',
+    PROBLEM = 'problems', // Dominio: Problemática / Identificación del Problema
+    PARTICIPANTS = 'participants_general',
+    POPULATION = 'population',
+    OBJECTIVES = 'objectives',
+    ALTERNATIVES = 'alternatives_general',
+    REQUIREMENTS = 'requirements_general',
+    TECHNICAL_ANALYSIS = 'technical_analysis',
+    LOCALIZATION = 'localization_general',
+    VALUE_CHAIN = 'value_chain',
+}
+
 export interface Project {
     id: string | number;
     name: string;

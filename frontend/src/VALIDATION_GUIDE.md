@@ -10,7 +10,9 @@ El sistema valida que cada sección tenga los campos obligatorios completados an
 - Campos obligatorios: `name`, `description`
 - Endpoint: `POST /development-plans/:projectId`
 
-### 2. **Árbol de Problemas** (problems)
+### 2. **Problemática / Árbol de Problemas** (`MGASection.PROBLEM` = `problems`)
+- **Dominio MGA**: Problemática (Identificación del problema)
+- **Técnica MGA**: Árbol de Problemas
 - Campos obligatorios: `central_problem`, `direct_causes`, `direct_effects`
 - Endpoint: `POST /problems/:projectId`
 

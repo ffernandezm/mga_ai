@@ -543,10 +543,10 @@ def format_section_data_for_prompt(data: dict, max_items: int = 50) -> str:
         if total_records == 0:
             return f"(No hay información registrada en {section})"
         
-        # Mapeo de nombres de secciones a descripciones
+        # Mapeo de nombres de secciones a descripciones (Dominio MGA y Técnica)
         section_names = {
             "development_plans": "Plan de Desarrollo",
-            "problems": "Árbol de Problemas",
+            "problems": "Problemática (Árbol de Problemas)",
             "population": "Población",
             "participants_general": "Actores del Proyecto",
             "participants": "Participantes",
