@@ -38,7 +38,7 @@ def _make_test_llm_manager(rag_text: str = "[DOC MGA] contenido metodológico re
     manager = LLMManager.__new__(LLMManager)
     manager.llm_provider = "test"
     manager.templates = manager._load_templates()
-    manager.rag_manager = SimpleNamespace(get_relevant_context=lambda q: rag_text)
+    manager.rag_manager = SimpleNamespace(get_relevant_context=lambda q, section=None: rag_text)
     manager.context_manager = ContextManager()
     manager.max_chat_history_messages = 6
     manager.max_project_context_chars = 12000

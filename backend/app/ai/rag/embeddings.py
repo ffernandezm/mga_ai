@@ -9,6 +9,8 @@ import joblib
 from scipy import sparse
 from sklearn.feature_extraction.text import TfidfVectorizer
 
+from .stopwords import SPANISH_STOPWORDS
+
 
 class TfidfEmbeddingModel:
     """Modelo de embeddings TF-IDF persistible."""
@@ -19,7 +21,10 @@ class TfidfEmbeddingModel:
             ngram_range=(1, 2),
             max_features=max_features,
             strip_accents="unicode",
-            token_pattern=r"(?u)\\b\\w\\w+\\b",
+            # El escape debe ser simple: r"\\b" dentro de un raw string produce
+            # un backslash literal y el vocabulario queda vacío.
+            token_pattern=r"(?u)\b\w\w+\b",
+            stop_words=SPANISH_STOPWORDS,
         )
 
     def fit_transform(self, texts: List[str]) -> sparse.csr_matrix:

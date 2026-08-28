@@ -1,0 +1,30 @@
+# Sección MGA: Problemática (árbol de problemas)
+# `registered_data` es solo documentación del caso: el contexto real se
+# construye desde el fixture vía ContextLoaders/ContextManager.
+- id: problems-inconsistency-01
+  section: problems
+  type: inconsistency
+  fixture: problems_cause_as_missing_solution
+  registered_data:
+    central_problem: "Bajas condiciones de transitabilidad en la vía terciaria que comunica la vereda El Carmen con la cabecera municipal"
+    direct_causes:
+      - "Deterioro de la capa de rodadura de la vía"
+      - "Falta de construcción de una variante pavimentada hacia la vereda"  # defecto controlado
+    indirect_causes:
+      - "Ausencia de mantenimiento rutinario periódico"
+    direct_effects:
+      - "Incremento de los tiempos de desplazamiento de la población rural"
+    indirect_effects:
+      - "Pérdida de competitividad de la producción agrícola veredal"
+  question: "¿Las causas directas que registré están bien formuladas?"
+  expected:
+    must:
+      - "Señala que 'Falta de construcción de una variante pavimentada' está formulada como ausencia de una solución y no como una situación negativa existente"
+      - "Explica que una causa no debe expresar la carencia de la alternativa de solución"
+      - "Reconoce que 'Deterioro de la capa de rodadura' sí está correctamente formulada"
+    must_not:
+      - "Reescribe el árbol de problemas completo sin que se lo hayan pedido"
+      - "Introduce causas, cifras o territorios no registrados"
+  notes: >-
+    Manual MGA: el problema central y sus causas describen situaciones negativas
+    existentes; formularlas como ausencia de solución condiciona la alternativa.

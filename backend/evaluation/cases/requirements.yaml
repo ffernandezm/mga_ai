@@ -1,0 +1,28 @@
+# Sección MGA: Estudio de necesidades (requerimientos)
+- id: requirements-inconsistency-01
+  section: requirements
+  type: inconsistency
+  fixture: requirements_missing_measurement_and_horizon
+  registered_data:
+    analisis: "Estudio de necesidades de bienes y servicios para el mejoramiento de la vía"
+    bienes_servicios:
+      - nombre: "Vía terciaria mejorada"
+        unidad_de_medida: "Kilómetros"
+        anio_inicio: 2025
+        anio_fin: 2027
+      - nombre: "Obras de drenaje construidas"  # defecto controlado
+        unidad_de_medida: null
+        anio_inicio: null
+        anio_fin: null
+  question: "¿Está completo mi estudio de necesidades?"
+  expected:
+    must:
+      - "Detecta que 'Obras de drenaje construidas' no tiene unidad de medida registrada"
+      - "Detecta que a ese mismo bien/servicio le falta el horizonte temporal (años de inicio/fin/último proyectado)"
+      - "Indica explícitamente qué campos deben diligenciarse"
+    must_not:
+      - "Inventa unidades de medida, cantidades, años o cifras de oferta/demanda/déficit"
+      - "Afirma que el estudio está completo"
+  notes: >-
+    El modelo de datos no almacena series cuantitativas de oferta-demanda-déficit;
+    la respuesta debe señalar la información faltante sin estimarla.

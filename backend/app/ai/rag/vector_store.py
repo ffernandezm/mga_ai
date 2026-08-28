@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 import numpy as np
 from scipy import sparse
@@ -23,6 +23,7 @@ class LocalVectorStore:
         self.chunks_file = self.index_dir / "chunks.json"
         self.matrix_file = self.index_dir / "embeddings.npz"
         self.vectorizer_file = self.index_dir / "vectorizer.joblib"
+        self.metadata_file = self.index_dir / "index_metadata.json"
 
         self._embedding_model = TfidfEmbeddingModel()
         self._chunks: List[DocumentChunk] = []
@@ -31,7 +32,16 @@ class LocalVectorStore:
     def exists(self) -> bool:
         return self.chunks_file.exists() and self.matrix_file.exists() and self.vectorizer_file.exists()
 
-    def build(self, chunks: List[DocumentChunk]) -> None:
+    def read_metadata(self) -> Optional[Dict]:
+        """Identidad del índice persistido (None si es de una versión anterior)."""
+        if not self.metadata_file.exists():
+            return None
+        try:
+            return json.loads(self.metadata_file.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            return None
+
+    def build(self, chunks: List[DocumentChunk], metadata: Optional[Dict] = None) -> None:
         if not chunks:
             raise ValueError("No hay chunks para indexar")
 
@@ -51,6 +61,14 @@ class LocalVectorStore:
             for chunk in chunks
         ]
         self.chunks_file.write_text(json.dumps(serialized_chunks, ensure_ascii=False), encoding="utf-8")
+
+        if metadata is not None:
+            payload = dict(metadata)
+            payload["chunks"] = len(chunks)
+            payload["vocabulary_size"] = len(self._embedding_model.vectorizer.vocabulary_)
+            payload["matrix_shape"] = list(self._matrix.shape)
+            payload["nnz"] = int(self._matrix.nnz)
+            self.metadata_file.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
 
     def load(self) -> None:
         raw_chunks = json.loads(self.chunks_file.read_text(encoding="utf-8"))

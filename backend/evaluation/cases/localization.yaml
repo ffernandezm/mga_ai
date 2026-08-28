@@ -1,0 +1,30 @@
+# Sección MGA: Localización
+- id: localization-inconsistency-01
+  section: localization
+  type: inconsistency
+  fixture: localization_inconsistent_with_target_population
+  registered_data:
+    poblacion_intervencion:
+      numero: 2400
+      ubicacion: "Región Andina / Boyacá / Tunja"
+    localizacion_registrada:  # defecto controlado: otro territorio
+      region: "Región Caribe"
+      departamento: "Atlántico"
+      ciudad: "Soledad"
+      grupo: "Corregimiento La Playa"
+    factores_activos:
+      - "Proximidad a la población objetivo"
+      - "Comunicaciones"
+      - "Topografía"
+  question: "¿La localización que registré es coherente con la población objetivo?"
+  expected:
+    must:
+      - "Detecta que la localización registrada (Atlántico/Soledad) no coincide con la ubicación de la población de intervención (Boyacá/Tunja)"
+      - "Señala la contradicción con el factor 'Proximidad a la población objetivo' marcado como activo"
+      - "Indica que debe corregirse el registro territorial para sustentar la localización"
+    must_not:
+      - "Inventa coordenadas, direcciones o territorios adicionales"
+      - "Justifica la localización del Atlántico como válida para este proyecto"
+  notes: >-
+    Manual MGA: la localización se sustenta en la población objetivo, las
+    necesidades y los factores de localización analizados.

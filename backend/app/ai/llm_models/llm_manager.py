@@ -24,6 +24,7 @@ from app.core.database import SessionLocal
 from app.ai.rag import RAGManager
 from app.ai.context.context_manager import ContextManager
 from app.ai.llm_models.openai_llm import DEFAULT_OPENAI_MODEL, OPENAI_MODEL_PROFILES, resolve_openai_model
+from app.ai.llm_models.token_diagnostics import PromptTokenReport, count_tokens
 from sqlalchemy.orm import Session
 
 # Configurar logging y cargar .env del root del backend de forma explícita
@@ -31,12 +32,16 @@ _ENV_PATH = Path(__file__).resolve().parents[3] / ".env"
 load_dotenv(dotenv_path=_ENV_PATH)
 logger = logging.getLogger(__name__)
 
-# Claves canónicas (ver app.ai.context.normalize_section) sin entrada propia
-# en prompt_templates.json: reutilizan el prompt especializado del nombre de
-# tabla legado para no duplicar contenido ni perder compatibilidad.
+# Claves canónicas (ver app.ai.context.normalize_section) vs nombres de tabla
+# legados usados directamente como `tab`. prompt_templates.json solo define
+# contenido bajo las claves canónicas; estos aliases evitan duplicar prompts
+# y mantienen compatibilidad si algo invoca `ask()`/`get_prompt_template()`
+# todavía con el nombre de tabla legado.
 _TEMPLATE_KEY_ALIASES = {
-    "requirements": "requirements_general",
-    "localization": "localization_general",
+    "participants_general": "participants",
+    "alternatives_general": "alternatives",
+    "requirements_general": "requirements",
+    "localization_general": "localization",
 }
 
 
@@ -317,9 +322,11 @@ class LLMManager:
             # Obtener template
             prompt = self.get_prompt_template(tab)
 
-            # Recuperar contexto RAG del documento conceptual según la pregunta
+            # Recuperar contexto RAG del documento conceptual según la pregunta.
+            # `tab` (sección canónica) solo enriquece la consulta de retrieval;
+            # la pregunta que recibe el LLM no se modifica.
             rag_start = perf_counter()
-            rag_context = self.rag_manager.get_relevant_context(question)
+            rag_context = self.rag_manager.get_relevant_context(question, section=tab)
             rag_ms = (perf_counter() - rag_start) * 1000
             # project_context y rag_context viajan SEPARADOS al prompt (no se
             # mezclan): el proyecto es responsabilidad de ContextManager y el
@@ -361,6 +368,47 @@ class LLMManager:
             logger.error("⏱️ LLM timing fallo | tab=%s session=%s total_ms=%.1f", tab, session_id, total_ms)
             logger.error(f"Error en LLM ({tab}): {str(e)}", exc_info=True)
             return "Lo siento, ocurrió un error al procesar tu pregunta. Intenta de nuevo."
+
+    def measure_prompt_tokens(
+        self,
+        question: str,
+        tab: str = "general",
+        context: str = "",
+        chat_history: list = None,
+    ) -> PromptTokenReport:
+        """Diagnóstico dev/test: mide el tamaño real del prompt SIN invocar al proveedor.
+
+        Reutiliza exactamente las mismas piezas que `ask()` (template,
+        recuperación RAG, historial) para que la medición refleje el prompt
+        real que se enviaría. No trunca nada: solo mide. Ver
+        `token_diagnostics.TOKEN_METHOD` para el método de conteo.
+        """
+        prompt = self.get_prompt_template(tab)
+        rag_context_raw = self.rag_manager.get_relevant_context(question, section=tab)
+        project_context, rag_context = self._prepare_contexts_for_prompt(context, rag_context_raw)
+        history_text = self._build_chat_context(chat_history) if chat_history else ""
+
+        # El "system"/instrucciones es la parte del template anterior al primer
+        # bloque de contexto (general + sección ya combinados por get_prompt_template).
+        system_text = prompt.template.split("=== INFORMACIÓN REGISTRADA DEL PROYECTO ===")[0]
+
+        system_tokens = count_tokens(system_text)
+        project_context_tokens = count_tokens(project_context)
+        rag_context_tokens = count_tokens(rag_context)
+        history_tokens = count_tokens(history_text)
+        question_tokens = count_tokens(question)
+
+        return PromptTokenReport(
+            section=tab,
+            system_tokens=system_tokens,
+            project_context_tokens=project_context_tokens,
+            rag_context_tokens=rag_context_tokens,
+            history_tokens=history_tokens,
+            question_tokens=question_tokens,
+            estimated_total_tokens=(
+                system_tokens + project_context_tokens + rag_context_tokens + history_tokens + question_tokens
+            ),
+        )
 
     def validate_configuration(self) -> bool:
         """Valida que el LLM esté correctamente configurado."""

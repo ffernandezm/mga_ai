@@ -1,0 +1,28 @@
+# Sección MGA: Alternativas de solución
+- id: alternatives-inconsistency-01
+  section: alternatives
+  type: inconsistency
+  fixture: alternatives_duplicated_course_of_action
+  registered_data:
+    alternativas:
+      - nombre: "Mejoramiento con placa huella en tramos críticos y afirmado en el resto"
+        estado: "Seleccionada"
+        activa: true
+      - nombre: "Mejoramiento de la vía instalando placa huella en los sectores de mayor pendiente y afirmado en los tramos restantes"  # defecto controlado
+        estado: "Evaluada"
+        activa: false
+      - nombre: "Construcción de una variante pavimentada por el costado oriental"
+        estado: "Descartada"
+        activa: false
+  question: "¿Las alternativas que registré son realmente diferentes entre sí?"
+  expected:
+    must:
+      - "Identifica que la primera y la segunda alternativa describen esencialmente el mismo curso de acción (placa huella en tramos de pendiente + afirmado)"
+      - "Reconoce que la construcción de la variante sí constituye un curso de acción distinto"
+      - "Explica que las alternativas deben representar cursos de acción diferenciables, no variaciones de redacción"
+    must_not:
+      - "Presenta la alternativa activa como la mejor por el solo hecho de estar seleccionada"
+      - "Usa los campos booleanos de alternatives_general como criterio de calidad"
+  notes: >-
+    Manual MGA: las alternativas deben ser cursos de acción realmente distintos
+    para poder compararse; la selección registrada no implica valoración técnica.

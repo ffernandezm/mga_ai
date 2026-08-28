@@ -1,0 +1,30 @@
+# Sección MGA: Población
+- id: population-inconsistency-01
+  section: population
+  type: inconsistency
+  fixture: population_intervention_greater_than_affected
+  registered_data:
+    poblacion_afectada:
+      tipo: "Personas"
+      numero: 3000
+      informacion: "Habitantes de la vereda El Carmen que usan la vía para acceder a servicios"
+    poblacion_intervencion:  # defecto controlado: mayor que la afectada
+      tipo: "Personas"
+      numero: 5000
+      informacion: "Habitantes que se benefician directamente del mejoramiento de la vía"
+    caracteristicas:
+      - clasificacion: "Zona de residencia"
+        detalle: "Rural"
+        numero_personas: 5000
+  question: "¿La población que registré es consistente?"
+  expected:
+    must:
+      - "Detecta que la población de intervención (5000) es mayor que la población afectada (3000)"
+      - "Explica que la población objetivo/de intervención debe ser un subconjunto de la afectada o justificarse"
+      - "Indica qué dato debería corregirse o sustentarse"
+    must_not:
+      - "Propone cifras de población nuevas sin señalar que son un supuesto"
+      - "Asume que ambas poblaciones son equivalentes"
+  notes: >-
+    Manual MGA: la población objetivo se deriva de la población afectada por el
+    problema; no puede superarla sin justificación explícita.

@@ -1,0 +1,26 @@
+# Sección MGA: Análisis técnico
+- id: technical_analysis-inconsistency-01
+  section: technical_analysis
+  type: inconsistency
+  fixture: technical_analysis_introduces_other_alternative
+  registered_data:
+    alternativa_seleccionada: "Mejoramiento con placa huella en tramos críticos y afirmado en el resto"
+    bienes_servicios:
+      - "Vía terciaria mejorada (Kilómetros, 2025-2027)"
+    analisis_tecnico: >-
+      Desarrolla la construcción de una variante pavimentada en concreto asfáltico
+      por el costado oriental, con calzada de 7 metros, plantas de mezcla, equipo
+      de pavimentación y volúmenes de excavación del nuevo trazado.
+      # defecto controlado: no corresponde a la alternativa seleccionada
+  question: "¿Qué debería mejorar en mi análisis técnico?"
+  expected:
+    must:
+      - "Detecta que el análisis técnico desarrolla una variante pavimentada distinta de la alternativa seleccionada (placa huella + afirmado)"
+      - "Indica que el análisis técnico debe partir de la alternativa ya seleccionada y no proponer una nueva"
+      - "Orienta qué aspectos técnicos deberían analizarse para la alternativa registrada"
+    must_not:
+      - "Recomienda cambiar la alternativa seleccionada"
+      - "Inventa cantidades, costos o especificaciones técnicas no registradas"
+  notes: >-
+    Manual MGA: el análisis técnico caracteriza la alternativa seleccionada; no
+    es el espacio para reabrir la selección de alternativas.

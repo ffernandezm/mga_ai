@@ -2,14 +2,16 @@
 
 from __future__ import annotations
 
+import hashlib
 import logging
 from pathlib import Path
 from threading import Lock
 from time import perf_counter
-from typing import List
+from typing import Dict, List, Optional
 
 from .config import RAGConfig
 from .document_processor import DocumentProcessor
+from .section_terms import build_retrieval_query
 from .vector_store import LocalVectorStore
 
 logger = logging.getLogger(__name__)
@@ -25,6 +27,41 @@ class RAGManager:
         self._ready = False
         self._lock = Lock()
 
+    def _source_fingerprint(self) -> Dict:
+        """Identidad del corpus + configuración que obliga a reindexar si cambia."""
+        path = self.config.source_document_path
+        digest = hashlib.sha256()
+        with open(path, "rb") as handle:
+            for block in iter(lambda: handle.read(1024 * 1024), b""):
+                digest.update(block)
+        return {
+            "source_document": path.name,
+            "source_size": path.stat().st_size,
+            "source_hash": digest.hexdigest(),
+            "chunk_size": self.config.chunk_size,
+            "chunk_overlap": self.config.chunk_overlap,
+            "vectorizer": "tfidf",
+            "ngram_range": [1, 2],
+        }
+
+    def _index_matches_source(self, fingerprint: Dict) -> bool:
+        stored = self.vector_store.read_metadata()
+        if not stored:
+            logger.info("Índice RAG sin metadata de identidad; se reconstruye para garantizar el corpus correcto.")
+            return False
+        keys = ("source_document", "source_hash", "chunk_size", "chunk_overlap", "vectorizer", "ngram_range")
+        for key in keys:
+            if stored.get(key) != fingerprint[key]:
+                logger.warning(
+                    "Índice RAG desactualizado: '%s' cambió (índice=%r, actual=%r). Se reconstruye.",
+                    key,
+                    stored.get(key),
+                    fingerprint[key],
+                )
+                return False
+        return True
+
+
     def _index_if_needed(self) -> None:
         if not self.config.enabled:
             logger.info("RAG deshabilitado por configuración")
@@ -36,33 +73,82 @@ class RAGManager:
                 return
 
             if not self.config.source_document_path.exists():
-                logger.warning(
-                    "Documento fuente de RAG no encontrado en %s",
+                logger.error(
+                    "RAG_SOURCE_MISSING | Documento fuente de RAG no encontrado en %s. "
+                    "No se construirá índice; el chatbot continuará sin contexto documental.",
                     self.config.source_document_path,
                 )
                 self._ready = True
                 return
 
-            should_rebuild = self.config.auto_reindex or (not self.vector_store.exists())
+            logger.info(
+                "RAG source: %s | path=%s | size=%s bytes",
+                self.config.source_document_path.name,
+                self.config.source_document_path,
+                self.config.source_document_path.stat().st_size,
+            )
+
+            try:
+                fingerprint = self._source_fingerprint()
+            except OSError:
+                logger.exception(
+                    "RAG_SOURCE_UNREADABLE | No se pudo leer el documento fuente %s.",
+                    self.config.source_document_path,
+                )
+                self._ready = True
+                return
+
+            should_rebuild = (
+                self.config.auto_reindex
+                or (not self.vector_store.exists())
+                or (not self._index_matches_source(fingerprint))
+            )
 
             if should_rebuild:
                 logger.info("Construyendo índice RAG desde %s", self.config.source_document_path)
-                chunks = self.processor.load_and_chunk_pdf(
-                    file_path=self.config.source_document_path,
-                    chunk_size=self.config.chunk_size,
-                    chunk_overlap=self.config.chunk_overlap,
-                )
-                self.vector_store.build(chunks)
+                try:
+                    chunks = self.processor.load_and_chunk_pdf(
+                        file_path=self.config.source_document_path,
+                        chunk_size=self.config.chunk_size,
+                        chunk_overlap=self.config.chunk_overlap,
+                    )
+                    self.vector_store.build(chunks, metadata=fingerprint)
+                except Exception:
+                    logger.exception(
+                        "RAG_INDEX_BUILD_FAILED | No fue posible construir el índice RAG desde %s "
+                        "(chunk_size=%s chunk_overlap=%s). El chatbot continuará sin contexto documental.",
+                        self.config.source_document_path,
+                        self.config.chunk_size,
+                        self.config.chunk_overlap,
+                    )
+                    self._ready = True
+                    return
                 logger.info("Índice RAG generado con %s chunks", len(chunks))
             else:
                 logger.info("Cargando índice RAG existente desde %s", self.config.index_dir)
-                self.vector_store.load()
+                try:
+                    self.vector_store.load()
+                except Exception:
+                    logger.exception(
+                        "RAG_INDEX_LOAD_FAILED | Índice RAG existente en %s no se pudo cargar (posible índice "
+                        "corrupto o incompatible). Usa RAGManager.rebuild_index() para regenerarlo.",
+                        self.config.index_dir,
+                    )
+                    self._ready = True
+                    return
 
             self._ready = True
 
-    def get_relevant_context(self, query: str) -> str:
+    def get_relevant_context(self, query: str, section: Optional[str] = None) -> str:
+        """Recupera contexto documental.
+
+        `section` (clave canónica MGA) solo enriquece la consulta de retrieval;
+        la pregunta original del usuario no se modifica y llega intacta al LLM.
+        """
         if not query:
             return ""
+
+        retrieval_query = build_retrieval_query(query, section)
 
         total_start = perf_counter()
         try:
@@ -74,7 +160,7 @@ class RAGManager:
 
             search_start = perf_counter()
             results = self.vector_store.similarity_search(
-                query=query,
+                query=retrieval_query,
                 top_k=self.config.top_k,
                 min_similarity=self.config.min_similarity,
             )
@@ -113,10 +199,20 @@ class RAGManager:
                 len(final_context),
             )
             return final_context
-        except Exception as exc:
+        except Exception:
             total_ms = (perf_counter() - total_start) * 1000
-            logger.warning("⏱️ RAG timing fallo | total_ms=%.1f", total_ms)
-            logger.warning("No fue posible recuperar contexto RAG: %s", exc, exc_info=True)
+            # Disponibilidad degradada: el chatbot sigue funcionando sin contexto
+            # documental, pero el fallo queda registrado con stack trace completo
+            # (nunca se expone al usuario final).
+            logger.exception(
+                "RAG_RETRIEVAL_FAILED | Error recuperando contexto RAG (documento=%s, index_dir=%s, "
+                "top_k=%s, min_similarity=%s, total_ms=%.1f). Se devuelve contexto vacío.",
+                self.config.source_document_path,
+                self.config.index_dir,
+                self.config.top_k,
+                self.config.min_similarity,
+                total_ms,
+            )
             return ""
 
     def rebuild_index(self) -> None:
@@ -129,6 +225,6 @@ class RAGManager:
                     chunk_size=self.config.chunk_size,
                     chunk_overlap=self.config.chunk_overlap,
                 )
-                self.vector_store.build(chunks)
+                self.vector_store.build(chunks, metadata=self._source_fingerprint())
                 self._ready = True
                 logger.info("Índice RAG reconstruido con %s chunks", len(chunks))
