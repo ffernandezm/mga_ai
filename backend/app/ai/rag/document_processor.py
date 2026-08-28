@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+import unicodedata
 from dataclasses import dataclass
 from pathlib import Path
 from typing import List
@@ -17,6 +18,42 @@ class DocumentChunk:
     chunk_id: str
     text: str
     metadata: dict
+
+
+_TOC_TITLE = re.compile(
+    r"(tabla\s+de\s+contenido|indice\s+de\s+(ilustraciones|tablas|graficos|contenido)|"
+    r"lista\s+de\s+(ilustraciones|tablas))",
+    re.IGNORECASE,
+)
+_DOT_LEADER = re.compile(r"\.{4,}\s*\d*")
+
+
+def _strip_accents(text: str) -> str:
+    return "".join(c for c in unicodedata.normalize("NFKD", text) if not unicodedata.combining(c))
+
+
+def is_structural_content(text: str) -> bool:
+    """Detecta tablas de contenido, índices y tablas numéricas.
+
+    El filtro es por contenido (dot leaders, referencias a página, densidad de
+    puntos) y no por número de página: la introducción sí aporta contenido útil.
+    """
+    plain = _strip_accents(text)
+    lines = [line.strip() for line in plain.splitlines() if line.strip()]
+    if not lines:
+        return True
+
+    dot_leader_lines = sum(1 for line in lines if _DOT_LEADER.search(line))
+    page_ref_lines = sum(1 for line in lines if re.search(r"\.{2,}\s*\d+\s*$|\s\d{1,3}\s*$", line))
+
+    if dot_leader_lines / len(lines) >= 0.30:
+        return True
+    if _TOC_TITLE.search(plain) and page_ref_lines / len(lines) >= 0.40:
+        return True
+    # Densidad de puntos muy alta: dot leaders o tablas numéricas con separador de miles.
+    if plain.count(".") / max(len(plain), 1) >= 0.15:
+        return True
+    return False
 
 
 class DocumentProcessor:
@@ -84,4 +121,5 @@ class DocumentProcessor:
 
     def load_and_chunk_pdf(self, file_path: Path, chunk_size: int, chunk_overlap: int) -> List[DocumentChunk]:
         text = self.extract_text_from_pdf(file_path)
-        return self.split_text(text=text, chunk_size=chunk_size, chunk_overlap=chunk_overlap)
+        chunks = self.split_text(text=text, chunk_size=chunk_size, chunk_overlap=chunk_overlap)
+        return [chunk for chunk in chunks if not is_structural_content(chunk.text)]

@@ -1,0 +1,30 @@
+# Sección MGA: Cadena de valor
+- id: value_chain-inconsistency-01
+  section: value_chain
+  type: inconsistency
+  fixture: value_chain_product_is_actually_activity
+  registered_data:
+    objetivo_especifico: "Mejorar el estado de la capa de rodadura de la vía"
+    productos:
+      - nombre: "Vía terciaria mejorada"
+        medido_a_traves_de: "Kilómetros"
+        cantidad: 10
+        actividades:
+          - "Conformación de la subrasante y colocación del material de afirmado"
+      - nombre: "Realizar la interventoría técnica de las obras"  # defecto controlado
+        medido_a_traves_de: "Kilómetros"
+        cantidad: 10
+        actividades:
+          - "Elaboración de los informes mensuales de interventoría"
+  question: "Revisa si mis productos y actividades están correctamente relacionados."
+  expected:
+    must:
+      - "Detecta que 'Realizar la interventoría técnica de las obras' está formulado como una acción y corresponde a una actividad, no a un producto"
+      - "Explica que el producto es un bien o servicio entregable y la actividad es la acción necesaria para producirlo"
+      - "Confirma que 'Vía terciaria mejorada' sí está correctamente formulado como producto"
+    must_not:
+      - "Inventa productos, actividades o costos no registrados"
+      - "Convierte el objetivo específico en un producto"
+  notes: >-
+    Manual MGA: la cadena de valor encadena objetivo específico -> producto ->
+    actividad; el producto es entregable y medible, la actividad es acción.

@@ -1,0 +1,29 @@
+# Sección MGA: Participantes
+- id: participants-inconsistency-01
+  section: participants
+  type: inconsistency
+  fixture: participants_actor_without_coherent_role
+  registered_data:
+    central_problem: "Bajas condiciones de transitabilidad en la vía terciaria que comunica la vereda El Carmen con la cabecera municipal"
+    participants:
+      - actor: "Alcaldía Municipal de Tunja"
+        rol: "Ejecutor"
+        interes: "Mejorar la conectividad rural del municipio"
+      - actor: "Junta de Acción Comunal vereda El Carmen"
+        rol: "Beneficiario"
+        interes: "Reducir tiempos de desplazamiento hacia la cabecera"
+      - actor: "Cooperativa de artesanos del casco urbano"  # defecto controlado
+        rol: "Cooperante"
+        interes: "Ampliar la comercialización de artesanías en ferias regionales"
+        contribucion: "Sin aportes definidos para el proyecto"
+  question: "Revisa si los participantes que registré son pertinentes para este proyecto."
+  expected:
+    must:
+      - "Señala que la Cooperativa de artesanos no guarda relación clara con el problema vial ni aporta contribución definida"
+      - "Justifica la pertinencia de los otros dos participantes frente al problema registrado"
+    must_not:
+      - "Inventa participantes adicionales presentándolos como registrados"
+      - "Afirma que todos los participantes son adecuados sin analizarlos"
+  notes: >-
+    Manual MGA: los participantes se identifican por su relación con el problema
+    y por su rol, interés y contribución en el proyecto.

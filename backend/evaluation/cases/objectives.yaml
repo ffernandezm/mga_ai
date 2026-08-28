@@ -1,0 +1,27 @@
+# Sección MGA: Objetivos
+- id: objectives-inconsistency-01
+  section: objectives
+  type: inconsistency
+  fixture: objectives_specific_without_matching_cause
+  registered_data:
+    objetivo_general: "Mejorar las condiciones de transitabilidad de la vía terciaria que comunica la vereda El Carmen con la cabecera municipal"
+    causas_registradas:
+      - "Deterioro de la capa de rodadura de la vía"
+      - "Ausencia de mantenimiento rutinario periódico (indirecta)"
+    objetivos_especificos:
+      - causa_relacionada: "Deterioro de la capa de rodadura de la vía"
+        objetivo: "Mejorar el estado de la capa de rodadura de la vía"
+      - causa_relacionada: "Cobertura de conectividad digital en la vereda"  # defecto controlado
+        objetivo: "Ampliar la cobertura de internet en la vereda El Carmen"
+  question: "Revisa si mis objetivos específicos responden a las causas del problema."
+  expected:
+    must:
+      - "Detecta que 'Ampliar la cobertura de internet' no corresponde a ninguna causa registrada en el árbol de problemas"
+      - "Confirma que el objetivo sobre la capa de rodadura sí corresponde a una causa directa registrada"
+      - "Explica que cada objetivo específico debe derivarse de una causa del árbol de problemas"
+    must_not:
+      - "Da por válido el objetivo de conectividad digital sin observaciones"
+      - "Inventa causas adicionales para justificar el objetivo huérfano"
+  notes: >-
+    Manual MGA: el árbol de objetivos transforma el árbol de problemas; las
+    causas directas se convierten en objetivos específicos o medios.

@@ -6,6 +6,26 @@ import os
 from dataclasses import dataclass
 from pathlib import Path
 
+from dotenv import load_dotenv
+
+# El .env del backend se carga aquí para que la configuración RAG sea
+# determinista y no dependa de que otro módulo (p. ej. llm_manager) se haya
+# importado antes. `load_dotenv` no sobrescribe variables ya presentes.
+_BACKEND_DIR = Path(__file__).resolve().parents[3]
+_ENV_PATH = _BACKEND_DIR / ".env"
+
+# Única fuente documental del RAG. El corpus es intencionalmente un solo
+# documento; no combinar PDFs.
+DEFAULT_SOURCE_DOCUMENT = _BACKEND_DIR / "app" / "data" / "manual_conceptual_2015.pdf"
+
+
+def _resolve_path(raw: str, default: Path) -> Path:
+    """Resuelve rutas relativas contra la raíz del backend (portable entre entornos)."""
+    candidate = Path(raw).expanduser() if raw else default
+    if not candidate.is_absolute():
+        candidate = _BACKEND_DIR / candidate
+    return candidate
+
 
 @dataclass
 class RAGConfig:
@@ -24,14 +44,14 @@ class RAGConfig:
 
     @classmethod
     def from_env(cls) -> "RAGConfig":
-        base_app_dir = Path(__file__).resolve().parents[2]
-        default_document = base_app_dir / "data" / "manual_conceptual_2015.pdf"
+        load_dotenv(dotenv_path=_ENV_PATH)
+
         default_index_dir = Path(__file__).resolve().parent / "index"
 
         return cls(
             enabled=os.getenv("RAG_ENABLED", "true").strip().lower() in {"1", "true", "yes", "on"},
-            source_document_path=Path(os.getenv("RAG_SOURCE_DOCUMENT", str(default_document))).expanduser(),
-            index_dir=Path(os.getenv("RAG_INDEX_DIR", str(default_index_dir))).expanduser(),
+            source_document_path=_resolve_path(os.getenv("RAG_SOURCE_DOCUMENT", ""), DEFAULT_SOURCE_DOCUMENT),
+            index_dir=_resolve_path(os.getenv("RAG_INDEX_DIR", ""), default_index_dir),
             chunk_size=max(int(os.getenv("RAG_CHUNK_SIZE", "1400")), 300),
             chunk_overlap=max(int(os.getenv("RAG_CHUNK_OVERLAP", "250")), 0),
             top_k=max(int(os.getenv("RAG_TOP_K", "4")), 1),
