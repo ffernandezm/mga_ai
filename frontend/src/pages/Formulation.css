@@ -8,28 +8,15 @@
 }
 
 .formulation-layout {
-    display: grid;
-    gap: 0;
+    display: flex;
     height: 100%;
     min-height: 0;
     width: 100%;
     align-items: stretch;
-    transition: grid-template-columns 0.35s ease;
-}
-
-
-/* Chat visible */
-.formulation-layout.chat-open {
-    grid-template-columns: minmax(0, 66.6667%) minmax(0, 33.3333%);
-}
-
-
-/* Chat oculto */
-.formulation-layout.chat-closed {
-    grid-template-columns: minmax(0, 1fr) 45px;
 }
 
 .formulation-main {
+    flex: 1 1 auto;
     min-width: 0;
     min-height: 0;
     display: flex;
@@ -38,6 +25,16 @@
     overflow: hidden;
     border: 1px solid rgba(13, 54, 96, 0.12);
     background: rgba(255, 255, 255, 0.9);
+    transition: margin-right 0.35s ease;
+}
+
+/* Reserva el espacio del panel de chat fijo al borde derecho de la pagina */
+.formulation-layout.chat-open .formulation-main {
+    margin-right: min(33.3333vw, 420px);
+}
+
+.formulation-layout.chat-closed .formulation-main {
+    margin-right: 45px;
 }
 
 .formulation-main-body {
@@ -64,16 +61,22 @@
 }
 
 .formulation-chat-panel {
-    position: relative;
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: min(33.3333vw, 420px);
+    height: 100dvh;
     min-width: 0;
-    min-height: 0;
     overflow: hidden;
-    border-top: 1px solid rgba(13, 54, 96, 0.12);
     border-left: 1px solid rgba(13, 54, 96, 0.12);
     background: #eef6ff;
-    justify-self: stretch;
-    align-self: stretch;
-    transition: all 0.35s ease;
+    box-shadow: -8px 0 32px rgba(13, 54, 96, 0.12);
+    z-index: 1000;
+    transition: width 0.35s ease;
+}
+
+.formulation-chat-panel.closed {
+    width: 45px;
 }
 
 @media (max-width: 1024px) {
@@ -85,9 +88,14 @@
     }
 
     .formulation-layout {
-        grid-template-columns: 1fr;
+        flex-direction: column;
         min-height: auto;
         height: auto;
+    }
+
+    .formulation-layout.chat-open .formulation-main,
+    .formulation-layout.chat-closed .formulation-main {
+        margin-right: 0;
     }
 
     .formulation-main {
@@ -95,6 +103,11 @@
     }
 
     .formulation-chat-panel {
+        position: relative;
+        top: auto;
+        right: auto;
+        width: 100%;
+        height: auto;
         min-height: 460px;
         border-radius: 0 0 14px 14px;
         border-right: 1px solid rgba(13, 54, 96, 0.12);
@@ -102,9 +115,9 @@
         border-left: 1px solid rgba(13, 54, 96, 0.12);
     }
 
-    .formulation-layout.chat-open,
-    .formulation-layout.chat-closed {
-        grid-template-columns: 1fr;
+    .formulation-chat-panel.closed {
+        width: 100%;
+        min-height: 45px;
     }
 }
 
