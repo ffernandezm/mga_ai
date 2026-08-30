@@ -60,6 +60,19 @@ def fake_llm_capture(monkeypatch):
     return calls
 
 
+@pytest.fixture(autouse=True)
+def completed_chat_prerequisites(monkeypatch):
+    """Estas pruebas cubren el payload LLM; el bloqueo upstream se prueba aparte."""
+    monkeypatch.setattr(
+        chat_history_module.SectionValidationService,
+        "validate_section",
+        lambda self, project_id, section: SimpleNamespace(
+            prerequisites_complete=True,
+            incomplete_prerequisites=[],
+        ),
+    )
+
+
 # ---------------------------------------------------------------------------
 # 1-2. Endpoint problems: usa contexto semántico, no incluye downstream
 # ---------------------------------------------------------------------------

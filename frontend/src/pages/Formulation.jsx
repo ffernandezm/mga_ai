@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import DevelopmentPlan from "../components/DevelopmentPlan";
 import ProblemsTree from "../components/ProblemsTree";
 import Participants from "../components/Participants";
@@ -14,8 +15,9 @@ import ValueChain from "../components/ValueChain";
 
 import Chatbot from "../components/Chatbot";
 import ProjectHeader from "../components/ProjectHeader";
+import SectionValidationModal from "../components/SectionValidationModal";
 import api from "../services/api";
-import { MGASection, MGA_SECTION_METADATA } from "../utils/constants";
+import { MGASection, MGA_SECTION_METADATA, MGA_VALIDATION_SECTION_TO_TAB } from "../utils/constants";
 import "./Formulation.css";
 
 function Formulation() {
@@ -27,6 +29,10 @@ function Formulation() {
     const [project, setProject] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [sectionStates, setSectionStates] = useState({});
+    const [validationModal, setValidationModal] = useState(null);
+
+    const sectionOrder = Object.values(MGASection);
 
     const [chatOpen, setChatOpen] = useState(() => {
         const savedState = localStorage.getItem("mga_chat_open");
@@ -36,14 +42,34 @@ function Formulation() {
             : true;
     });
 
-    // 👇 Detectar el parámetro ?tab= en la URL
     useEffect(() => {
         const params = new URLSearchParams(location.search);
         const tab = params.get("tab");
-        if (tab) {
-            setActiveTab(tab);
-        }
-    }, [location.search]);
+        if (!tab || !sectionOrder.includes(tab)) return;
+
+        const validateDirectAccess = async () => {
+            try {
+                const response = await api.get(`/projects/${id}/sections/validation`);
+                const states = Object.fromEntries(response.data.map((item) => [MGA_VALIDATION_SECTION_TO_TAB[item.section], item]));
+                setSectionStates(states);
+                const targetIndex = sectionOrder.indexOf(tab);
+                const blocker = response.data.find(
+                    (item) => sectionOrder.indexOf(MGA_VALIDATION_SECTION_TO_TAB[item.section]) < targetIndex && !item.complete
+                );
+                if (blocker) {
+                    const blockerTab = MGA_VALIDATION_SECTION_TO_TAB[blocker.section];
+                    setActiveTab(blockerTab);
+                    setValidationModal({ ...blocker, tab: blockerTab });
+                    navigate(`/projects/${id}/formulation?tab=${blockerTab}`, { replace: true });
+                } else {
+                    setActiveTab(tab);
+                }
+            } catch (validationError) {
+                console.error("No se pudo validar el acceso a la sección", validationError);
+            }
+        };
+        validateDirectAccess();
+    }, [id, location.search]);
 
     useEffect(() => {
         const fetchProject = async () => {
@@ -70,9 +96,27 @@ function Formulation() {
         setChatOpen(previousState => !previousState);
     };
 
-    const handleTabChange = (tab) => {
+    const handleTabChange = async (tab) => {
+        const currentIndex = sectionOrder.indexOf(activeTab);
+        const targetIndex = sectionOrder.indexOf(tab);
+        if (targetIndex > currentIndex) {
+            try {
+                const response = await api.get(`/projects/${id}/sections/validation`);
+                const states = Object.fromEntries(response.data.map((item) => [MGA_VALIDATION_SECTION_TO_TAB[item.section], item]));
+                setSectionStates(states);
+                const blocker = response.data.find(
+                    (item) => sectionOrder.indexOf(MGA_VALIDATION_SECTION_TO_TAB[item.section]) < targetIndex && !item.complete
+                );
+                if (blocker) {
+                    setValidationModal({ ...blocker, tab: MGA_VALIDATION_SECTION_TO_TAB[blocker.section] });
+                    return;
+                }
+            } catch (validationError) {
+                console.error("No se pudo validar la navegación", validationError);
+                return;
+            }
+        }
         setActiveTab(tab);
-        // 👇 Actualiza la URL sin recargar la página
         navigate(`/projects/${id}/formulation?tab=${tab}`, { replace: true });
     };
 
@@ -119,90 +163,39 @@ function Formulation() {
                     </div>
 
                     <main className="formulation-main-body flex-grow-1 d-flex flex-column">
-                        {/* Barra de navegación */}
-                        <nav className="formulation-tabs px-4 py-2 d-flex gap-3 flex-wrap">
-                            <button
-                                className={`btn btn-sm ${activeTab === MGASection.DEVELOPMENT_PLAN ? "btn-primary" : "btn-outline-primary"
-                                    }`}
-                                onClick={() => handleTabChange(MGASection.DEVELOPMENT_PLAN)}
-                            >
-                                {MGA_SECTION_METADATA[MGASection.DEVELOPMENT_PLAN].label}
-                            </button>
-                            <button
-                                className={`btn btn-sm ${activeTab === MGASection.PROBLEM ? "btn-primary" : "btn-outline-primary"
-                                    }`}
-                                onClick={() => handleTabChange(MGASection.PROBLEM)}
-                                title={`Técnica MGA: ${MGA_SECTION_METADATA[MGASection.PROBLEM].technique}`}
-                            >
-                                {MGA_SECTION_METADATA[MGASection.PROBLEM].label}
-                            </button>
-                            <button
-                                className={`btn btn-sm ${activeTab === MGASection.PARTICIPANTS
-                                    ? "btn-primary"
-                                    : "btn-outline-primary"
-                                    }`}
-                                onClick={() => handleTabChange(MGASection.PARTICIPANTS)}
-                            >
-                                {MGA_SECTION_METADATA[MGASection.PARTICIPANTS].label}
-                            </button>
-                            <button
-                                className={`btn btn-sm ${activeTab === MGASection.POPULATION ? "btn-primary" : "btn-outline-primary"
-                                    }`}
-                                onClick={() => handleTabChange(MGASection.POPULATION)}
-                            >
-                                {MGA_SECTION_METADATA[MGASection.POPULATION].label}
-                            </button>
-                            <button
-                                className={`btn btn-sm ${activeTab === MGASection.OBJECTIVES ? "btn-primary" : "btn-outline-primary"
-                                    }`}
-                                onClick={() => handleTabChange(MGASection.OBJECTIVES)}
-                            >
-                                {MGA_SECTION_METADATA[MGASection.OBJECTIVES].label}
-                            </button>
-                            <button
-                                className={`btn btn-sm ${activeTab === MGASection.ALTERNATIVES ? "btn-primary" : "btn-outline-primary"
-                                    }`}
-                                onClick={() => handleTabChange(MGASection.ALTERNATIVES)}
-                            >
-                                {MGA_SECTION_METADATA[MGASection.ALTERNATIVES].label}
-                            </button>
-                        </nav>
-                        <nav className="formulation-tabs px-4 py-2 d-flex gap-3 flex-wrap">
-                            <button
-                                className={`btn btn-sm ${activeTab === MGASection.REQUIREMENTS ? "btn-primary" : "btn-outline-primary"
-                                    }`}
-                                onClick={() => handleTabChange(MGASection.REQUIREMENTS)}
-                            >
-                                {MGA_SECTION_METADATA[MGASection.REQUIREMENTS].label}
-                            </button>
-                            <button
-                                className={`btn btn-sm ${activeTab === MGASection.TECHNICAL_ANALYSIS
-                                    ? "btn-primary"
-                                    : "btn-outline-primary"
-                                    }`}
-                                onClick={() => handleTabChange(MGASection.TECHNICAL_ANALYSIS)}
-                            >
-                                {MGA_SECTION_METADATA[MGASection.TECHNICAL_ANALYSIS].label}
-                            </button>
-                            <button
-                                className={`btn btn-sm ${activeTab === MGASection.LOCALIZATION ? "btn-primary" : "btn-outline-primary"
-                                    }`}
-                                onClick={() => handleTabChange(MGASection.LOCALIZATION)}
-                            >
-                                {MGA_SECTION_METADATA[MGASection.LOCALIZATION].label}
-                            </button>
-
-                            <button
-                                className={`btn btn-sm ${activeTab === MGASection.VALUE_CHAIN ? "btn-primary" : "btn-outline-primary"
-                                    }`}
-                                onClick={() => handleTabChange(MGASection.VALUE_CHAIN)}
-                            >
-                                {MGA_SECTION_METADATA[MGASection.VALUE_CHAIN].label}
-                            </button>
+                        <nav className="formulation-tabs px-4 py-2 d-flex gap-2 flex-wrap" aria-label="Secciones de formulación MGA">
+                            {sectionOrder.map((section) => (
+                                <button
+                                    key={section}
+                                    className={`btn btn-sm ${activeTab === section ? "btn-primary" : "btn-outline-primary"}`}
+                                    onClick={() => handleTabChange(section)}
+                                    title={`Estado: ${sectionStates[section]?.status || "sin validar"}`}
+                                >
+                                    {MGA_SECTION_METADATA[section].label}
+                                    {sectionStates[section]?.status === "COMPLETE" && <span aria-label="Completa"> ✓</span>}
+                                </button>
+                            ))}
                         </nav>
 
                         <section className="formulation-content p-4">
                             {renderContent()}
+                            <div className="formulation-section-actions">
+                                <button
+                                    className="btn btn-outline-primary"
+                                    disabled={sectionOrder.indexOf(activeTab) === 0}
+                                    onClick={() => handleTabChange(sectionOrder[sectionOrder.indexOf(activeTab) - 1])}
+                                >
+                                    <ChevronLeft aria-hidden="true" /> Anterior
+                                </button>
+                                {sectionOrder.indexOf(activeTab) < sectionOrder.length - 1 && (
+                                    <button
+                                        className="btn btn-primary"
+                                        onClick={() => handleTabChange(sectionOrder[sectionOrder.indexOf(activeTab) + 1])}
+                                    >
+                                        Siguiente <ChevronRight aria-hidden="true" />
+                                    </button>
+                                )}
+                            </div>
                         </section>
                     </main>
                 </div>
@@ -226,6 +219,11 @@ function Formulation() {
 
                 </div>
             </div>
+            <SectionValidationModal
+                validation={validationModal}
+                sectionName={validationModal ? MGA_SECTION_METADATA[validationModal.tab]?.label : ""}
+                onClose={() => setValidationModal(null)}
+            />
         </section>
     );
 }

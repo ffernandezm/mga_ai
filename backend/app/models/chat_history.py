@@ -22,6 +22,7 @@ from app.core.database import Base, SessionLocal, engine
 from app.ai.llm_models.llm_manager import LLMManager
 from app.ai.context.context_manager import ContextManager, render_semantic_context
 from app.ai.context.module_dependencies import UnknownSectionError, normalize_section
+from app.section_validation.service import SectionValidationService
 from app.utils.model_labels import get_column_label, get_table_label
 import json
 
@@ -801,6 +802,23 @@ llm_manager = LLMManager()
 context_manager = ContextManager()
 
 
+def ensure_chat_prerequisites(db: Session, project_id: int, section: str):
+    """Permite sección actual incompleta, pero bloquea dependencias indispensables."""
+    try:
+        validation = SectionValidationService(db).validate_section(project_id, section)
+    except (UnknownSectionError, KeyError):
+        return
+    if not validation.prerequisites_complete:
+        raise HTTPException(
+            status_code=409,
+            detail={
+                "message": "Completa las secciones requeridas antes de consultar al asistente.",
+                "section": section,
+                "incomplete_prerequisites": validation.incomplete_prerequisites,
+            },
+        )
+
+
 @router.post("/chat/{project_id}/{tab}", response_model=ChatMessageResponse)
 def chat_with_ai(
     project_id: int,
@@ -847,6 +865,14 @@ def chat_with_ai(
             )
         else:
             tab = normalized_tab  # usar versión corregida en adelante
+
+        try:
+            canonical_section = normalize_section(tab)
+        except UnknownSectionError:
+            logger.warning("⚠️ No se pudo normalizar tab='%s' a una sección canónica; se usa tal cual", tab)
+            canonical_section = tab
+
+        ensure_chat_prerequisites(db, project_id, canonical_section)
         
         # Obtener o crear sesión
         session_start = perf_counter()
@@ -892,12 +918,6 @@ def chat_with_ai(
         # la capa de IA (p. ej. "requirements"). El historial de chat sigue
         # indexado por el `tab` original para no perder conversaciones
         # existentes (tab de persistencia vs canonical section para IA).
-        try:
-            canonical_section = normalize_section(tab)
-        except UnknownSectionError:
-            logger.warning("⚠️ No se pudo normalizar tab='%s' a una sección canónica; se usa tal cual", tab)
-            canonical_section = tab
-
         section_data_start = perf_counter()
         try:
             logger.info(

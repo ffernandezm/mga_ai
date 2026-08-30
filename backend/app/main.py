@@ -58,6 +58,7 @@ from app.models.pnd import router as pnd_router
 from app.models.product_catalog import router as product_catalog_router
 from app.models.pnd_details import router as pnd_details_router
 from app.models.project_localization import router as project_localization_router
+from app.section_validation.router import router as section_validation_router
 
 from app.core.database import Base, engine
 from app.ai.llm_models.init_llm_database import init_langchain_tables
@@ -217,6 +218,7 @@ logger.info("📝 Registrando routers...")
 
 # Routers de proyectos y modelos
 app.include_router(project_router, prefix="/projects", tags=["Projects"])
+app.include_router(section_validation_router, prefix="/projects", tags=["Section Validation"])
 app.include_router(problem_router, prefix="/problems", tags=["Problems"])
 app.include_router(direct_effect_router, prefix="/direct_effects", tags=["DirectEffects"])
 app.include_router(indirect_effect_router, prefix="/indirect_effects", tags=["IndirectEffects"])

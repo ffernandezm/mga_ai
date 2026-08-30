@@ -63,37 +63,62 @@ class ProductCatalog(Base):
     selected_to_project = Column(Boolean, default=False, info={"label": FIELD_LABELS["selected_to_project"]})
 
 
-def seed_product_catalogs():
+def _product_catalog_from_row(row):
+    normalized = {
+        " ".join(key.split()).casefold(): value
+        for key, value in row.items()
+        if key is not None
+    }
+
+    def value(key):
+        raw_value = normalized.get(key.casefold(), "")
+        return raw_value.strip() if raw_value else None
+
+    def integer(key):
+        raw_value = value(key)
+        return int(raw_value) if raw_value else None
+
+    return ProductCatalog(
+        sector_code=integer("sector"),
+        sector_name=value("nombre sector"),
+        program_code=integer("código programa"),
+        program_name=value("programa"),
+        product_code=integer("código producto"),
+        product_name=value("producto"),
+        description=value("descripcion"),
+        measured_through=value("medido a través de"),
+        indicator_code=integer("codigo del indicador"),
+        product_indicator=value("indicador de producto"),
+        measurement_unit=value("unidad de medida"),
+        main_indicator=value("indicador principal"),
+        is_national=value("es nacional"),
+        is_territorial=value("es territorial"),
+        selected_to_project=False,
+    )
+
+
+def seed_product_catalogs(csv_path=None):
     """Carga los registros del CSV en la tabla product_catalogs si está vacía."""
     db = SessionLocal()
     try:
         count = db.query(ProductCatalog).count()
-        if count > 0:
+        valid_count = db.query(ProductCatalog).filter(
+            ProductCatalog.sector_code.isnot(None),
+            ProductCatalog.sector_name.isnot(None),
+        ).count()
+        if count > 0 and valid_count > 0:
             logger.info(f"ProductCatalog ya tiene {count} registros, se omite la carga.")
             return
+        if count > 0:
+            logger.warning("ProductCatalog no tiene sectores válidos; se recargará desde CSV.")
+            db.query(ProductCatalog).delete()
 
-        csv_path = os.path.join(os.path.dirname(__file__), "..", "data", "products_catalog.csv")
+        csv_path = csv_path or os.path.join(
+            os.path.dirname(__file__), "..", "data", "products_catalog.csv"
+        )
         with open(csv_path, newline="", encoding="utf-8-sig") as csvfile:
             reader = csv.DictReader(csvfile, delimiter=";")
-            records = []
-            for row in reader:
-                records.append(ProductCatalog(
-                    sector_code=int(row["sector"]) if row.get("sector") else None,
-                    sector_name=row.get("Nombre sector ", "").strip() or None,
-                    program_code=int(row["Código programa"]) if row.get("Código programa") else None,
-                    program_name=row.get("Programa", "").strip() or None,
-                    product_code=int(row["Código Producto"]) if row.get("Código Producto") else None,
-                    product_name=row.get("Producto", "").strip() or None,
-                    description=row.get("Descripcion", "").strip() or None,
-                    measured_through=row.get("Medido a través de", "").strip() or None,
-                    indicator_code=int(row["codigo del indicador "]) if row.get("codigo del indicador ") else None,
-                    product_indicator=row.get("Indicador de producto", "").strip() or None,
-                    measurement_unit=row.get("Unidad de medida", "").strip() or None,
-                    main_indicator=row.get("Indicador principal ", "").strip() or None,
-                    is_national=row.get("Es Nacional", "").strip() or None,
-                    is_territorial=row.get("Es Territorial", "").strip() or None,
-                    selected_to_project=False,
-                ))
+            records = [_product_catalog_from_row(row) for row in reader]
 
         db.add_all(records)
         db.commit()

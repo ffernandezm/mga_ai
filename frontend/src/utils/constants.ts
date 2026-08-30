@@ -116,6 +116,19 @@ export const TABS = {
     VALUE_CHAIN: MGASection.VALUE_CHAIN,
 } as const;
 
+export const MGA_VALIDATION_SECTION_TO_TAB: Record<string, MGASection> = {
+    development_plans: MGASection.DEVELOPMENT_PLAN,
+    problems: MGASection.PROBLEM,
+    participants: MGASection.PARTICIPANTS,
+    population: MGASection.POPULATION,
+    objectives: MGASection.OBJECTIVES,
+    alternatives: MGASection.ALTERNATIVES,
+    requirements: MGASection.REQUIREMENTS,
+    technical_analysis: MGASection.TECHNICAL_ANALYSIS,
+    localization: MGASection.LOCALIZATION,
+    value_chain: MGASection.VALUE_CHAIN,
+};
+
 export const PROJECT_STATUS = {
     DRAFT: 'draft',
     ACTIVE: 'active',

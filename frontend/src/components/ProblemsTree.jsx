@@ -67,16 +67,12 @@ function ProblemsTree({ projectId, projectName, ProjectDescription }) {
     const validateMinimumRequirements = () => {
         const hasDirectEffect = effects.length > 0;
         const hasDirectCause = causes.length > 0;
-        const hasIndirectEffect = effects.some(effect => effect.children && effect.children.length > 0);
-        const hasIndirectCause = causes.some(cause => cause.children && cause.children.length > 0);
 
         return {
-            isValid: hasDirectEffect && hasDirectCause && hasIndirectEffect && hasIndirectCause,
+            isValid: hasDirectEffect && hasDirectCause,
             messages: [
                 !hasDirectEffect && "Al menos un Efecto Directo",
-                !hasDirectCause && "Al menos una Causa Directa",
-                !hasIndirectEffect && "Al menos un Efecto Indirecto",
-                !hasIndirectCause && "Al menos una Causa Indirecta"
+                !hasDirectCause && "Al menos una Causa Directa"
             ].filter(Boolean)
         };
     };
@@ -277,7 +273,10 @@ function ProblemsTree({ projectId, projectName, ProjectDescription }) {
                             <div className="effect-input-container">
                                 <input
                                     type="text"
-                                    placeholder="Efecto directo"
+                                    placeholder="Efecto directo *"
+                                    aria-label="Efecto directo obligatorio"
+                                    aria-required="true"
+                                    data-validation-path={effect.id ? `direct_effects.${effect.id}.description` : "direct_effects"}
                                     value={effect.text}
                                     onChange={(e) => {
                                         const updated = [...effects];
@@ -335,6 +334,7 @@ function ProblemsTree({ projectId, projectName, ProjectDescription }) {
                     <button
                         className="icon-button add-button"
                         onClick={() => addEffect("direct")}
+                        data-validation-path="direct_effects"
                     >
                         <FaPlus /> Agregar Efecto Directo
                     </button>
@@ -342,9 +342,14 @@ function ProblemsTree({ projectId, projectName, ProjectDescription }) {
 
                 <div className="trunk">
                     <div className="problem-general-container">
-                        <label className="problem-general-label">Problema General *</label>
+                        <label className="problem-general-label" htmlFor="central_problem">Problema central *</label>
                         <input
+                            id="central_problem"
+                            name="central_problem"
+                            data-validation-path="problems.central_problem"
                             type="text"
+                            aria-required="true"
+                            aria-invalid={isProblemEmpty}
                             placeholder="Problema general"
                             value={problem}
                             onChange={(e) => {
@@ -355,6 +360,7 @@ function ProblemsTree({ projectId, projectName, ProjectDescription }) {
                             }}
                             className={isProblemEmpty ? "error-input" : ""}
                         />
+                        {isProblemEmpty && <small className="field-error" role="alert">Este campo es obligatorio.</small>}
                     </div>
                 </div>
 
@@ -364,7 +370,10 @@ function ProblemsTree({ projectId, projectName, ProjectDescription }) {
                             <div className="cause-input-container">
                                 <input
                                     type="text"
-                                    placeholder="Causa directa"
+                                    placeholder="Causa directa *"
+                                    aria-label="Causa directa obligatoria"
+                                    aria-required="true"
+                                    data-validation-path={cause.id ? `direct_causes.${cause.id}.description` : "direct_causes"}
                                     value={cause.text}
                                     onChange={(e) => {
                                         const updated = [...causes];
@@ -422,6 +431,7 @@ function ProblemsTree({ projectId, projectName, ProjectDescription }) {
                     <button
                         className="icon-button add-button"
                         onClick={() => addCause("direct")}
+                        data-validation-path="direct_causes"
                     >
                         <FaPlus /> Agregar Causa Directa
                     </button>
@@ -437,7 +447,7 @@ function ProblemsTree({ projectId, projectName, ProjectDescription }) {
                                 ? "El campo Descripción de la situación existente es obligatorio. Por favor, complételo antes de guardar."
                                 : !magnitudeProblem.trim()
                                     ? "El campo Magnitud actual del problema es obligatorio. Por favor, complételo antes de guardar."
-                                    : "Debe cumplir con los requisitos mínimos: Al menos un Efecto Directo, un Efecto Indirecto, una Causa Directa y una Causa Indirecta."
+                                    : "Debe registrar al menos un efecto directo y una causa directa."
                     }
                     onClose={() => setShowErrorPopup(false)}
                 />
@@ -445,10 +455,15 @@ function ProblemsTree({ projectId, projectName, ProjectDescription }) {
 
             <div className="additional-fields">
                 <div className="trunk">
-                    <label className="problem-general-label">Descripción de la situación existente *</label>
+                    <label className="problem-general-label" htmlFor="current_description">Descripción de la situación existente *</label>
                     <input
+                        id="current_description"
+                        name="current_description"
+                        data-validation-path="problems.current_description"
                         type="text"
                         required
+                        aria-required="true"
+                        aria-invalid={isCurrentDescriptionEmpty}
                         placeholder="Descripción de la situación existente con respecto al problema"
                         value={currentDescription}
                         onChange={(e) => {
@@ -459,12 +474,18 @@ function ProblemsTree({ projectId, projectName, ProjectDescription }) {
                         }}
                         className={isCurrentDescriptionEmpty ? "error-input" : ""}
                     />
+                    {isCurrentDescriptionEmpty && <small className="field-error" role="alert">Este campo es obligatorio.</small>}
                 </div>
                 <div className="trunk">
-                    <label className="problem-general-label">Magnitud actual del problema *</label>
+                    <label className="problem-general-label" htmlFor="magnitude_problem">Magnitud actual del problema *</label>
                     <input
+                        id="magnitude_problem"
+                        name="magnitude_problem"
+                        data-validation-path="problems.magnitude_problem"
                         type="text"
                         required
+                        aria-required="true"
+                        aria-invalid={isMagnitudeProblemEmpty}
                         placeholder="Magnitud actual del problema e indicadores de referencia"
                         value={magnitudeProblem}
                         onChange={(e) => {
@@ -475,8 +496,11 @@ function ProblemsTree({ projectId, projectName, ProjectDescription }) {
                         }}
                         className={isMagnitudeProblemEmpty ? "error-input" : ""}
                     />
+                    {isMagnitudeProblemEmpty && <small className="field-error" role="alert">Este campo es obligatorio.</small>}
                 </div>
             </div>
+
+            <p className="required-fields-legend">* Campo obligatorio</p>
 
             <div className="buttons-container">
                 <div className="action-buttons">
