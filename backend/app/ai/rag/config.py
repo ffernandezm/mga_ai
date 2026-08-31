@@ -16,7 +16,7 @@ _ENV_PATH = _BACKEND_DIR / ".env"
 
 # Única fuente documental del RAG. El corpus es intencionalmente un solo
 # documento; no combinar PDFs.
-DEFAULT_SOURCE_DOCUMENT = _BACKEND_DIR / "app" / "data" / "manual_conceptual_2015.pdf"
+DEFAULT_SOURCE_DOCUMENT = _BACKEND_DIR / "app" / "data" / "Documento_conceptual_2023.pdf"
 
 
 def _resolve_path(raw: str, default: Path) -> Path:

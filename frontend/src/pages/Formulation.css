@@ -30,7 +30,7 @@
 
 /* Reserva el espacio del panel de chat fijo al borde derecho de la pagina */
 .formulation-layout.chat-open .formulation-main {
-    margin-right: min(33.3333vw, 420px);
+    margin-right: 29vw;
 }
 
 .formulation-layout.chat-closed .formulation-main {
@@ -131,7 +131,7 @@
     padding-left: 22px;
 }
 
-.section-validation-modal li + li {
+.section-validation-modal li+li {
     margin-top: 8px;
 }
 
@@ -146,7 +146,7 @@
     position: fixed;
     top: 0;
     right: 0;
-    width: min(33.3333vw, 420px);
+    width: 30vw;
     height: 100dvh;
     min-width: 0;
     overflow: hidden;
@@ -159,6 +159,9 @@
 
 .formulation-chat-panel.closed {
     width: 45px;
+    background: #3588e7;
+    border-left-color: rgba(13, 54, 96, 0.2);
+    box-shadow: -4px 0 16px rgba(13, 54, 96, 0.1);
 }
 
 @media (max-width: 1024px) {
@@ -208,13 +211,13 @@
     top: 14px;
     left: 8px;
 
-    width: 30px;
-    height: 30px;
+    width: 50px;
+    height: 50px;
 
     border: none;
     border-radius: 50%;
 
-    background: #0d6efd;
+    background: #2178cad3;
     color: white;
 
     display: flex;

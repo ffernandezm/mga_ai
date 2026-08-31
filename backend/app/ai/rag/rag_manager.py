@@ -38,6 +38,7 @@ class RAGManager:
             "source_document": path.name,
             "source_size": path.stat().st_size,
             "source_hash": digest.hexdigest(),
+            "corpus_scope": self.processor.CORPUS_SCOPE,
             "chunk_size": self.config.chunk_size,
             "chunk_overlap": self.config.chunk_overlap,
             "vectorizer": "tfidf",
@@ -49,7 +50,15 @@ class RAGManager:
         if not stored:
             logger.info("Índice RAG sin metadata de identidad; se reconstruye para garantizar el corpus correcto.")
             return False
-        keys = ("source_document", "source_hash", "chunk_size", "chunk_overlap", "vectorizer", "ngram_range")
+        keys = (
+            "source_document",
+            "source_hash",
+            "corpus_scope",
+            "chunk_size",
+            "chunk_overlap",
+            "vectorizer",
+            "ngram_range",
+        )
         for key in keys:
             if stored.get(key) != fingerprint[key]:
                 logger.warning(
@@ -179,10 +188,12 @@ class RAGManager:
 
             blocks: List[str] = ["Contexto recuperado (RAG) del documento conceptual:"]
             for item in results:
-                start_char = item.get("metadata", {}).get("start_char", "?")
+                metadata = item.get("metadata", {})
+                source_document = metadata.get("source_document", self.config.source_document_path.name)
+                page = metadata.get("page", "?")
                 score = item.get("score", 0.0)
                 blocks.append(
-                    f"- Fuente: manual_conceptual_2015.pdf | chunk={item['chunk_id']} | start_char={start_char} | similitud={score:.3f}\n"
+                    f"- Fuente: {source_document} | pagina={page} | chunk={item['chunk_id']} | similitud={score:.3f}\n"
                     f"  {item['text']}"
                 )
 

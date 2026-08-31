@@ -1,16 +1,17 @@
 # RAG Module
 
-Este módulo añade recuperación de contexto desde el documento `manual_conceptual_2015.pdf` para enriquecer las respuestas del LLM.
+Este módulo añade recuperación de contexto desde `Documento_conceptual_2023.pdf`, "Lineamientos conceptuales que soportan la Metodología General Ajustada para Colombia" (enero de 2023, versión 2.0), para enriquecer las respuestas del LLM.
 
 ## Flujo
 
 1. Lectura del PDF con `pypdf`.
 2. Normalización de texto.
-3. Chunking por ventana deslizante con overlap.
-4. Embeddings TF-IDF (`scikit-learn`).
-5. Persistencia local del índice en `app/ai/rag/index/`.
-6. Retrieval Top-K por similitud coseno (producto punto sobre vectores normalizados).
-7. Inyección del contexto recuperado al prompt del LLM.
+3. Selección del corpus desde la introducción hasta finalizar cadena de valor; se excluye la sección 3.5 de riesgos y todo el contenido posterior.
+4. Chunking por página y ventana deslizante con overlap, conservando documento, página e identificador del chunk.
+5. Embeddings TF-IDF (`scikit-learn`).
+6. Persistencia local del índice en `app/ai/rag/index/`.
+7. Retrieval Top-K por similitud coseno (producto punto sobre vectores normalizados).
+8. Inyección del contexto recuperado al prompt del LLM.
 
 ## Variables de entorno
 
@@ -28,10 +29,12 @@ Este módulo añade recuperación de contexto desde el documento `manual_concept
 ## Reindexación
 
 - Por defecto, si no hay índice previo, se crea automáticamente al primer uso.
-- Si cambias el PDF, usa `RAG_AUTO_REINDEX=true` o llama al método `rebuild_index()` de `RAGManager`.
+- El índice almacena el nombre y hash SHA-256 del PDF, además del alcance del corpus y los parámetros de chunking. Si alguno cambia, se reconstruye automáticamente.
+- `RAG_AUTO_REINDEX=true` fuerza una reconstrucción en cada nueva instancia; también puede llamarse al método `rebuild_index()` de `RAGManager`.
 
 ## Archivos generados en index
 
 - `chunks.json`: chunks y metadatos.
 - `embeddings.npz`: matriz TF-IDF.
 - `vectorizer.joblib`: vectorizador entrenado.
+- `index_metadata.json`: identidad del PDF, alcance del corpus y estadísticas del índice.

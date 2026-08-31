@@ -26,6 +26,7 @@ _TOC_TITLE = re.compile(
     re.IGNORECASE,
 )
 _DOT_LEADER = re.compile(r"\.{4,}\s*\d*")
+_RISKS_SECTION_TITLE = re.compile(r"3\.5\s+¿?cuales\s+son\s+los\s+riesgos", re.IGNORECASE)
 
 
 def _strip_accents(text: str) -> str:
@@ -58,6 +59,8 @@ def is_structural_content(text: str) -> bool:
 
 class DocumentProcessor:
     """Lee documentos y los divide en chunks con overlap."""
+
+    CORPUS_SCOPE = "intro-through-value-chain-before-risks-v1"
 
     @staticmethod
     def extract_text_from_pdf(file_path: Path) -> str:
@@ -120,6 +123,34 @@ class DocumentProcessor:
         return chunks
 
     def load_and_chunk_pdf(self, file_path: Path, chunk_size: int, chunk_overlap: int) -> List[DocumentChunk]:
-        text = self.extract_text_from_pdf(file_path)
-        chunks = self.split_text(text=text, chunk_size=chunk_size, chunk_overlap=chunk_overlap)
-        return [chunk for chunk in chunks if not is_structural_content(chunk.text)]
+        reader = PdfReader(str(file_path))
+        chunks: List[DocumentChunk] = []
+
+        for page_number, page in enumerate(reader.pages, start=1):
+            page_text = self._normalize_text((page.extract_text() or "").strip())
+            if not page_text:
+                continue
+
+            normalized_page = _strip_accents(page_text)
+            if _RISKS_SECTION_TITLE.search(normalized_page) and not is_structural_content(page_text):
+                break
+
+            page_chunks = self.split_text(page_text, chunk_size, chunk_overlap)
+            for page_chunk in page_chunks:
+                chunk_index = len(chunks)
+                chunk_id = f"chunk_{chunk_index:05d}"
+                page_chunk.chunk_id = chunk_id
+                page_chunk.metadata.update(
+                    {
+                        "chunk_id": chunk_id,
+                        "chunk_index": chunk_index,
+                        "source_document": file_path.name,
+                        "page": page_number,
+                    }
+                )
+                if not is_structural_content(page_chunk.text):
+                    chunks.append(page_chunk)
+
+        if not chunks:
+            raise ValueError(f"No se generaron chunks con texto extraíble desde {file_path}")
+        return chunks

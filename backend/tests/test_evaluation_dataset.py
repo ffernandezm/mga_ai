@@ -244,7 +244,7 @@ def test_token_count_grows_with_available_context(problems_records):
 
 def test_run_record_traces_the_rag_corpus(problems_records):
     config = problems_records["C"].config
-    assert config["source_document"] == "manual_conceptual_2015.pdf"
+    assert config["source_document"] == "Documento_conceptual_2023.pdf"
     assert config["index_hash"]
 
 

@@ -207,7 +207,7 @@ function Formulation() {
                         onClick={toggleChat}
                         title={chatOpen ? "Ocultar asistente IA" : "Mostrar asistente IA"}
                     >
-                        {chatOpen ? "❯" : "❮"}
+                        {chatOpen ? "❯❯" : "❮❮"}
                     </button>
 
                     {chatOpen && (

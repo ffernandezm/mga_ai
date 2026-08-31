@@ -2,6 +2,8 @@
 
 .message-markdown {
     width: 100%;
+    min-width: 0;
+    overflow-wrap: anywhere;
 }
 
 .message-markdown>*:first-child {
