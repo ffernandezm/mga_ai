@@ -26,7 +26,7 @@ from app.ai.rag.section_terms import SECTION_QUERY_TERMS, build_retrieval_query
 from app.ai.rag.stopwords import SPANISH_STOPWORDS
 from app.ai.rag.vector_store import LocalVectorStore
 
-REAL_PDF = Path(__file__).resolve().parents[1] / "app" / "data" / "manual_conceptual_2015.pdf"
+REAL_PDF = Path(__file__).resolve().parents[1] / "app" / "data" / "Documento_conceptual_2023.pdf"
 
 
 def _strip_accents(text: str) -> str:
@@ -288,37 +288,42 @@ def test_real_pdf_chunking_respects_configured_size():
     assert chunks
     assert all(len(chunk.text) <= config.chunk_size for chunk in chunks)
     assert all(chunk.metadata.get("start_char") is not None for chunk in chunks)
+    assert all(chunk.metadata.get("source_document") == REAL_PDF.name for chunk in chunks)
+    assert all(chunk.metadata.get("page") is not None for chunk in chunks)
+    assert all(chunk.metadata.get("chunk_id") == chunk.chunk_id for chunk in chunks)
+    assert max(chunk.metadata["page"] for chunk in chunks) == 70
+    assert all("3.5 ¿cuáles son los riesgos" not in chunk.text.lower() for chunk in chunks)
 
 
 # ---------------------------------------------------------------------------
 # 6. Fuente documental definitiva (corpus de un solo documento)
 # ---------------------------------------------------------------------------
 
-def test_configured_source_is_the_2015_manual():
+def test_configured_source_is_the_2023_document():
     config = RAGConfig.from_env()
-    assert config.source_document_path.name == "manual_conceptual_2015.pdf"
+    assert config.source_document_path.name == "Documento_conceptual_2023.pdf"
     assert config.source_document_path.exists()
 
 
-def test_default_source_is_the_2015_manual(monkeypatch):
+def test_default_source_is_the_2023_document(monkeypatch):
     monkeypatch.delenv("RAG_SOURCE_DOCUMENT", raising=False)
     assert RAGConfig.from_env().source_document_path == DEFAULT_SOURCE_DOCUMENT
-    assert DEFAULT_SOURCE_DOCUMENT.name == "manual_conceptual_2015.pdf"
+    assert DEFAULT_SOURCE_DOCUMENT.name == "Documento_conceptual_2023.pdf"
 
 
 def test_relative_source_path_resolves_against_backend_root(monkeypatch):
-    monkeypatch.setenv("RAG_SOURCE_DOCUMENT", "app/data/manual_conceptual_2015.pdf")
+    monkeypatch.setenv("RAG_SOURCE_DOCUMENT", "app/data/Documento_conceptual_2023.pdf")
     resolved = RAGConfig.from_env().source_document_path
     assert resolved.is_absolute()
     assert resolved == REAL_PDF
 
 
 @pytest.mark.skipif(not REAL_PDF.exists(), reason="PDF de referencia no disponible")
-def test_rag_starts_without_the_2023_document(prebuilt_index):
-    """El corpus es un único documento: el PDF 2023 no es necesario para iniciar RAG."""
-    assert not (REAL_PDF.parent / "Documento_conceptual_2023.pdf").exists()
+def test_rag_uses_the_2023_document_in_retrieved_context(prebuilt_index):
     manager = RAGManager(_config_for(prebuilt_index, REAL_PDF, auto_reindex=False))
-    assert manager.get_relevant_context("cadena de valor productos actividades")
+    context = manager.get_relevant_context("cadena de valor productos actividades")
+    assert "Fuente: Documento_conceptual_2023.pdf" in context
+    assert "pagina=" in context
 
 
 # ---------------------------------------------------------------------------
@@ -357,7 +362,7 @@ def test_toc_chunks_are_excluded_from_index(real_pdf_manager):
 
 @pytest.mark.skipif(not REAL_PDF.exists(), reason="PDF de referencia no disponible")
 def test_toc_is_not_returned_as_top_result(real_pdf_manager):
-    for query in ("objetivos generales y especificos", "analisis tecnico de la alternativa"):
+    for query in ("oferta demanda estudio de necesidades", "cadena de valor productos actividades"):
         results = real_pdf_manager.vector_store.similarity_search(query, top_k=4, min_similarity=0.10)
         assert results
         assert not is_structural_content(results[0]["text"])
@@ -426,12 +431,13 @@ def test_user_question_is_never_modified(real_pdf_manager, monkeypatch):
 # ---------------------------------------------------------------------------
 
 @pytest.mark.skipif(not REAL_PDF.exists(), reason="PDF de referencia no disponible")
-def test_index_metadata_matches_the_2015_manual(real_pdf_manager):
+def test_index_metadata_matches_the_2023_document(real_pdf_manager):
     metadata = real_pdf_manager.vector_store.read_metadata()
 
-    assert metadata["source_document"] == "manual_conceptual_2015.pdf"
+    assert metadata["source_document"] == "Documento_conceptual_2023.pdf"
     assert metadata["source_size"] == REAL_PDF.stat().st_size
     assert len(metadata["source_hash"]) == 64
+    assert metadata["corpus_scope"] == DocumentProcessor.CORPUS_SCOPE
     assert metadata["vectorizer"] == "tfidf"
     assert metadata["ngram_range"] == [1, 2]
     assert metadata["chunks"] == metadata["matrix_shape"][0]
@@ -446,6 +452,17 @@ def test_index_is_rebuilt_when_relevant_metadata_changes(prebuilt_index):
     reloaded = RAGManager(_config_for(prebuilt_index, REAL_PDF, auto_reindex=False))
     assert reloaded.get_relevant_context("cadena de valor productos actividades")
     assert reloaded.vector_store.read_metadata()["source_hash"] != "0" * 64
+
+
+@pytest.mark.skipif(not REAL_PDF.exists(), reason="PDF de referencia no disponible")
+def test_index_from_the_2015_manual_is_not_reused(prebuilt_index):
+    stale = json.loads((prebuilt_index / "index_metadata.json").read_text(encoding="utf-8"))
+    stale["source_document"] = "manual_conceptual_2015.pdf"
+    (prebuilt_index / "index_metadata.json").write_text(json.dumps(stale), encoding="utf-8")
+
+    reloaded = RAGManager(_config_for(prebuilt_index, REAL_PDF, auto_reindex=False))
+    assert reloaded.get_relevant_context("cadena de valor productos actividades")
+    assert reloaded.vector_store.read_metadata()["source_document"] == REAL_PDF.name
 
 
 @pytest.mark.skipif(not REAL_PDF.exists(), reason="PDF de referencia no disponible")

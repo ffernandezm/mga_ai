@@ -48,6 +48,8 @@ class LocalVectorStore:
         self._chunks = chunks
         texts = [chunk.text for chunk in chunks]
         self._matrix = self._embedding_model.fit_transform(texts).tocsr()
+        if self._matrix.shape[0] != len(chunks) or self._matrix.shape[1] == 0 or self._matrix.nnz == 0:
+            raise ValueError("El índice TF-IDF generado no contiene documentos o términos indexables")
 
         self._embedding_model.save(self.vectorizer_file)
         sparse.save_npz(self.matrix_file, self._matrix)
@@ -82,6 +84,8 @@ class LocalVectorStore:
         ]
         self._embedding_model.load(self.vectorizer_file)
         self._matrix = sparse.load_npz(self.matrix_file).tocsr()
+        if not self._chunks or self._matrix.shape[0] != len(self._chunks) or self._matrix.shape[1] == 0:
+            raise ValueError("El índice TF-IDF persistido está vacío o no corresponde a sus chunks")
 
     def similarity_search(self, query: str, top_k: int, min_similarity: float) -> List[Dict]:
         if not query or self._matrix is None or not self._chunks:

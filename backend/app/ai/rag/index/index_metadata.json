@@ -2,6 +2,7 @@
   "source_document": "manual_conceptual_2015.pdf",
   "source_size": 2816429,
   "source_hash": "a809555aaaf74e9f48485310ef6080c2dbf6994663912d67a3358efb9dafa552",
+  "corpus_scope": "intro-through-value-chain-before-risks-v1",
   "chunk_size": 1400,
   "chunk_overlap": 250,
   "vectorizer": "tfidf",
@@ -9,11 +10,11 @@
     1,
     2
   ],
-  "chunks": 243,
+  "chunks": 266,
   "vocabulary_size": 20000,
   "matrix_shape": [
-    243,
+    266,
     20000
   ],
-  "nnz": 47207
+  "nnz": 45236
 }
