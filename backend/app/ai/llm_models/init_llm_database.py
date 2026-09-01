@@ -1,6 +1,6 @@
-import os
 import psycopg
 from langchain_postgres import PostgresChatMessageHistory
+from app.core.database import DATABASE_URL
 
 def init_langchain_tables():
     """
@@ -10,13 +10,8 @@ def init_langchain_tables():
 
     try:
         # Usa tu cadena de conexión (ajústala según tu entorno)
-        conn_info = os.getenv(
-            "DATABASE_URL",
-            "dbname=postgres user=postgres password=ffernandez host=localhost port=5432"
-        )
-
         # Abre la conexión
-        with psycopg.connect(conn_info) as conn:
+        with psycopg.connect(DATABASE_URL) as conn:
             table_name = "chat_history_"
 
             # Crea las tablas si no existen
@@ -25,3 +20,4 @@ def init_langchain_tables():
             print(f"✅ Tabla '{table_name}' creada o verificada correctamente.")
     except Exception as e:
         print("❌ Error al crear tablas de LangChain:", e)
+        raise

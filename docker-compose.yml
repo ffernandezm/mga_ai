@@ -1,0 +1,87 @@
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "5"
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    logging: *default-logging
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-mga}
+      POSTGRES_USER: ${POSTGRES_USER:-mga}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Configure POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: ./backend
+    restart: unless-stopped
+    logging: *default-logging
+    environment:
+      ENVIRONMENT: production
+      DEBUG: "false"
+      PORT: 8000
+      POSTGRES_HOST: db
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: ${POSTGRES_DB:-mga}
+      POSTGRES_USER: ${POSTGRES_USER:-mga}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Configure POSTGRES_PASSWORD}
+      FRONTEND_URL: ${PUBLIC_URL:?Configure PUBLIC_URL}
+      LLM_PROVIDER: ${LLM_PROVIDER:-groq}
+      GROQ_API_KEY: ${GROQ_API_KEY:-}
+      GROQ_MODEL: ${GROQ_MODEL:-llama-3.1-8b-instant}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_MODEL: ${OPENAI_MODEL:-}
+      GOOGLE_API_KEY: ${GOOGLE_API_KEY:-}
+      RAG_ENABLED: ${RAG_ENABLED:-true}
+      RAG_SOURCE_DOCUMENT: ${RAG_SOURCE_DOCUMENT:-app/data/Documento_conceptual_2023.pdf}
+      RAG_INDEX_DIR: /data/rag-index
+      RAG_AUTO_REINDEX: ${RAG_AUTO_REINDEX:-false}
+      RAG_WARMUP_ON_START: ${RAG_WARMUP_ON_START:-true}
+      RAG_CHUNK_SIZE: ${RAG_CHUNK_SIZE:-1400}
+      RAG_CHUNK_OVERLAP: ${RAG_CHUNK_OVERLAP:-250}
+      RAG_TOP_K: ${RAG_TOP_K:-4}
+      RAG_MIN_SIMILARITY: ${RAG_MIN_SIMILARITY:-0.10}
+      RAG_MAX_CONTEXT_CHARS: ${RAG_MAX_CONTEXT_CHARS:-7000}
+    volumes:
+      - rag_index:/data/rag-index
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8000/ready"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 180s
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_URL: /api
+    restart: unless-stopped
+    logging: *default-logging
+    ports:
+      - "127.0.0.1:8080:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+volumes:
+  postgres_data:
+  rag_index:

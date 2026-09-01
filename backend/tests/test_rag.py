@@ -216,6 +216,23 @@ def test_disabled_rag_returns_empty(tmp_path):
     assert RAGManager(config).get_relevant_context("árbol de problemas") == ""
 
 
+def test_prepare_builds_index_without_retrieval(tmp_path):
+    manager = RAGManager(_config_for(tmp_path, REAL_PDF, auto_reindex=False))
+
+    assert manager.prepare()
+    assert manager.is_ready
+    assert manager.vector_store.exists()
+    assert manager.vector_store.read_metadata()["source_document"] == REAL_PDF.name
+
+
+def test_prepare_disabled_rag_is_ready_without_index(tmp_path):
+    manager = RAGManager(_config_for(tmp_path, REAL_PDF, enabled=False, auto_reindex=False))
+
+    assert manager.prepare()
+    assert manager.is_ready
+    assert not manager.vector_store.exists()
+
+
 def test_empty_query_returns_empty(tmp_path):
     # Query vacía: retorna antes de tocar el índice (no requiere indexar el PDF).
     assert RAGManager(_config_for(tmp_path, REAL_PDF)).get_relevant_context("") == ""

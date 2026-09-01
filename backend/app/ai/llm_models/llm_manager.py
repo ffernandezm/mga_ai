@@ -23,7 +23,7 @@ from langchain_core.output_parsers import StrOutputParser
 from app.core.database import SessionLocal
 from app.ai.rag import RAGManager
 from app.ai.context.context_manager import ContextManager
-from app.ai.llm_models.openai_llm import DEFAULT_OPENAI_MODEL, OPENAI_MODEL_PROFILES, resolve_openai_model
+from app.ai.llm_models.openai_llm import resolve_openai_model
 from app.ai.llm_models.token_diagnostics import PromptTokenReport, count_tokens
 from sqlalchemy.orm import Session
 
@@ -83,10 +83,12 @@ class LLMManager:
         """Inicializa el modelo LLM según el provider configurado."""
         if self.llm_provider == "groq":
             api_key = os.getenv("GROQ_API_KEY")
-            model_name = os.getenv("GROQ_MODEL", "llama-3.1-8b-instant")
+            model_name = os.getenv("GROQ_MODEL", "llama-3.1-8b-instant").strip()
             
             if not api_key:
                 raise ValueError("GROQ_API_KEY no configurada en .env")
+            if not model_name:
+                raise ValueError("GROQ_MODEL no configurado en .env")
             
             logger.info(f"Inicializando Groq LLM con modelo: {model_name}")
             return ChatGroq(
@@ -108,19 +110,13 @@ class LLMManager:
             )
         elif self.llm_provider == "openai":
             api_key = os.getenv("OPENAI_API_KEY")
-            configured_model = os.getenv("OPENAI_MODEL", DEFAULT_OPENAI_MODEL)
+            configured_model = os.getenv("OPENAI_MODEL", "")
 
             if not api_key:
                 raise ValueError("OPENAI_API_KEY no configurada en .env")
 
             model_name = resolve_openai_model(configured_model)
-            model_usage = OPENAI_MODEL_PROFILES[model_name].usage
-
-            logger.info(
-                "Inicializando OpenAI LLM con modelo: %s (%s)",
-                model_name,
-                model_usage,
-            )
+            logger.info("Inicializando OpenAI LLM con modelo: %s", model_name)
             return ChatOpenAI(
                 model=model_name,
                 api_key=api_key,

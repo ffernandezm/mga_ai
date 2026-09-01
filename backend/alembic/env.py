@@ -5,7 +5,6 @@ from sqlalchemy import pool
 
 from alembic import context
 
-import os
 from dotenv import load_dotenv
 
 
@@ -16,14 +15,11 @@ config = context.config
 
 load_dotenv()
 
-# Normalizar URL de Postgres (Neon/Render entregan 'postgres://')
-_db_url = os.getenv("DATABASE_URL") or ""
-if _db_url.startswith("postgres://"):
-    _db_url = _db_url.replace("postgres://", "postgresql://", 1)
+from app.core.database import DATABASE_URL
 
 config.set_main_option(
     "sqlalchemy.url",
-    _db_url,
+    DATABASE_URL.replace("%", "%%"),
 )
 
 # Interpret the config file for Python logging.
