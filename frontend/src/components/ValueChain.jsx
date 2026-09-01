@@ -274,7 +274,7 @@ const ValueChain = ({ projectId }) => {
 
     return (
         <div className="container-fluid py-3">
-            <div className="d-flex justify-content-between align-items-center mb-4 bg-white p-3 rounded shadow-sm border">
+            {/* <div className="d-flex justify-content-between align-items-center mb-4 bg-white p-3 rounded shadow-sm border">
                 <div>
                     <h4 className="text-primary mb-0 fw-bold">Cadena de Valor</h4>
                     <small className="text-muted">Gestión de productos y actividades por objetivo</small>
@@ -282,7 +282,7 @@ const ValueChain = ({ projectId }) => {
                 <button className="btn btn-sm btn-primary" onClick={fetchData}>
                     Sincronizar
                 </button>
-            </div>
+            </div> */}
 
             {objectives.map((obj) => (
                 <div key={obj.id} className="card mb-5 border-0 shadow-sm overflow-hidden border">
