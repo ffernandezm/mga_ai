@@ -14,6 +14,7 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import ValidationError
+from sqlalchemy import text
 
 # Configurar logging
 load_dotenv()
@@ -60,7 +61,7 @@ from app.models.pnd_details import router as pnd_details_router
 from app.models.project_localization import router as project_localization_router
 from app.section_validation.router import router as section_validation_router
 
-from app.core.database import Base, engine
+from app.core.database import Base, SessionLocal, engine
 from app.ai.llm_models.init_llm_database import init_langchain_tables
 
 
@@ -90,6 +91,13 @@ async def lifespan(app: FastAPI):
         from app.models.pnd_details import seed_pnd_details
         seed_pnd_details()
         logger.info("✅ Detalle de PND cargado/verificado")
+
+        from app.models.chat_history import llm_manager
+        if llm_manager.rag_manager.config.warmup_on_start:
+            logger.info("Preparando índice RAG antes de habilitar readiness...")
+            if not llm_manager.rag_manager.prepare():
+                raise RuntimeError("El índice RAG no pudo prepararse durante el startup")
+            logger.info("Índice RAG preparado")
         
         # Validar LLM
         llm_provider = os.getenv("LLM_PROVIDER", "groq").lower()
@@ -208,6 +216,35 @@ async def health_check():
         "version": "1.0.0",
         "environment": os.getenv("ENVIRONMENT", "development"),
         "llm_provider": os.getenv("LLM_PROVIDER", "groq")
+    }
+
+
+@app.get("/ready")
+async def readiness_check():
+    """Confirma que PostgreSQL y RAG están listos para recibir tráfico."""
+    from app.models.chat_history import llm_manager
+
+    try:
+        with SessionLocal() as session:
+            session.execute(text("SELECT 1"))
+    except Exception:
+        logger.exception("Readiness falló al comprobar PostgreSQL")
+        return JSONResponse(
+            status_code=503,
+            content={"status": "not_ready", "database": "unavailable"},
+        )
+
+    rag_manager = llm_manager.rag_manager
+    if rag_manager.config.enabled and not rag_manager.is_ready:
+        return JSONResponse(
+            status_code=503,
+            content={"status": "not_ready", "database": "ready", "rag": "not_ready"},
+        )
+
+    return {
+        "status": "ready",
+        "database": "ready",
+        "rag": "ready" if rag_manager.config.enabled else "disabled",
     }
 
 

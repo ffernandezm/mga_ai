@@ -84,7 +84,7 @@ class Config:
     GROQ_MODEL = os.getenv("GROQ_MODEL", "llama-3.1-8b-instant")
 
     # OpenAI Configuration
-    OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-5.6-luna")
+    OPENAI_MODEL = os.getenv("OPENAI_MODEL", "")
     
     # Ollama Configuration
     OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "mistral")

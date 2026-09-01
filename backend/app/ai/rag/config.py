@@ -40,6 +40,7 @@ class RAGConfig:
     min_similarity: float
     embedding_provider: str
     auto_reindex: bool
+    warmup_on_start: bool
     max_context_chars: int
 
     @classmethod
@@ -58,5 +59,6 @@ class RAGConfig:
             min_similarity=float(os.getenv("RAG_MIN_SIMILARITY", "0.10")),
             embedding_provider=os.getenv("RAG_EMBEDDING_PROVIDER", "tfidf").strip().lower(),
             auto_reindex=os.getenv("RAG_AUTO_REINDEX", "false").strip().lower() in {"1", "true", "yes", "on"},
+            warmup_on_start=os.getenv("RAG_WARMUP_ON_START", "true").strip().lower() in {"1", "true", "yes", "on"},
             max_context_chars=max(int(os.getenv("RAG_MAX_CONTEXT_CHARS", "7000")), 500),
         )

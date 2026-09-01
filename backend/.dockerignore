@@ -25,6 +25,15 @@ env/
 .pytest_cache/
 .mypy_cache/
 
+# Artefactos locales o regenerables no requeridos en producción
+tests/
+evaluation/
+app/ai/rag/index/
+app/data/manual_conceptual_2015.pdf
+app/data/products_catalog_1.csv
+seed_example_data.sql
+example_mga_project_seed.sql
+
 # Git
 .git/
 .gitignore

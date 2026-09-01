@@ -1,5 +1,9 @@
 # Despliegue gratuito (académico)
 
+> Esta guia conserva el despliegue legado Render/Vercel/Neon. Para el
+> despliegue actual en AWS Lightsail, usar
+> [DEPLOY_LIGHTSAIL.md](DEPLOY_LIGHTSAIL.md).
+
 Stack desplegado:
 
 - **Frontend** (Vite + React) → **Vercel**

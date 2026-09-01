@@ -1,7 +1,7 @@
 {
-  "source_document": "manual_conceptual_2015.pdf",
-  "source_size": 2816429,
-  "source_hash": "a809555aaaf74e9f48485310ef6080c2dbf6994663912d67a3358efb9dafa552",
+  "source_document": "Documento_conceptual_2023.pdf",
+  "source_size": 5614819,
+  "source_hash": "d6126c67d47644ebb86149656f1f816dca51742c2aae2e96f7997d225dee9594",
   "corpus_scope": "intro-through-value-chain-before-risks-v1",
   "chunk_size": 1400,
   "chunk_overlap": 250,
@@ -10,11 +10,11 @@
     1,
     2
   ],
-  "chunks": 266,
-  "vocabulary_size": 20000,
+  "chunks": 113,
+  "vocabulary_size": 8299,
   "matrix_shape": [
-    266,
-    20000
+    113,
+    8299
   ],
-  "nnz": 45236
+  "nnz": 16120
 }

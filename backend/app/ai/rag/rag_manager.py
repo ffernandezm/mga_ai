@@ -25,7 +25,17 @@ class RAGManager:
         self.processor = DocumentProcessor()
         self.vector_store = LocalVectorStore(index_dir=self.config.index_dir)
         self._ready = False
+        self._available = False
         self._lock = Lock()
+
+    @property
+    def is_ready(self) -> bool:
+        return self._ready and (not self.config.enabled or self._available)
+
+    def prepare(self) -> bool:
+        """Carga o construye el índice sin ejecutar retrieval ni llamar al LLM."""
+        self._index_if_needed()
+        return self.is_ready
 
     def _source_fingerprint(self) -> Dict:
         """Identidad del corpus + configuración que obliga a reindexar si cambia."""
@@ -75,6 +85,7 @@ class RAGManager:
         if not self.config.enabled:
             logger.info("RAG deshabilitado por configuración")
             self._ready = True
+            self._available = False
             return
 
         with self._lock:
@@ -88,6 +99,7 @@ class RAGManager:
                     self.config.source_document_path,
                 )
                 self._ready = True
+                self._available = False
                 return
 
             logger.info(
@@ -105,6 +117,7 @@ class RAGManager:
                     self.config.source_document_path,
                 )
                 self._ready = True
+                self._available = False
                 return
 
             should_rebuild = (
@@ -131,6 +144,7 @@ class RAGManager:
                         self.config.chunk_overlap,
                     )
                     self._ready = True
+                    self._available = False
                     return
                 logger.info("Índice RAG generado con %s chunks", len(chunks))
             else:
@@ -144,8 +158,10 @@ class RAGManager:
                         self.config.index_dir,
                     )
                     self._ready = True
+                    self._available = False
                     return
 
+            self._available = True
             self._ready = True
 
     def get_relevant_context(self, query: str, section: Optional[str] = None) -> str:
@@ -230,6 +246,7 @@ class RAGManager:
         """Reconstruye índice forzando nueva lectura/chunking/embeddings."""
         with self._lock:
             self._ready = False
+            self._available = False
             if self.config.source_document_path.exists():
                 chunks = self.processor.load_and_chunk_pdf(
                     file_path=self.config.source_document_path,
@@ -237,5 +254,6 @@ class RAGManager:
                     chunk_overlap=self.config.chunk_overlap,
                 )
                 self.vector_store.build(chunks, metadata=self._source_fingerprint())
+                self._available = True
                 self._ready = True
                 logger.info("Índice RAG reconstruido con %s chunks", len(chunks))
