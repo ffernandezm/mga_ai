@@ -19,14 +19,16 @@ class Survey(Base):
     __tablename__ = "survey"
 
     id = Column(Integer, primary_key=True, index=True)
-    project_id = Column(Integer, ForeignKey("projects.id"), nullable=False)
+    project_id = Column(Integer, ForeignKey("projects.id"), nullable=False, unique=True)
     project = relationship("Project", back_populates="survey")
     survey_json = Column(JSON, nullable=False)
+    comment = Column(Text, nullable=True)
 
 
 # 🔹 Esquemas Pydantic
 class SurveyBase(BaseModel):
     survey_json: Dict[str, Any]
+    comment: Optional[str] = None
 
 
 class SurveyCreate(SurveyBase):
@@ -50,8 +52,18 @@ router = APIRouter()
 
 @router.post("/{project_id}", response_model=SurveyResponse)
 def create_survey(project_id: int, survey: SurveyCreate, db: Session = Depends(get_db)):
-    db_survey = Survey(project_id=project_id, survey_json=survey.survey_json)
-    db.add(db_survey)
+    db_survey = db.query(Survey).filter(Survey.project_id == project_id).first()
+    if db_survey:
+        db_survey.survey_json = survey.survey_json
+        db_survey.comment = survey.comment
+    else:
+        db_survey = Survey(
+            project_id=project_id,
+            survey_json=survey.survey_json,
+            comment=survey.comment,
+        )
+        db.add(db_survey)
+
     db.commit()
     db.refresh(db_survey)
     return db_survey
@@ -81,6 +93,7 @@ def update_survey(project_id: int, survey_id: int, survey: SurveyUpdate, db: Ses
         raise HTTPException(status_code=404, detail="Survey not found for this project")
 
     db_survey.survey_json = survey.survey_json
+    db_survey.comment = survey.comment
     db.commit()
     db.refresh(db_survey)
     return db_survey

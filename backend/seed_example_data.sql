@@ -80,8 +80,9 @@ CREATE INDEX ix_project_localizations_id ON project_localizations (id);
 -- SURVEY
 CREATE TABLE survey (
     id SERIAL PRIMARY KEY,
-    project_id INTEGER NOT NULL REFERENCES projects(id),
-    survey_json JSON NOT NULL
+    project_id INTEGER NOT NULL UNIQUE REFERENCES projects(id),
+    survey_json JSON NOT NULL,
+    comment TEXT
 );
 CREATE INDEX ix_survey_id ON survey (id);
 
