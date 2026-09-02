@@ -61,7 +61,7 @@ from app.models.pnd_details import router as pnd_details_router
 from app.models.project_localization import router as project_localization_router
 from app.section_validation.router import router as section_validation_router
 
-from app.core.database import Base, SessionLocal, engine
+from app.core.database import SessionLocal
 from app.ai.llm_models.init_llm_database import init_langchain_tables
 
 
@@ -74,10 +74,6 @@ async def lifespan(app: FastAPI):
     # Startup
     logger.info("🚀 Iniciando MGA Backend...")
     try:
-        # Crear tablas
-        Base.metadata.create_all(bind=engine)
-        logger.info("✅ Tablas de BD creadas/verificadas")
-        
         # Inicializar tablas de LangChain
         init_langchain_tables()
         logger.info("✅ Tablas de LangChain inicializadas")
