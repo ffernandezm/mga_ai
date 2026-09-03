@@ -331,13 +331,36 @@ class LLMManager:
 
             # Crear cadena LLM
             chain = prompt | self.model | StrOutputParser()
-            llm_start = perf_counter()
-            response = chain.invoke({
+            invoke_payload = {
                 "project_context": project_context,
                 "rag_context": rag_context,
                 "chat_history": self._build_chat_context(chat_history) if chat_history else "",
                 "question": question,
-            })
+            }
+            # El proveedor a veces devuelve una respuesta vacía o falla de forma
+            # transitoria (timeout, hiccup puntual); un reintento acotado evita
+            # que ese blip aislado se traduzca en un error visible al usuario.
+            max_attempts = 2
+            response = ""
+            invoke_error = None
+            llm_start = perf_counter()
+            for attempt in range(1, max_attempts + 1):
+                try:
+                    response = chain.invoke(invoke_payload)
+                    invoke_error = None
+                except Exception as attempt_error:
+                    invoke_error = attempt_error
+                    response = ""
+                if isinstance(response, str) and response.strip():
+                    break
+                if attempt < max_attempts:
+                    logger.warning(
+                        "LLM_RETRY | tab=%s session=%s intento=%s motivo=%s",
+                        tab, session_id, attempt,
+                        invoke_error or "respuesta vacia del proveedor",
+                    )
+            if invoke_error is not None:
+                raise invoke_error
             llm_ms = (perf_counter() - llm_start) * 1000
             total_ms = (perf_counter() - total_start) * 1000
             

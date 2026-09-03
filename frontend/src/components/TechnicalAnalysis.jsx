@@ -63,11 +63,6 @@ function TechnicalAnalysis({ projectId, suggestionApplication }) {
 
     const handleSubmit = async () => {
 
-        if (!analysis.trim()) {
-            showError("El análisis no puede estar vacío");
-            return;
-        }
-
         const payload = {
             project_id: projectId,
             analysis: analysis

@@ -167,11 +167,6 @@ function DevelopmentPlan({ projectId }) {
 
     // ---------- GUARDAR ----------
     const handleSubmit = async () => {
-        if (!formData.pnds || formData.pnds.length === 0) {
-            showError("Debe agregar al menos un registro en la tabla de Detalle PND.");
-            return;
-        }
-
         const payload = {
             ...formData,
             project_id: projectId // Importante enviar el ID del proyecto asociado

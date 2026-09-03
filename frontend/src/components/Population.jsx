@@ -118,29 +118,20 @@ function Population({ projectId }) {
         if (projectId) fetchPopulation();
     }, [projectId]);
 
+    const parseOptionalInteger = (value) => {
+        if (value === "" || value === null || value === undefined) {
+            return null;
+        }
+
+        const parsedValue = parseInt(value, 10);
+        return Number.isNaN(parsedValue) ? null : parsedValue;
+    };
+
     const handleSubmit = async () => {
         if (!projectId) return showError("No hay proyecto seleccionado.");
 
-        // Validación de campos requeridos
-        const numAff = parseInt(populationFields.population_number_affected, 10);
-        const numInt = parseInt(populationFields.population_number_intervention, 10);
-        if (Number.isNaN(numAff) || numAff < 0) {
-            return showError("El número de población afectada es obligatorio.");
-        }
-        if (!populationFields.population_info_affected.trim()) {
-            return showError("La fuente de información de población afectada es obligatoria.");
-        }
-        if (Number.isNaN(numInt) || numInt < 0) {
-            return showError("El número de población de intervención es obligatorio.");
-        }
-        if (!populationFields.population_info_intervention.trim()) {
-            return showError("La fuente de información de población de intervención es obligatoria.");
-        }
-
-        // NUEVA CONDICIÓN: Población afectada no debe ser menor a la de intervención
-        if (numAff <= numInt) {
-            return showError("El número de la población afectada no debe ser menor o igual al número de la población de intervención.");
-        }
+        const numAff = parseOptionalInteger(populationFields.population_number_affected);
+        const numInt = parseOptionalInteger(populationFields.population_number_intervention);
 
         const payload = {
             project_id: projectId,
