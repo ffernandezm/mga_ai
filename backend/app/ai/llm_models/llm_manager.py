@@ -363,7 +363,7 @@ class LLMManager:
             total_ms = (perf_counter() - total_start) * 1000
             logger.error("⏱️ LLM timing fallo | tab=%s session=%s total_ms=%.1f", tab, session_id, total_ms)
             logger.error(f"Error en LLM ({tab}): {str(e)}", exc_info=True)
-            return "Lo siento, ocurrió un error al procesar tu pregunta. Intenta de nuevo."
+            raise RuntimeError("El proveedor LLM no pudo generar una respuesta") from e
 
     def measure_prompt_tokens(
         self,

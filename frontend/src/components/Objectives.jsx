@@ -16,7 +16,7 @@ const sourceTypeOptions = encuestasCsv
     .map((line) => line.split(";")[0].trim())
     .filter(Boolean);
 
-function Objectives({ projectId }) {
+function Objectives({ projectId, suggestionApplication }) {
     const { showSuccess, showError, showConfirmation } = useNotification();
     const [objectives, setObjectives] = useState([]);
     const [objectivesCauses, setObjectivesCauses] = useState([]);
@@ -78,7 +78,7 @@ function Objectives({ projectId }) {
     const fetchObjectives = async () => {
         try {
             const res = await api.get(`/objectives/${projectId}`);
-            const data = res.data;
+            const data = res;
 
             if (data && data.length > 0) {
                 const obj = data[0];
@@ -98,14 +98,19 @@ function Objectives({ projectId }) {
         if (projectId) fetchObjectives();
     }, [projectId]);
 
+    useEffect(() => {
+        const change = suggestionApplication?.changes?.find((item) => item.field_key === "general_objective");
+        if (change) setGeneralObjective(change.suggested_value);
+    }, [suggestionApplication?.id]);
+
     // Cargar el Problema Central desde el árbol de problemas (solo lectura)
     useEffect(() => {
         const fetchCentralProblem = async () => {
             if (!projectId) return;
             try {
                 const res = await api.get(`/problems/${projectId}`);
-                if (res.data && res.data.central_problem) {
-                    setGeneralProblem(res.data.central_problem);
+                if (res && res.central_problem) {
+                    setGeneralProblem(res.central_problem);
                 }
             } catch (error) {
                 console.error("Error al obtener el problema central:", error);
@@ -128,7 +133,7 @@ function Objectives({ projectId }) {
                 await api.put(`/objectives/${projectId}/${objectiveId}`, payload);
             } else {
                 const res = await api.post(`/objectives`, payload);
-                setObjectiveId(res.data.id);
+                setObjectiveId(res.id);
             }
             showSuccess("Objetivo guardado correctamente.");
             fetchObjectives();
@@ -197,23 +202,25 @@ function Objectives({ projectId }) {
     const saveNewCause = async () => {
         const payload = { ...newCause, objective_id: objectiveId };
         const res = await api.post("/objectives_causes/", payload);
-        setObjectivesCauses(prev => [...prev, res.data]);
+        setObjectivesCauses(prev => [...prev, res]);
         setCreatingCause(false);
         setNewCause({ type: "", cause_related: "", specifics_objectives: "" });
     };
 
     const saveNewIndicator = async () => {
+        if (!objectiveId) {
+            showError("Guarde primero el objetivo general antes de registrar indicadores.");
+            return;
+        }
         const payload = { ...newIndicator, objective_id: objectiveId };
-        const res = await api.post("/objectives_indicator/", payload);
-        setObjectivesIndicators(prev => [...prev, res.data]);
-        setCreatingIndicator(false);
-        setNewIndicator({
-            indicator: "",
-            unit: "",
-            meta: 0,
-            source_type: "",
-            source_validation: "",
-        });
+        try {
+            const res = await api.post("/objectives_indicator/", payload);
+            setObjectivesIndicators(prev => [...prev, res]);
+            setCreatingIndicator(false);
+            setNewIndicator({ indicator: "", unit: "", meta: 0, source_type: "", source_validation: "" });
+        } catch (error) {
+            showError(error?.message || "No se pudo guardar el indicador. Revise los campos obligatorios.");
+        }
     };
 
     return (
@@ -229,7 +236,7 @@ function Objectives({ projectId }) {
                             readOnly
                         />
 
-                        <h2>Objetivo General</h2>
+                        <h2>Objetivo General <span className="text-danger">*</span></h2>
                         <textarea
                             className="form-control"
                             value={generalObjective}
@@ -250,9 +257,9 @@ function Objectives({ projectId }) {
                                 <thead className="table-dark">
                                     <tr>
                                         <th>ID</th>
-                                        <th>Indicador</th>
+                                        <th>Indicador *</th>
                                         <th>Unidad</th>
-                                        <th>Meta</th>
+                                        <th>Meta *</th>
                                         <th>Fuente</th>
                                         <th>Validación</th>
                                         <th>Acciones</th>
@@ -415,7 +422,7 @@ function Objectives({ projectId }) {
                                         <th>ID</th>
                                         <th>Tipo</th>
                                         <th>Causa</th>
-                                        <th>Objetivo Específico</th>
+                                        <th>Objetivo Específico *</th>
                                         <th>Acciones</th>
                                     </tr>
                                 </thead>

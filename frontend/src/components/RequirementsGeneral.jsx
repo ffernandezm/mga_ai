@@ -223,7 +223,7 @@ function RequirementsGeneral({ projectId }) {
 
             {/* SECCIÓN 1: ANÁLISIS */}
             <div className="card mb-3 shadow-sm">
-                {renderSectionHeader("analysis", "Análisis de Necesidades")}
+                {renderSectionHeader("analysis", "Análisis de Necesidades *")}
                 {expandedSections.analysis && (
                     <div className="card-body">
                         <textarea
@@ -247,14 +247,14 @@ function RequirementsGeneral({ projectId }) {
                                 <thead className="table-dark">
                                     <tr>
                                         <th>ID</th>
-                                        <th>Bien o Servicio</th>
+                                        <th>Bien o Servicio *</th>
                                         <th>Descripción</th>
-                                        <th>Oferta</th>
-                                        <th>Demanda</th>
-                                        <th>Unidad</th>
-                                        <th>Año Inicio</th>
-                                        <th>Año Final</th>
-                                        <th>Último Año</th>
+                                        <th>Oferta *</th>
+                                        <th>Demanda *</th>
+                                        <th>Unidad *</th>
+                                        <th>Año Inicio *</th>
+                                        <th>Año Final *</th>
+                                        <th>Último Año *</th>
                                         <th>Acciones</th>
                                     </tr>
                                 </thead>

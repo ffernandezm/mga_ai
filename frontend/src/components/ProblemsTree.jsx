@@ -4,7 +4,7 @@ import "../styles/problemsTree.css";
 import api from "../services/api";
 import { useNotification } from "../context/NotificationContext";
 
-function ProblemsTree({ projectId, projectName, ProjectDescription }) {
+function ProblemsTree({ projectId, projectName, ProjectDescription, suggestionApplication }) {
     const { showSuccess: showSuccessMessage, showError, showConfirmation } = useNotification();
     const [problem, setProblem] = useState("");
     const [causes, setCauses] = useState([]);
@@ -17,6 +17,14 @@ function ProblemsTree({ projectId, projectName, ProjectDescription }) {
     const [currentDescription, setCurrentDescription] = useState("");
     const [magnitudeProblem, setMagnitudeProblem] = useState("");
     const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+    useEffect(() => {
+        for (const change of suggestionApplication?.changes || []) {
+            if (change.field_key === "central_problem") setProblem(change.suggested_value);
+            if (change.field_key === "current_description") setCurrentDescription(change.suggested_value);
+            if (change.field_key === "magnitude_problem") setMagnitudeProblem(change.suggested_value);
+        }
+    }, [suggestionApplication?.id]);
 
     // Cargar el árbol de problemas
     useEffect(() => {

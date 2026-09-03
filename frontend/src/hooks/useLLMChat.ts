@@ -85,7 +85,7 @@ export function useLLMChat(projectId: string | number, tab?: string) {
                 setMessages((prev) => [
                     ...prev,
                     {
-                        text: response.message,
+                        text: response.answer || response.error || 'El asistente no pudo generar una respuesta.',
                         sender: 'bot',
                         timestamp: new Date(),
                     },

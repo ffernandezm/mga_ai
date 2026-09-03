@@ -143,21 +143,29 @@ class DevelopmentPlanResponse(DevelopmentPlanBase):
 router = APIRouter()
 
 
-@router.post("/", response_model=DevelopmentPlanResponse)
-def create_development_plan(plan: DevelopmentPlanCreate, db: Session = Depends(get_db)):
+@router.post("/{project_id}", response_model=DevelopmentPlanResponse)
+def create_development_plan(project_id: int, plan: DevelopmentPlanCreate, db: Session = Depends(get_db)):
     plan_data = plan.dict()
     pnds_data = plan_data.pop('pnds', [])
-    
-    db_plan = DevelopmentPlans(**plan_data)
-    db.add(db_plan)
-    db.flush()  # Para obtener el id
-    
+
+    db_plan = db.query(DevelopmentPlans).filter(DevelopmentPlans.project_id == project_id).first()
+    if db_plan:
+        for key, value in plan_data.items():
+            setattr(db_plan, key, value)
+        for existing_pnd in db_plan.pnds:
+            db.delete(existing_pnd)
+        db.flush()
+    else:
+        db_plan = DevelopmentPlans(project_id=project_id, **plan_data)
+        db.add(db_plan)
+        db.flush()  # Para obtener el id
+
     # Crear PNDs asociados
     for pnd_data in pnds_data:
         pnd_data['development_plan_id'] = db_plan.id
         db_pnd = Pnd(**pnd_data)
         db.add(db_pnd)
-    
+
     db.commit()
     db.refresh(db_plan)
     return db_plan

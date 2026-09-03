@@ -21,6 +21,16 @@ logger = logging.getLogger(__name__)
 
 _INTERNAL_KEYS = {"id", "project_id", "problem_id", "direct_cause_id", "direct_effect_id", "population_id", "objective_id", "cause_id", "value_chain_id", "value_chain_objective_id", "product_id", "requirements_general_id", "localization_general_id", "participants_general_id", "development_plan_id", "alternative_id", "source_id", "plan_id", "pillar_id", "strategy_id", "component_id"}
 
+_FIELD_LABELS = {
+    "name": "Nombre", "select_fields": "Campos de selección",
+    "central_problem": "Problema central", "current_description": "Descripción de la situación existente", "magnitude_problem": "Magnitud del problema",
+    "direct_causes": "Causas directas", "indirect_causes": "Causas indirectas", "direct_effects": "Efectos directos", "indirect_effects": "Efectos indirectos",
+    "participants_analisis": "Análisis de los participantes", "participants_analysis": "Análisis de los participantes", "participant_actor": "Actor", "participant_entity": "Entidad", "interest_expectative": "Intereses y expectativas", "rol": "Rol", "contribution_conflicts": "Contribuciones o conflictos",
+    "general_problem": "Problema central", "general_objective": "Objetivo general", "specifics_objectives": "Objetivos específicos", "objectives_causes": "Objetivos específicos", "objectives_indicators": "Indicadores de resultado",
+    "requirements_analysis": "Análisis de necesidades", "goods_services": "Bienes y servicios", "good_service_name": "Bien o servicio", "supply_description": "Información de oferta", "demand_description": "Información de demanda", "unit_of_measure": "Unidad de medida",
+    "administrative_level": "Nivel territorial", "department": "Departamento", "city": "Municipio", "value_chain": "Cadena de valor", "activities": "Actividades", "products": "Productos",
+}
+
 
 class ContextManager:
     """Genera un contexto semántico y selectivo para cada sección MGA."""
@@ -246,19 +256,14 @@ class ContextManager:
         No se elige una alternativa en silencio: se informa la ambigüedad al LLM
         en vez de fingir que hay una selección clara.
         """
-        if isinstance(value, dict) and value.get("conflict"):
-            candidates = value.get("candidates", [])
-            names = ", ".join(c.get("name", "(sin nombre)") for c in candidates) or "sin datos"
-            return (
-                "[ALTERNATIVA SELECCIONADA]\n"
-                f"- Inconsistencia: hay {len(candidates)} alternativas marcadas como activas ({names}). "
-                "No se puede determinar una única alternativa seleccionada."
-            )
-        return self._render_mapping("ALTERNATIVA SELECCIONADA", value)
+        return self._render_mapping("ALTERNATIVAS DISPONIBLES", value)
 
     def _render_mapping(self, title: str, payload: Dict[str, Any]) -> str:
         lines = [f"[{title}]"]
         for key, value in self._iter_clean_items(payload):
+            if key == "Campos de selección" and isinstance(value, list):
+                lines.extend(self._render_select_domains(value))
+                continue
             if isinstance(value, (dict, list)):
                 nested = self._format_nested(key, value)
                 if nested:
@@ -268,6 +273,15 @@ class ContextManager:
                 if clean_value:
                     lines.append(f"- {key}: {clean_value}")
         return "\n".join(lines) if len(lines) > 1 else ""
+
+    def _render_select_domains(self, fields: List[Dict[str, Any]]) -> List[str]:
+        lines = ["- Campos de selección permitidos:"]
+        for field in fields:
+            values = field.get("allowed_values", [])
+            labels = [item.get("label", item.get("value", "")) for item in values]
+            lines.append(f"  - {field.get('label_es', field.get('field_key'))} [{field.get('field_key')}]: {', '.join(labels)}")
+        lines.append("  - Solo propone valores exactamente incluidos en estas opciones. Si no hay equivalencia, indícalo explícitamente sin inventar una opción.")
+        return lines
 
     def _render_list(self, title: str, payload: Any) -> str:
         if not isinstance(payload, list) or not payload:
@@ -317,6 +331,8 @@ class ContextManager:
         return False
 
     def _readable_key(self, key: str) -> str:
+        if key in _FIELD_LABELS:
+            return _FIELD_LABELS[key]
         cleaned = str(key).replace("_", " ").strip()
         return cleaned.title()
 

@@ -17,6 +17,28 @@ class ApiService {
     private retryCount = 0;
     private maxRetries = 3;
 
+    private sectionForFormUrl(url: string): string | null {
+        const entries: Array<[string, string]> = [
+            ["development_plans", "development_plans"], ["problems", "problems"], ["direct_causes", "problems"], ["direct_effects", "problems"],
+            ["participants", "participants"], ["population", "population"], ["affected_population", "population"], ["intervention_population", "population"],
+            ["objectives", "objectives"], ["objectives_causes", "objectives"], ["objectives_indicator", "objectives"],
+            ["alternatives", "alternatives"], ["requirements", "requirements"], ["technical_analysis", "technical_analysis"],
+            ["localization", "localization"], ["value_chain", "value_chain"], ["products", "value_chain"], ["activities", "value_chain"],
+        ];
+        return entries.find(([entry]) => url.includes(`/${entry}`))?.[1] || null;
+    }
+
+    private async recordFieldSaved(url: string): Promise<void> {
+        const sessionId = localStorage.getItem('mga_evaluation_session_id');
+        const section = this.sectionForFormUrl(url);
+        if (!sessionId || !section || url.startsWith('/evaluation')) return;
+        try {
+            await this.client.post(`/evaluation/sessions/${sessionId}/events`, { event_type: 'field_saved', section, payload: {} });
+        } catch {
+            // Telemetry must never interfere with saving a form.
+        }
+    }
+
     constructor(config?: Partial<ApiConfig>) {
         this.config = {
             baseURL:
@@ -111,6 +133,7 @@ class ApiService {
     ): Promise<T> {
         try {
             const response = await this.client.post<T>(url, data, config);
+            void this.recordFieldSaved(url);
             return response.data;
         } catch (error) {
             const apiError = ErrorHandler.normalize(error);
@@ -129,6 +152,7 @@ class ApiService {
     ): Promise<T> {
         try {
             const response = await this.client.put<T>(url, data, config);
+            void this.recordFieldSaved(url);
             return response.data;
         } catch (error) {
             const apiError = ErrorHandler.normalize(error);

@@ -40,6 +40,7 @@ from app.models.requirements_general import RequirementsGeneral
 from app.models.technical_analysis import TechnicalAnalysis
 from app.models.value_chain import ValueChain
 from app.models.value_chain_objectives import ValueChainObjectives
+from .select_domains import get_select_metadata
 
 Cache = Dict[str, Any]
 
@@ -258,6 +259,11 @@ def load_participants(db: Session, project_id: int, cache: Optional[Cache] = Non
         )
         if actors:
             result["actors"] = actors
+        result["select_fields"] = [
+            get_select_metadata("participant_actor"),
+            get_select_metadata("participant_entity"),
+            get_select_metadata("rol"),
+        ]
 
     if cache is not None:
         cache["participants"] = result
@@ -536,51 +542,9 @@ def load_alternatives(db: Session, project_id: int, cache: Optional[Cache] = Non
 
 
 def load_selected_alternative(db: Session, project_id: int, cache: Optional[Cache] = None) -> Dict[str, Any]:
-    """Devuelve la alternativa seleccionada del proyecto.
-
-    Semántica verificada: el frontend (AlternativesGeneral.jsx,
-    `enforceSingleActive`) garantiza que a lo sumo una `Alternatives.active`
-    sea True por proyecto; esa es la alternativa "seleccionada". No se
-    interpreta `alternatives_general.solution_alternatives/cost/profitability`
-    (checklist de completitud, no selección) por falta de semántica clara
-    adicional.
-
-    Casos manejados explícitamente (no se asume silenciosamente):
-    - 0 alternativas activas -> {} (sin selección; el chatbot sigue funcionando).
-    - 1 alternativa activa -> {"name", "state", "active": True}.
-    - N>1 alternativas activas -> inconsistencia de datos (el frontend debería
-      impedirlo, pero no se asume): se devuelve
-      {"conflict": True, "reason": "multiple_active_alternatives", "candidates": [...]}
-      en vez de elegir una en silencio. Se registra un warning.
-    """
-    ag = (
-        db.query(AlternativesGeneral)
-        .options(selectinload(AlternativesGeneral.alternatives))
-        .filter(AlternativesGeneral.project_id == project_id)
-        .first()
-    )
-    if not ag or not ag.alternatives:
-        return {}
-
-    active = [a for a in ag.alternatives if a.active]
-
-    if not active:
-        return {}
-
-    if len(active) > 1:
-        logger.warning(
-            "Inconsistencia de datos: project_id=%s tiene %s alternativas activas simultáneamente (se esperaba a lo sumo 1)",
-            project_id,
-            len(active),
-        )
-        return {
-            "conflict": True,
-            "reason": "multiple_active_alternatives",
-            "candidates": _drop_empty_list([_drop_empty({"name": a.name, "state": a.state}) for a in active]),
-        }
-
-    selected = active[0]
-    return _drop_empty({"name": selected.name, "state": selected.state, "active": selected.active})
+    """Expone alternativas disponibles sin inferir selección MGA desde `active`."""
+    alternatives = load_alternatives(db, project_id, cache)
+    return {"alternatives": alternatives} if alternatives else {}
 
 
 # ---------------------------------------------------------------------------

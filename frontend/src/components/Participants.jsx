@@ -292,10 +292,10 @@ function ParticipantsGeneral({ projectId }) {
                             <table className="table table-striped table-bordered">
                                 <thead className="table-dark">
                                     <tr>
-                                        <th>Actor</th>
+                                        <th>Actor o entidad *</th>
                                         <th>Entidad</th>
-                                        <th>Intereses / Expectativas</th>
-                                        <th>Posición</th>
+                                        <th>Intereses / Expectativas *</th>
+                                        <th>Posición *</th>
                                         <th>Contribuciones / Conflictos</th>
                                         <th>Acciones</th>
                                     </tr>

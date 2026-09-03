@@ -29,14 +29,17 @@ function SectionValidationModal({ validation, sectionName, onClose }) {
         const path = validation.missing_fields?.[0]?.path;
         if (!path) return;
         const escaped = window.CSS?.escape ? window.CSS.escape(path) : path;
-        const element = document.querySelector(
-            `[data-validation-path="${escaped}"], [name="${escaped}"], #${escaped}`
-        );
+        const rootPath = path.split(".")[0];
+        const element = document.querySelector(`[data-validation-path="${escaped}"]`)
+            || document.querySelector(`[data-validation-path^="${rootPath}"]`)
+            || document.querySelector(`[name="${escaped}"]`)
+            || document.getElementById(path)
+            || document.querySelector("button.btn-success, button.add-button");
+        element?.classList.add("validation-focus");
+        element?.scrollIntoView({ behavior: "smooth", block: "center" });
+        element?.focus?.({ preventScroll: true });
         onClose();
-        window.requestAnimationFrame(() => {
-            element?.scrollIntoView({ behavior: "smooth", block: "center" });
-            element?.focus({ preventScroll: true });
-        });
+        window.setTimeout(() => element?.classList.remove("validation-focus"), 1800);
     };
 
     return (

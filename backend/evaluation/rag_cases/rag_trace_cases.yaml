@@ -1,0 +1,5 @@
+- id: rag-problem-definition
+  question: ¿Cómo se formula el problema central en MGA?
+  section: problems
+  expected_document: Documento_conceptual_2023.pdf
+  expected_evidence: definición de problema central

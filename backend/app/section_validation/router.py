@@ -7,7 +7,7 @@ from app.ai.context.module_dependencies import UnknownSectionError
 from app.core.database import SessionLocal
 from app.models.project import Project
 
-from .schemas import SectionValidationResult
+from .schemas import ProjectReviewResult, SectionValidationResult
 from .service import SectionValidationService
 
 
@@ -31,6 +31,12 @@ def _ensure_project(db: Session, project_id: int) -> None:
 def validate_all_sections(project_id: int, db: Session = Depends(get_db)):
     _ensure_project(db, project_id)
     return SectionValidationService(db).validate_all(project_id)
+
+
+@router.get("/{project_id}/formulation/review", response_model=ProjectReviewResult)
+def review_formulation(project_id: int, db: Session = Depends(get_db)):
+    _ensure_project(db, project_id)
+    return SectionValidationService(db).review_project(project_id)
 
 
 @router.get("/{project_id}/sections/{section}/validation", response_model=SectionValidationResult)

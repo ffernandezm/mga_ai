@@ -163,8 +163,8 @@ def test_endpoint_requirements_zero_active_alternatives(db_session, fake_llm_cap
     project_id = _seed_minimal_project_with_alternatives(db_session, [False, False])
     chat_history_module.chat_with_ai(project_id=project_id, tab="requirements_general", question="q", db=db_session)
     context = fake_llm_capture[0]["context"]
-    assert "Alt 1" not in context
-    assert "Alt 2" not in context
+    assert "Alt 1" in context
+    assert "Alt 2" in context
 
 
 def test_endpoint_requirements_one_active_alternative(db_session, fake_llm_capture):
@@ -176,10 +176,10 @@ def test_endpoint_requirements_one_active_alternative(db_session, fake_llm_captu
 
 def test_endpoint_requirements_multiple_active_alternatives_no_500(db_session, fake_llm_capture):
     project_id = _seed_minimal_project_with_alternatives(db_session, [True, True])
-    # No debe lanzar HTTPException/500: se informa la inconsistencia en el contexto.
+    # No debe lanzar HTTPException/500 ni inferir una selección desde active.
     chat_history_module.chat_with_ai(project_id=project_id, tab="requirements_general", question="q", db=db_session)
     context = fake_llm_capture[0]["context"]
-    assert "Inconsistencia" in context
+    assert "Alt 1" in context and "Alt 2" in context
 
 
 # ---------------------------------------------------------------------------
@@ -302,9 +302,7 @@ def test_prompt_project_context_and_rag_are_separate_blocks(db_session):
 # 14 (LLM/endpoint del fallo): manejo de error existente
 # ---------------------------------------------------------------------------
 
-def test_endpoint_llm_failure_returns_500(db_session, monkeypatch):
-    from fastapi import HTTPException
-
+def test_endpoint_llm_failure_returns_controlled_error(db_session, monkeypatch):
     project_a = _seed_project(db_session, "A")
 
     def _raise_ask(*args, **kwargs):
@@ -312,6 +310,27 @@ def test_endpoint_llm_failure_returns_500(db_session, monkeypatch):
 
     monkeypatch.setattr(chat_history_module.llm_manager, "ask", _raise_ask)
 
-    with pytest.raises(HTTPException) as exc_info:
-        chat_history_module.chat_with_ai(project_id=project_a, tab="problems", question="q", db=db_session)
-    assert exc_info.value.status_code == 500
+    response = chat_history_module.chat_with_ai(project_id=project_a, tab="problems", question="q", db=db_session)
+    assert response.generation_status == "error"
+    assert response.answer is None
+
+
+def test_chat_history_preserves_trace_sources_per_bot_message(db_session, monkeypatch):
+    project_a = _seed_project(db_session, "A")
+    sources = [{"document": "Documento_conceptual_2023.pdf", "page": 12, "content": "Fragmento relevante", "similarity": 0.913}]
+
+    monkeypatch.setattr(chat_history_module.llm_manager, "ask", lambda **kwargs: "Respuesta con RAG")
+    monkeypatch.setattr(
+        chat_history_module.llm_manager,
+        "rag_manager",
+        type("Rag", (), {"get_relevant_sources": lambda self, question, section: sources})(),
+    )
+
+    response = chat_history_module.chat_with_ai(project_id=project_a, tab="problems", question="q", db=db_session)
+    history = chat_history_module.get_chat_history(project_id=project_a, tab="problems", db=db_session)
+
+    bot_messages = [message for message in history if message.sender == "bot"]
+    assert response.trace["sources"] == sources
+    assert len(bot_messages) == 1
+    assert bot_messages[0].trace["sources"] == sources
+    assert bot_messages[0].generation_status == "generated"

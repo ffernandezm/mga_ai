@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import List
+from typing import List, Optional
 
 from pydantic import BaseModel, Field
 
@@ -23,6 +23,13 @@ class BlockingRule(BaseModel):
     message: str
 
 
+class ConsistencyFinding(BaseModel):
+    severity: str
+    section: str
+    related_section: Optional[str] = None
+    description: str
+
+
 class SectionValidationResult(BaseModel):
     section: str
     status: SectionStatus
@@ -31,3 +38,13 @@ class SectionValidationResult(BaseModel):
     blocking_rules: List[BlockingRule] = Field(default_factory=list)
     prerequisites_complete: bool = True
     incomplete_prerequisites: List[str] = Field(default_factory=list)
+    completion_percent: int = 0
+    required_fields_completed: int = 0
+    required_fields_total: int = 0
+    warnings: List[str] = Field(default_factory=list)
+
+
+class ProjectReviewResult(BaseModel):
+    status: str
+    sections: List[SectionValidationResult]
+    findings: List[ConsistencyFinding] = Field(default_factory=list)
