@@ -307,9 +307,8 @@ def test_objectives_loaded_correctly(manager, db_session, two_projects):
     assert objectives["general_objective"] == "Objetivo general A"
     assert objectives["specific_objectives"][0]["objective"] == "Objetivo especifico A"
     assert objectives["indicators"][0]["indicator"] == "Indicador A"
-    # general_problem no debe duplicarse si coincide con problem_tree.central_problem;
-    # aqui son distintos, por lo que sí debe incluirse.
-    assert objectives["general_problem"] == "Problema general A"
+    assert objectives["central_problem"] == "Problema central A"
+    assert "general_problem" not in objectives
 
 
 # ---------------------------------------------------------------------------

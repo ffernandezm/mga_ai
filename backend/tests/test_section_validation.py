@@ -11,7 +11,11 @@ from app.models.development_plans import DevelopmentPlans
 from app.models.pnd import Pnd
 from app.models.alternatives import Alternatives
 from app.models.alternatives_general import AlternativesGeneral
+from app.models.participants import Participants
+from app.models.participants_general import ParticipantsGeneral
 from app.section_validation.schemas import SectionStatus
+from app.section_validation.catalog import get_section_field_catalog
+from app.section_validation.section_rules import SECTION_ORDER
 from app.section_validation.service import SectionValidationService
 
 
@@ -212,3 +216,69 @@ def test_chat_is_available_when_upstream_section_is_incomplete(db_session):
 
     result = ensure_chat_prerequisites(db_session, project.id, "problems")
     assert result.incomplete_prerequisites == ["development_plans"]
+
+
+def _participant_result(db_session, actor="Actor", entity="Entidad", role="Beneficiario", contribution="Aporte"):
+    project = _project(db_session)
+    general = ParticipantsGeneral(project_id=project.id, participants_analisis="Análisis")
+    general.participants = [Participants(
+        participant_actor=actor,
+        participant_entity=entity,
+        interest_expectative="Interés",
+        rol=role,
+        contribution_conflicts=contribution,
+    )]
+    db_session.add(general)
+    db_session.commit()
+    return SectionValidationService(db_session).validate_section(project.id, "participants", False)
+
+
+def test_participant_actor_and_entity_are_independent_required_fields(db_session):
+    actor_empty = _participant_result(db_session, actor="")
+    assert any(field.key.endswith(".actor") for field in actor_empty.missing_fields)
+
+    entity_empty = _participant_result(db_session, entity="")
+    assert any(field.key.endswith(".entity") for field in entity_empty.missing_fields)
+
+    complete = _participant_result(db_session)
+    assert complete.complete is True
+
+
+@pytest.mark.parametrize(
+    ("role", "expected_message"),
+    [
+        ("Beneficiario", "Complete la contribución del participante."),
+        ("Cooperante", "Complete la contribución del participante."),
+        ("Oponente", "Complete la estrategia de gestión del participante."),
+        ("Perjudicado", "Complete la estrategia de gestión del participante."),
+    ],
+)
+def test_participant_contribution_field_message_depends_on_role(db_session, role, expected_message):
+    result = _participant_result(db_session, role=role, contribution="")
+    missing = next(field for field in result.missing_fields if field.key.endswith(".contribution_conflicts"))
+    assert missing.label == "Contribución o estrategia de gestión"
+    assert missing.message == expected_message
+
+
+def test_all_required_validator_keys_are_in_section_catalog(db_session):
+    def base_key(key):
+        parts = key.split(".")
+        if len(parts) >= 3 and parts[0] == "participants":
+            return {"actor": "participant_actor", "entity": "participant_entity"}.get(parts[2], parts[2])
+        if len(parts) >= 3 and parts[0] in {"objectives_indicators", "requirements", "localization", "products", "activities"}:
+            return parts[2]
+        if len(parts) == 3 and parts[0] == "direct_causes":
+            return parts[2]
+        if len(parts) == 3 and parts[0] == "direct_effects":
+            return parts[2]
+        return parts[0]
+
+    catalog_by_section = {
+        section: {field["field_key"] for field in get_section_field_catalog(section)}
+        for section in SECTION_ORDER
+    }
+    project = _project(db_session)
+    for section in SECTION_ORDER:
+        result = SectionValidationService(db_session).validate_section(project.id, section, False)
+        unknown = {base_key(field.key) for field in result.missing_fields} - catalog_by_section[section]
+        assert unknown == set(), f"{section} reporta claves fuera del catálogo: {unknown}"

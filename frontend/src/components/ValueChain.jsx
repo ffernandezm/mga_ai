@@ -305,7 +305,7 @@ const ValueChain = ({ projectId }) => {
                                     <div className="d-flex justify-content-between align-items-start mb-2">
                                         <div className="flex-grow-1">
                                             <label className="text-uppercase fw-bold text-success d-block mb-1 small">
-                                                Nombre del Producto *
+                                                Nombre del Producto
                                             </label>
                                             <select
                                                 className="form-select"
@@ -423,7 +423,7 @@ const ValueChain = ({ projectId }) => {
                                         <table className="table table-striped table-bordered mb-0">
                                             <thead className="table-dark">
                                                 <tr>
-                                                    <th className="ps-2">Descripción de Actividad *</th>
+                                                    <th className="ps-2">Descripción de Actividad</th>
                                                     <th>Costo</th>
                                                     <th>Etapa</th>
                                                     <th style={{ width: "60px" }}>Acciones</th>

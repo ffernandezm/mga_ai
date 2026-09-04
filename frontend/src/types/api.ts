@@ -38,7 +38,7 @@ export interface ChatHistoryItem {
 }
 
 export interface ChatResponse {
-    answer?: string | null;
+    answer: string | null;
     trace: {
         active_section?: string;
         project_context_used?: boolean;
@@ -49,7 +49,7 @@ export interface ChatResponse {
             content: string;
             similarity: number;
         }>;
-    };
+    } | null;
     suggested_changes: Array<{
         field_key: string;
         field_label: string;
@@ -58,8 +58,9 @@ export interface ChatResponse {
         suggested_value: string;
         confidence: string;
     }>;
-    generation_status: string;
-    error?: string | null;
+    generation_status: 'generated' | 'error';
+    error: string | null;
+    error_type?: string | null;
 }
 
 export interface ApiConfig {

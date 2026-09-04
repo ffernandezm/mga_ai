@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import api from "../services/api";
+import chatService from "../services/chatService";
 import "../styles/Chatbot.css";
 import MessageRenderer from "./MessageRender"; // Componente para renderizar mensajes
 import { useNotification } from "../context/NotificationContext";
@@ -46,8 +47,7 @@ const Chatbot = ({ projectId, activeTab, evaluationSessionId, onApplySuggestedCh
                 console.log("ingresando a chat inicial")
                 console.log(projectId)
                 console.log(activeTab)
-                const historyResponse = await api.get(`chat_history/${projectId}/${activeTab}`);
-                const history = historyResponse.data;
+                const history = await chatService.getChatHistory(projectId, activeTab);
                 console.log("historial de CHAT ")
                 console.log(history)
 
@@ -76,6 +76,7 @@ const Chatbot = ({ projectId, activeTab, evaluationSessionId, onApplySuggestedCh
 
         return () => {
             cancelled = true;
+            localStateVersionRef.current += 1;
         };
     }, [projectId, activeTab]);
 
@@ -86,6 +87,7 @@ const Chatbot = ({ projectId, activeTab, evaluationSessionId, onApplySuggestedCh
         const userMessageId = buildLocalMessageId("user");
         const pendingId = buildLocalMessageId("pending");
         localStateVersionRef.current += 1;
+        const requestVersion = localStateVersionRef.current;
 
         // Agregar mensaje del usuario al estado
         setMessages((prev) => [
@@ -98,32 +100,29 @@ const Chatbot = ({ projectId, activeTab, evaluationSessionId, onApplySuggestedCh
         setIsThinking(true);
 
         try {
-            const rawResponse = await api.post(
-                `/chat_history/chat/${projectId}/${activeTab}`,
-                {
-                    question: userMessage,
-                    action: selectedAction,
-                    evaluation_session_id: evaluationSessionId || undefined,
-                }
-            );
-            const response = rawResponse.data;
-
+            const response = await chatService.sendMessage(projectId, activeTab, userMessage, {
+                action: selectedAction,
+                evaluation_session_id: evaluationSessionId || undefined,
+            });
             console.log("RESPUESTA DEL CHATBOT", response);
 
-            const hasGeneratedAnswer = response.generation_status === "generated" && typeof response.answer === "string" && response.answer.trim() !== "";
+            const hasGeneratedAnswer = response?.generation_status === "generated"
+                && typeof response.answer === "string"
+                && response.answer.trim() !== "";
             const botResponse = hasGeneratedAnswer
                 ? response.answer
-                : (response.generation_status === "error" || response.answer == null
+                : response?.generation_status === "error"
                     ? (response.error || "El asistente no pudo generar una respuesta.")
-                    : "El asistente no pudo generar una respuesta.");
+                    : "";
 
+            if (localStateVersionRef.current !== requestVersion) return;
             setMessages((prev) => prev.map((msg) => (
                 msg.id === pendingId
                     ? {
                         ...msg,
                         text: botResponse,
                         trace: response.trace,
-                        suggestedChanges: response.suggested_changes || [],
+                        suggestedChanges: response.suggested_changes ?? [],
                         generationStatus: response.generation_status,
                         error: response.error || null,
                         loading: false,
@@ -132,13 +131,16 @@ const Chatbot = ({ projectId, activeTab, evaluationSessionId, onApplySuggestedCh
             )));
         } catch (error) {
             console.error("Error consultando IA:", error);
+            if (localStateVersionRef.current !== requestVersion) return;
             setMessages((prev) => prev.map((msg) => (
                 msg.id === pendingId
                     ? { ...msg, text: "Error al obtener respuesta.", generationStatus: "error", loading: false, error: "Error al obtener respuesta." }
                     : msg
             )));
         } finally {
-            setIsThinking(false);
+            if (localStateVersionRef.current === requestVersion) {
+                setIsThinking(false);
+            }
         }
     };
 

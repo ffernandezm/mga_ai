@@ -135,6 +135,8 @@ class ContextManager:
             cache[name] = value
             return value
 
+        if canonical_section == "objectives":
+            _load("problem_tree")
         current_obj = _load(current_name) if current_name else {}
         required_obj = {name: _load(name) for name in required_names}
         supporting_obj = {name: _load(name) for name in supporting_names}

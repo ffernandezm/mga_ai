@@ -22,14 +22,15 @@ from app.models.value_chain_objectives import ValueChainObjectives
 
 from .schemas import BlockingRule, ConsistencyFinding, MissingField, ProjectReviewResult, SectionStatus, SectionValidationResult
 from .section_rules import SECTION_ORDER, SECTION_PREREQUISITES
+from .catalog import get_section_field_catalog
 
 
 def _has_text(value: object) -> bool:
     return isinstance(value, str) and bool(value.strip())
 
 
-def _missing(key: str, label: str, path: str) -> MissingField:
-    return MissingField(key=key, label=label, path=path)
+def _missing(key: str, label: str, path: str, message: str = "Este campo es obligatorio.") -> MissingField:
+    return MissingField(key=key, label=label, path=path, message=message)
 
 
 @dataclass
@@ -93,6 +94,9 @@ class SectionValidationService:
 
     def validate_all(self, project_id: int) -> List[SectionValidationResult]:
         return [self.validate_section(project_id, section) for section in SECTION_ORDER]
+
+    def get_field_catalog(self, section: str) -> List[dict]:
+        return get_section_field_catalog(section)
 
     def review_project(self, project_id: int) -> ProjectReviewResult:
         """Runs deterministic consistency checks for all implemented MGA sections."""
@@ -230,16 +234,27 @@ class SectionValidationService:
             missing.append(_missing("participants", "Al menos un participante", "participants"))
         for participant in participants:
             prefix = f"participants.{participant.id}"
-            if not (_has_text(participant.participant_actor) or _has_text(participant.participant_entity)):
-                missing.append(_missing(f"{prefix}.actor", "Actor, persona o entidad", f"{prefix}.participant_actor"))
+            if not _has_text(participant.participant_actor):
+                missing.append(_missing(f"{prefix}.actor", "Actor", f"{prefix}.participant_actor"))
+            if not _has_text(participant.participant_entity):
+                missing.append(_missing(f"{prefix}.entity", "Entidad", f"{prefix}.participant_entity"))
             if not _has_text(participant.rol):
                 missing.append(_missing(f"{prefix}.rol", "Posición o rol", f"{prefix}.rol"))
             if not _has_text(participant.interest_expectative):
                 missing.append(_missing(f"{prefix}.interest_expectative", "Intereses y expectativas", f"{prefix}.interest_expectative"))
             role = (participant.rol or "").strip().lower()
             if role in {"beneficiario", "cooperante", "oponente", "perjudicado"} and not _has_text(participant.contribution_conflicts):
-                label = "Contribución" if role in {"beneficiario", "cooperante"} else "Estrategia de gestión"
-                missing.append(_missing(f"{prefix}.contribution_conflicts", label, f"{prefix}.contribution_conflicts"))
+                message = (
+                    "Complete la contribución del participante."
+                    if role in {"beneficiario", "cooperante"}
+                    else "Complete la estrategia de gestión del participante."
+                )
+                missing.append(_missing(
+                    f"{prefix}.contribution_conflicts",
+                    "Contribución o estrategia de gestión",
+                    f"{prefix}.contribution_conflicts",
+                    message,
+                ))
         participant_total = max(1, len(participants))
         total = 1 + participant_total * 3 + sum(1 for participant in participants if (participant.rol or "").strip().lower() in {"beneficiario", "cooperante", "oponente", "perjudicado"})
         return _ValidationData(general is not None, missing, warnings=[] if participants else ["Aún no se han identificado actores para contrastar intereses y conflictos."], required_fields_completed=total - len(missing), required_fields_total=total)

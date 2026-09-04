@@ -17,7 +17,10 @@ from app.ai.context.context_manager import ContextManager
 from app.ai.llm_models.llm_manager import LLMManager
 from app.models.alternatives import Alternatives
 from app.models.alternatives_general import AlternativesGeneral
+from app.models.participants import Participants
+from app.models.participants_general import ParticipantsGeneral
 from app.models.project import Project
+from app.section_validation.catalog import get_section_field_catalog
 
 from test_context_loaders import _seed_global_tables, _seed_project
 
@@ -63,13 +66,20 @@ def fake_llm_capture(monkeypatch):
 @pytest.fixture(autouse=True)
 def completed_chat_prerequisites(monkeypatch):
     """Estas pruebas cubren el payload LLM; el bloqueo upstream se prueba aparte."""
+    real_validate_section = chat_history_module.SectionValidationService.validate_section
+
+    def validate_section(self, project_id, section, include_prerequisites=True):
+        if not include_prerequisites:
+            return real_validate_section(self, project_id, section, False)
+        return SimpleNamespace(
+            prerequisites_complete=True,
+            incomplete_prerequisites=[],
+        )
+
     monkeypatch.setattr(
         chat_history_module.SectionValidationService,
         "validate_section",
-        lambda self, project_id, section: SimpleNamespace(
-            prerequisites_complete=True,
-            incomplete_prerequisites=[],
-        ),
+        validate_section,
     )
 
 
@@ -90,6 +100,68 @@ def test_endpoint_problems_uses_semantic_context_and_excludes_downstream(db_sess
     assert "Objetivo general A" not in call["context"]
     assert "Alternativa seleccionada A" not in call["context"]
     assert "Cadena A" not in call["context"]
+
+
+def test_missing_participants_uses_only_catalog_fields(db_session, fake_llm_capture):
+    project = Project(name="Proyecto participantes")
+    db_session.add(project)
+    db_session.flush()
+    general = ParticipantsGeneral(project_id=project.id, participants_analisis="Análisis registrado")
+    general.participants = [Participants(
+        participant_actor="Actor registrado",
+        participant_entity="Entidad registrada",
+        interest_expectative="Interés registrado",
+        rol="Beneficiario",
+        contribution_conflicts="Contribución registrada",
+    )]
+    db_session.add(general)
+    db_session.commit()
+
+    response = chat_history_module.chat_with_ai(
+        project_id=project.id, tab="participants_general",
+        question="¿Qué me falta?", action="missing", db=db_session,
+    )
+
+    assert fake_llm_capture == []
+    assert "Actor registrado" not in response.answer
+    assert "Completo" in response.answer
+    assert "Nivel de influencia" not in response.answer
+    assert "Representante" not in response.answer
+    assert "Fecha de participación" not in response.answer
+    assert response.trace["field_catalog_used"] is True
+
+
+def test_missing_participants_reports_exact_real_obligatory_field(db_session, fake_llm_capture):
+    project = Project(name="Proyecto participante incompleto")
+    db_session.add(project)
+    db_session.flush()
+    general = ParticipantsGeneral(project_id=project.id, participants_analisis="Análisis registrado")
+    general.participants = [Participants(
+        participant_actor="Actor registrado",
+        participant_entity="Entidad registrada",
+        interest_expectative="Interés registrado",
+        rol="Beneficiario",
+        contribution_conflicts="",
+    )]
+    db_session.add(general)
+    db_session.commit()
+
+    response = chat_history_module.chat_with_ai(
+        project_id=project.id, tab="participants", question="¿Qué me falta?",
+        action="missing", db=db_session,
+    )
+
+    assert "Contribución o estrategia de gestión" in response.answer
+    assert "Faltante" in response.answer
+    assert "Nivel de influencia" not in response.answer
+
+
+def test_participant_catalog_exposes_allowed_select_values():
+    fields = {field["field_key"]: field for field in get_section_field_catalog("participants")}
+    assert fields["rol"]["field_type"] == "select"
+    assert {item["value"] for item in fields["rol"]["allowed_values"]} == {
+        "Beneficiario", "Cooperante", "Oponente", "Perjudicado",
+    }
 
 
 # ---------------------------------------------------------------------------

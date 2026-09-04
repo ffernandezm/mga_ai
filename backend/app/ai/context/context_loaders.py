@@ -452,11 +452,11 @@ def load_objectives(db: Session, project_id: int, cache: Optional[Cache] = None)
     if obj:
         result = _drop_empty({"general_objective": obj.general_objective})
 
-        # Evitar duplicar el problema central si general_problem es un espejo textual.
+        # El problema central solo proviene del arbol de problemas.
         problem_tree = cache.get("problem_tree") if cache is not None else None
         central_problem = problem_tree.get("central_problem") if problem_tree else None
-        if obj.general_problem and obj.general_problem != central_problem:
-            result["general_problem"] = obj.general_problem
+        if central_problem:
+            result["central_problem"] = central_problem
 
         specific_objectives = _drop_empty_list(
             [

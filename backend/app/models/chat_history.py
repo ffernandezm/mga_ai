@@ -23,6 +23,7 @@ from app.ai.llm_models.llm_manager import LLMManager
 from app.ai.context.context_manager import ContextManager, render_semantic_context
 from app.ai.context.module_dependencies import UnknownSectionError, normalize_section
 from app.section_validation.service import SectionValidationService
+from app.section_validation.catalog import get_section_field_catalog
 from app.utils.model_labels import get_column_label, get_table_label
 import json
 import re
@@ -124,6 +125,7 @@ class ChatAnswerResponse(BaseModel):
     suggested_changes: List[SuggestedChange] = Field(default_factory=list)
     generation_status: str
     error: Optional[str] = None
+    error_type: Optional[str] = None
 
 
 def _json_dump(value: Any) -> Optional[str]:
@@ -208,6 +210,33 @@ def _extract_suggested_changes(answer: str, semantic_context: Dict[str, Any]) ->
             confidence="high",
         ))
     return changes
+
+
+def _render_missing_fields(validation, section: str) -> str:
+    def catalog_key(item_key: str) -> str:
+        parts = item_key.split(".")
+        if len(parts) == 3 and parts[0] == "participants":
+            return {
+                "actor": "participant_actor",
+                "entity": "participant_entity",
+            }.get(parts[2], parts[2])
+        return parts[0]
+
+    missing_by_key = {catalog_key(item.key): item for item in validation.missing_fields}
+    catalog = get_section_field_catalog(section)
+    catalog_keys = {field["field_key"] for field in catalog}
+    rows = []
+    for field in catalog:
+        missing = missing_by_key.get(field["field_key"])
+        status = "Faltante" if missing else "Completo"
+        recommendation = missing.message if missing else "Sin observaciones de completitud."
+        rows.append(f"| {field['label_es']} | {status} | {recommendation} |")
+    for item in validation.missing_fields:
+        if catalog_key(item.key) not in catalog_keys:
+            rows.append(f"| {item.label} | Faltante | Complete el campo obligatorio. |")
+    if not rows:
+        return "No hay campos catalogados para esta sección."
+    return "**Estado de campos de la sección**\n\n| Campo existente | Estado | Recomendación |\n|---|---|---|\n" + "\n".join(rows)
 
 
 # ==============================
@@ -1015,6 +1044,24 @@ def chat_with_ai(
         llm_question = f"{action_prompts.get(action, '')}{question}".strip()
         user_message = save_chat_message(db, project_id, tab, session_id, "user", question)
 
+        if action == "missing":
+            validation = SectionValidationService(db).validate_section(project_id, canonical_section, False)
+            get_relevant_sources = getattr(llm_manager.rag_manager, "get_relevant_sources", None)
+            sources = get_relevant_sources(question, canonical_section) if callable(get_relevant_sources) else []
+            answer = _render_missing_fields(validation, canonical_section)
+            trace = {
+                "active_section": canonical_section,
+                "project_context_used": True,
+                "rag_used": bool(sources),
+                "sources": sources,
+                "field_catalog_used": True,
+            }
+            save_chat_message(
+                db, project_id, tab, session_id, "bot", answer,
+                trace=trace, generation_status="generated",
+            )
+            return ChatAnswerResponse(answer=answer, trace=trace, generation_status="generated")
+
         # 🆕 Recuperar historial de chat anterior para contexto
         logger.info(f"📜 Recuperando historial de chat para contexto...")
         history_start = perf_counter()
@@ -1104,6 +1151,7 @@ def chat_with_ai(
                 trace={"active_section": canonical_section, "project_context_used": bool(section_context), "rag_used": bool(sources), "sources": sources},
                 generation_status="error",
                 error="No fue posible generar una respuesta del asistente. Intente nuevamente.",
+                error_type=getattr(generation_error, "error_type", "unknown_error"),
             )
         llm_ms = (perf_counter() - llm_start) * 1000
 
@@ -1122,6 +1170,7 @@ def chat_with_ai(
                 trace=trace,
                 generation_status="error",
                 error="El asistente no pudo generar una respuesta. Intente nuevamente.",
+                error_type="empty_response",
             )
         suggested_changes = _extract_suggested_changes(answer, semantic_context) if action == "improve" else []
         bot_message = save_chat_message(
