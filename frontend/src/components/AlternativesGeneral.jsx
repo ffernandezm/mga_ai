@@ -282,7 +282,7 @@ function AlternativesGeneral({ projectId }) {
                             <table className="table table-striped table-bordered">
                                 <thead className="table-dark">
                                     <tr>
-                                        <th>Nombre</th>
+                                        <th>Nombre *</th>
                                         <th>Se evaluará con esta Herramienta</th>
                                         <th>Estado</th>
                                         <th>Acciones</th>

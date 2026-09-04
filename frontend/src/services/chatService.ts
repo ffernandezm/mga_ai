@@ -6,6 +6,27 @@
 import apiService from './api';
 import { ChatMessage, ChatResponse, ChatSession, LLMResponse, ChatHistoryItem } from '../types';
 
+type AxiosLike<T> = T | { data: T };
+
+const unwrap = <T>(response: AxiosLike<T>): T => {
+    if (response && typeof response === 'object' && 'data' in response) {
+        return response.data;
+    }
+    return response;
+};
+
+const normalizeChatResponse = (response: AxiosLike<ChatResponse>): ChatResponse => {
+    const payload = unwrap(response);
+    return {
+        answer: payload?.answer ?? null,
+        trace: payload?.trace ?? null,
+        suggested_changes: payload?.suggested_changes ?? [],
+        generation_status: payload?.generation_status === 'error' ? 'error' : 'generated',
+        error: payload?.error ?? null,
+        error_type: payload?.error_type ?? null,
+    };
+};
+
 class ChatService {
     /**
      * Obtener historial de chat
@@ -15,9 +36,10 @@ class ChatService {
         tab: string
     ): Promise<ChatHistoryItem[]> {
         try {
-            return await apiService.get<ChatHistoryItem[]>(
+            const response = await apiService.get<ChatHistoryItem[] | { data: ChatHistoryItem[] }>(
                 `/chat_history/${projectId}/${tab}`
             );
+            return unwrap(response) || [];
         } catch (error) {
             console.warn('No hay historial disponible');
             return [];
@@ -31,15 +53,16 @@ class ChatService {
         projectId: string | number,
         tab: string,
         question: string,
-        context?: Record<string, any>
+        requestFields?: Record<string, any>
     ): Promise<ChatResponse> {
-        return apiService.post<ChatResponse>(
+        const response = await apiService.post<ChatResponse | { data: ChatResponse }>(
             `/chat_history/chat/${projectId}/${tab}`,
             {
                 question,
-                context,
+                ...requestFields,
             }
         );
+        return normalizeChatResponse(response);
     }
 
     /**

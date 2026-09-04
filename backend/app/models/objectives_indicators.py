@@ -64,6 +64,10 @@ router = APIRouter()
 
 @router.post("/", response_model=ObjectivesIndicatorResponse)
 def create_objective_indicators(objective: ObjectivesIndicatorCreate, db: Session = Depends(get_db)):
+    from app.models.objectives import Objectives
+
+    if not db.query(Objectives).filter(Objectives.id == objective.objective_id).first():
+        raise HTTPException(status_code=422, detail="objective_id: el objetivo general no existe")
     db_objective = ObjectivesIndicator(**objective.dict())
     db.add(db_objective)
     db.commit()
@@ -86,6 +90,9 @@ def update_objective_indicator(id: int, updated: ObjectivesIndicatorCreate, db: 
     objective = db.query(ObjectivesIndicator).filter(ObjectivesIndicator.id == id).first()
     if not objective:
         raise HTTPException(status_code=404, detail="Objective indicator not found")
+    from app.models.objectives import Objectives
+    if not db.query(Objectives).filter(Objectives.id == updated.objective_id).first():
+        raise HTTPException(status_code=422, detail="objective_id: el objetivo general no existe")
     for key, value in updated.dict().items():
         setattr(objective, key, value)
     db.commit()

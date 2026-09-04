@@ -9,6 +9,7 @@ import os
 import json
 import logging
 import re
+import uuid
 from time import perf_counter
 from pathlib import Path
 from typing import Optional
@@ -284,6 +285,28 @@ class LLMManager:
 
         return project_context, rag_context
 
+    @staticmethod
+    def _classify_provider_error(error: Exception) -> str:
+        error_name = type(error).__name__.lower()
+        error_text = str(error).lower()
+        status_code = getattr(error, "status_code", None)
+        response = getattr(error, "response", None)
+        if status_code is None and response is not None:
+            status_code = getattr(response, "status_code", None)
+        if status_code == 429 or "ratelimit" in error_name or "rate limit" in error_text:
+            return "rate_limit"
+        if status_code in {408, 504} or "timeout" in error_name or "timed out" in error_text:
+            return "timeout"
+        if isinstance(status_code, int) and 400 <= status_code < 500:
+            return "provider_4xx"
+        if isinstance(status_code, int) and 500 <= status_code < 600:
+            return "provider_5xx"
+        if any(marker in error_name or marker in error_text for marker in ("connection", "network", "dns")):
+            return "connection_error"
+        if "parser" in error_name or "parse" in error_text:
+            return "parser_error"
+        return "unknown_error"
+
 
     def ask(
         self,
@@ -307,6 +330,9 @@ class LLMManager:
             Respuesta del LLM
         """
         total_start = perf_counter()
+        request_id = uuid.uuid4().hex
+        provider = self.llm_provider
+        model_name = os.getenv("GROQ_MODEL", "") if provider == "groq" else os.getenv("OPENAI_MODEL", "")
         try:
             if self._is_invoke_skipped():
                 logger.info(f"LLM invoke omitido por SKIP_LLM_INVOKE para tab={tab}, session={session_id}")
@@ -331,13 +357,82 @@ class LLMManager:
 
             # Crear cadena LLM
             chain = prompt | self.model | StrOutputParser()
-            llm_start = perf_counter()
-            response = chain.invoke({
+            invoke_payload = {
                 "project_context": project_context,
                 "rag_context": rag_context,
                 "chat_history": self._build_chat_context(chat_history) if chat_history else "",
                 "question": question,
-            })
+            }
+            prompt_chars = len(prompt.invoke(invoke_payload).to_string())
+            history_chars = len(invoke_payload["chat_history"] or "")
+            logger.info(
+                "LLM_REQUEST_START request_id=%s section=%s provider=%s model=%s "
+                "project_context_chars=%s rag_context_chars=%s history_chars=%s final_prompt_chars=%s",
+                request_id,
+                tab,
+                provider,
+                model_name,
+                len(project_context or ""),
+                len(rag_context or ""),
+                history_chars,
+                prompt_chars,
+            )
+            # El proveedor a veces devuelve una respuesta vacía o falla de forma
+            # transitoria (timeout, hiccup puntual); un reintento acotado evita
+            # que ese blip aislado se traduzca en un error visible al usuario.
+            max_attempts = 2
+            response = ""
+            invoke_error = None
+            llm_start = perf_counter()
+            for attempt in range(1, max_attempts + 1):
+                try:
+                    response = chain.invoke(invoke_payload)
+                    invoke_error = None
+                except Exception as attempt_error:
+                    invoke_error = attempt_error
+                    response = ""
+                    error_type = self._classify_provider_error(attempt_error)
+                    logger.warning(
+                        "LLM_PROVIDER_ERROR request_id=%s section=%s attempt=%s result=%s "
+                        "status_code=%s duration_ms=%.1f",
+                        request_id,
+                        tab,
+                        attempt,
+                        error_type,
+                        getattr(attempt_error, "status_code", None),
+                        (perf_counter() - llm_start) * 1000,
+                    )
+                if isinstance(response, str) and response.strip():
+                    logger.info(
+                        "LLM_SUCCESS request_id=%s section=%s attempt=%s duration_ms=%.1f answer_length=%s",
+                        request_id,
+                        tab,
+                        attempt,
+                        (perf_counter() - llm_start) * 1000,
+                        len(response.strip()),
+                    )
+                    break
+                if not invoke_error:
+                    logger.warning(
+                        "LLM_EMPTY_RESPONSE request_id=%s section=%s attempt=%s prompt_chars=%s duration_ms=%.1f",
+                        request_id,
+                        tab,
+                        attempt,
+                        prompt_chars,
+                        (perf_counter() - llm_start) * 1000,
+                    )
+                if attempt < max_attempts:
+                    logger.warning(
+                        "LLM_RETRY | tab=%s session=%s intento=%s motivo=%s",
+                        tab, session_id, attempt,
+                        invoke_error or "respuesta vacia del proveedor",
+                    )
+            if invoke_error is not None:
+                error_type = self._classify_provider_error(invoke_error)
+                generation_error = RuntimeError("El proveedor LLM no pudo generar una respuesta")
+                generation_error.error_type = error_type
+                generation_error.request_id = request_id
+                raise generation_error from invoke_error
             llm_ms = (perf_counter() - llm_start) * 1000
             total_ms = (perf_counter() - total_start) * 1000
             
@@ -363,7 +458,11 @@ class LLMManager:
             total_ms = (perf_counter() - total_start) * 1000
             logger.error("⏱️ LLM timing fallo | tab=%s session=%s total_ms=%.1f", tab, session_id, total_ms)
             logger.error(f"Error en LLM ({tab}): {str(e)}", exc_info=True)
-            return "Lo siento, ocurrió un error al procesar tu pregunta. Intenta de nuevo."
+            if not hasattr(e, "error_type"):
+                e.error_type = self._classify_provider_error(e)
+            if not hasattr(e, "request_id"):
+                e.request_id = request_id
+            raise e
 
     def measure_prompt_tokens(
         self,

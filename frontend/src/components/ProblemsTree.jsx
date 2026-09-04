@@ -4,7 +4,7 @@ import "../styles/problemsTree.css";
 import api from "../services/api";
 import { useNotification } from "../context/NotificationContext";
 
-function ProblemsTree({ projectId, projectName, ProjectDescription }) {
+function ProblemsTree({ projectId, projectName, ProjectDescription, suggestionApplication }) {
     const { showSuccess: showSuccessMessage, showError, showConfirmation } = useNotification();
     const [problem, setProblem] = useState("");
     const [causes, setCauses] = useState([]);
@@ -13,10 +13,17 @@ function ProblemsTree({ projectId, projectName, ProjectDescription }) {
     const [isProblemEmpty, setIsProblemEmpty] = useState(false);
     const [isCurrentDescriptionEmpty, setIsCurrentDescriptionEmpty] = useState(false);
     const [isMagnitudeProblemEmpty, setIsMagnitudeProblemEmpty] = useState(false);
-    const [showErrorPopup, setShowErrorPopup] = useState(false);
     const [currentDescription, setCurrentDescription] = useState("");
     const [magnitudeProblem, setMagnitudeProblem] = useState("");
     const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+    useEffect(() => {
+        for (const change of suggestionApplication?.changes || []) {
+            if (change.field_key === "central_problem") setProblem(change.suggested_value);
+            if (change.field_key === "current_description") setCurrentDescription(change.suggested_value);
+            if (change.field_key === "magnitude_problem") setMagnitudeProblem(change.suggested_value);
+        }
+    }, [suggestionApplication?.id]);
 
     // Cargar el árbol de problemas
     useEffect(() => {
@@ -62,20 +69,6 @@ function ProblemsTree({ projectId, projectName, ProjectDescription }) {
         };
         fetchProblemTree();
     }, [projectId, refreshTrigger]);
-
-    // Validaciones
-    const validateMinimumRequirements = () => {
-        const hasDirectEffect = effects.length > 0;
-        const hasDirectCause = causes.length > 0;
-
-        return {
-            isValid: hasDirectEffect && hasDirectCause,
-            messages: [
-                !hasDirectEffect && "Al menos un Efecto Directo",
-                !hasDirectCause && "Al menos una Causa Directa"
-            ].filter(Boolean)
-        };
-    };
 
     const addEffect = (type, parentIndex = null) => {
         const newEffect = {
@@ -221,31 +214,6 @@ function ProblemsTree({ projectId, projectName, ProjectDescription }) {
     const updateProblemTree = async () => {
         if (!projectId) return;
 
-        const isCurrentDescriptionValid = currentDescription.trim().length > 0;
-        const isMagnitudeProblemValid = magnitudeProblem.trim().length > 0;
-
-        // Validar campo problema general
-        if (!problem.trim()) {
-            setIsProblemEmpty(true);
-            setShowErrorPopup(true);
-            return;
-        }
-
-        // Validar campos obligatorios adicionales
-        if (!isCurrentDescriptionValid || !isMagnitudeProblemValid) {
-            setIsCurrentDescriptionEmpty(!isCurrentDescriptionValid);
-            setIsMagnitudeProblemEmpty(!isMagnitudeProblemValid);
-            setShowErrorPopup(true);
-            return;
-        }
-
-        // Validar requisitos mínimos
-        const validation = validateMinimumRequirements();
-        if (!validation.isValid) {
-            setShowErrorPopup(true);
-            return;
-        }
-
         setIsSaving(true);
         const jsonData = generateJson();
 
@@ -256,7 +224,7 @@ function ProblemsTree({ projectId, projectName, ProjectDescription }) {
             showSuccessMessage("Árbol de problemas actualizado correctamente");
         } catch (error) {
             console.error("Error actualizando árbol de problemas:", error.response?.data || error.message);
-            setShowErrorPopup(true);
+            showError("Error al guardar el árbol de problemas.");
         } finally {
             setIsSaving(false);
         }
@@ -437,21 +405,6 @@ function ProblemsTree({ projectId, projectName, ProjectDescription }) {
                     </button>
                 </div>
             </div>
-
-            {showErrorPopup && (
-                <ErrorPopup
-                    message={
-                        !problem.trim()
-                            ? "El campo Problema general es obligatorio. Por favor, complételo antes de guardar."
-                            : !currentDescription.trim()
-                                ? "El campo Descripción de la situación existente es obligatorio. Por favor, complételo antes de guardar."
-                                : !magnitudeProblem.trim()
-                                    ? "El campo Magnitud actual del problema es obligatorio. Por favor, complételo antes de guardar."
-                                    : "Debe registrar al menos un efecto directo y una causa directa."
-                    }
-                    onClose={() => setShowErrorPopup(false)}
-                />
-            )}
 
             <div className="additional-fields">
                 <div className="trunk">

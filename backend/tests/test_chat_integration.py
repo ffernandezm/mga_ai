@@ -17,7 +17,10 @@ from app.ai.context.context_manager import ContextManager
 from app.ai.llm_models.llm_manager import LLMManager
 from app.models.alternatives import Alternatives
 from app.models.alternatives_general import AlternativesGeneral
+from app.models.participants import Participants
+from app.models.participants_general import ParticipantsGeneral
 from app.models.project import Project
+from app.section_validation.catalog import get_section_field_catalog
 
 from test_context_loaders import _seed_global_tables, _seed_project
 
@@ -63,13 +66,20 @@ def fake_llm_capture(monkeypatch):
 @pytest.fixture(autouse=True)
 def completed_chat_prerequisites(monkeypatch):
     """Estas pruebas cubren el payload LLM; el bloqueo upstream se prueba aparte."""
+    real_validate_section = chat_history_module.SectionValidationService.validate_section
+
+    def validate_section(self, project_id, section, include_prerequisites=True):
+        if not include_prerequisites:
+            return real_validate_section(self, project_id, section, False)
+        return SimpleNamespace(
+            prerequisites_complete=True,
+            incomplete_prerequisites=[],
+        )
+
     monkeypatch.setattr(
         chat_history_module.SectionValidationService,
         "validate_section",
-        lambda self, project_id, section: SimpleNamespace(
-            prerequisites_complete=True,
-            incomplete_prerequisites=[],
-        ),
+        validate_section,
     )
 
 
@@ -90,6 +100,68 @@ def test_endpoint_problems_uses_semantic_context_and_excludes_downstream(db_sess
     assert "Objetivo general A" not in call["context"]
     assert "Alternativa seleccionada A" not in call["context"]
     assert "Cadena A" not in call["context"]
+
+
+def test_missing_participants_uses_only_catalog_fields(db_session, fake_llm_capture):
+    project = Project(name="Proyecto participantes")
+    db_session.add(project)
+    db_session.flush()
+    general = ParticipantsGeneral(project_id=project.id, participants_analisis="Análisis registrado")
+    general.participants = [Participants(
+        participant_actor="Actor registrado",
+        participant_entity="Entidad registrada",
+        interest_expectative="Interés registrado",
+        rol="Beneficiario",
+        contribution_conflicts="Contribución registrada",
+    )]
+    db_session.add(general)
+    db_session.commit()
+
+    response = chat_history_module.chat_with_ai(
+        project_id=project.id, tab="participants_general",
+        question="¿Qué me falta?", action="missing", db=db_session,
+    )
+
+    assert fake_llm_capture == []
+    assert "Actor registrado" not in response.answer
+    assert "Completo" in response.answer
+    assert "Nivel de influencia" not in response.answer
+    assert "Representante" not in response.answer
+    assert "Fecha de participación" not in response.answer
+    assert response.trace["field_catalog_used"] is True
+
+
+def test_missing_participants_reports_exact_real_obligatory_field(db_session, fake_llm_capture):
+    project = Project(name="Proyecto participante incompleto")
+    db_session.add(project)
+    db_session.flush()
+    general = ParticipantsGeneral(project_id=project.id, participants_analisis="Análisis registrado")
+    general.participants = [Participants(
+        participant_actor="Actor registrado",
+        participant_entity="Entidad registrada",
+        interest_expectative="Interés registrado",
+        rol="Beneficiario",
+        contribution_conflicts="",
+    )]
+    db_session.add(general)
+    db_session.commit()
+
+    response = chat_history_module.chat_with_ai(
+        project_id=project.id, tab="participants", question="¿Qué me falta?",
+        action="missing", db=db_session,
+    )
+
+    assert "Contribución o estrategia de gestión" in response.answer
+    assert "Faltante" in response.answer
+    assert "Nivel de influencia" not in response.answer
+
+
+def test_participant_catalog_exposes_allowed_select_values():
+    fields = {field["field_key"]: field for field in get_section_field_catalog("participants")}
+    assert fields["rol"]["field_type"] == "select"
+    assert {item["value"] for item in fields["rol"]["allowed_values"]} == {
+        "Beneficiario", "Cooperante", "Oponente", "Perjudicado",
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -163,8 +235,8 @@ def test_endpoint_requirements_zero_active_alternatives(db_session, fake_llm_cap
     project_id = _seed_minimal_project_with_alternatives(db_session, [False, False])
     chat_history_module.chat_with_ai(project_id=project_id, tab="requirements_general", question="q", db=db_session)
     context = fake_llm_capture[0]["context"]
-    assert "Alt 1" not in context
-    assert "Alt 2" not in context
+    assert "Alt 1" in context
+    assert "Alt 2" in context
 
 
 def test_endpoint_requirements_one_active_alternative(db_session, fake_llm_capture):
@@ -176,10 +248,10 @@ def test_endpoint_requirements_one_active_alternative(db_session, fake_llm_captu
 
 def test_endpoint_requirements_multiple_active_alternatives_no_500(db_session, fake_llm_capture):
     project_id = _seed_minimal_project_with_alternatives(db_session, [True, True])
-    # No debe lanzar HTTPException/500: se informa la inconsistencia en el contexto.
+    # No debe lanzar HTTPException/500 ni inferir una selección desde active.
     chat_history_module.chat_with_ai(project_id=project_id, tab="requirements_general", question="q", db=db_session)
     context = fake_llm_capture[0]["context"]
-    assert "Inconsistencia" in context
+    assert "Alt 1" in context and "Alt 2" in context
 
 
 # ---------------------------------------------------------------------------
@@ -302,9 +374,7 @@ def test_prompt_project_context_and_rag_are_separate_blocks(db_session):
 # 14 (LLM/endpoint del fallo): manejo de error existente
 # ---------------------------------------------------------------------------
 
-def test_endpoint_llm_failure_returns_500(db_session, monkeypatch):
-    from fastapi import HTTPException
-
+def test_endpoint_llm_failure_returns_controlled_error(db_session, monkeypatch):
     project_a = _seed_project(db_session, "A")
 
     def _raise_ask(*args, **kwargs):
@@ -312,6 +382,27 @@ def test_endpoint_llm_failure_returns_500(db_session, monkeypatch):
 
     monkeypatch.setattr(chat_history_module.llm_manager, "ask", _raise_ask)
 
-    with pytest.raises(HTTPException) as exc_info:
-        chat_history_module.chat_with_ai(project_id=project_a, tab="problems", question="q", db=db_session)
-    assert exc_info.value.status_code == 500
+    response = chat_history_module.chat_with_ai(project_id=project_a, tab="problems", question="q", db=db_session)
+    assert response.generation_status == "error"
+    assert response.answer is None
+
+
+def test_chat_history_preserves_trace_sources_per_bot_message(db_session, monkeypatch):
+    project_a = _seed_project(db_session, "A")
+    sources = [{"document": "Documento_conceptual_2023.pdf", "page": 12, "content": "Fragmento relevante", "similarity": 0.913}]
+
+    monkeypatch.setattr(chat_history_module.llm_manager, "ask", lambda **kwargs: "Respuesta con RAG")
+    monkeypatch.setattr(
+        chat_history_module.llm_manager,
+        "rag_manager",
+        type("Rag", (), {"get_relevant_sources": lambda self, question, section: sources})(),
+    )
+
+    response = chat_history_module.chat_with_ai(project_id=project_a, tab="problems", question="q", db=db_session)
+    history = chat_history_module.get_chat_history(project_id=project_a, tab="problems", db=db_session)
+
+    bot_messages = [message for message in history if message.sender == "bot"]
+    assert response.trace["sources"] == sources
+    assert len(bot_messages) == 1
+    assert bot_messages[0].trace["sources"] == sources
+    assert bot_messages[0].generation_status == "generated"

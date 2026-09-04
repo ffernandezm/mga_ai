@@ -174,6 +174,73 @@
     background: linear-gradient(135deg, #ffffff 0%, #f8faff 100%);
 }
 
+.chat-actions,
+.chat-suggestion-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 8px 12px;
+    background: #fff;
+    border-top: 1px solid rgba(77, 184, 255, 0.2);
+}
+
+.chat-actions button,
+.chat-suggestion-actions button {
+    border: 1px solid #0073e6;
+    border-radius: 4px;
+    background: #fff;
+    color: #0059b3;
+    font-size: 12px;
+    padding: 4px 7px;
+}
+
+.chat-trace {
+    margin-top: 10px;
+    border-top: 1px solid #b9d7eb;
+    padding-top: 7px;
+    font-size: 12px;
+}
+
+.chat-trace article {
+    margin-top: 8px;
+}
+
+.chat-trace p {
+    margin: 4px 0;
+}
+
+.validation-focus {
+    outline: 3px solid #d97706 !important;
+    outline-offset: 3px;
+}
+
+.suggestion-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    background: rgba(0, 0, 0, 0.35);
+    z-index: 1100;
+}
+
+.suggestion-modal {
+    width: min(560px, calc(100vw - 32px));
+    max-height: 80vh;
+    overflow: auto;
+    background: #fff;
+    padding: 20px;
+    border-radius: 6px;
+}
+
+.suggestion-change {
+    display: grid;
+    gap: 5px;
+    margin: 12px 0;
+    padding: 10px;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+}
+
 .input-box input {
     flex: 1;
     min-width: 0;

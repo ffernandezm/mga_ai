@@ -13,7 +13,6 @@ function CreateProject() {
     const navigate = useNavigate();
     const { showSuccess, showError } = useNotification();
 
-    // Estado del proyecto (sin region/department/municipality)
     const [project, setProject] = useState({
         name: "",
         description: "",
@@ -26,7 +25,6 @@ function CreateProject() {
         indicator_code: ""
     });
 
-    // Localizaciones múltiples
     const [localizations, setLocalizations] = useState([]);
     const [newLocalization, setNewLocalization] = useState({
         region: "",
@@ -43,7 +41,7 @@ function CreateProject() {
     const [loadingInvestmentTypologies, setLoadingInvestmentTypologies] = useState(true);
     const [showCatalogWizard, setShowCatalogWizard] = useState(false);
 
-    // --- Computed options para el formulario de nueva localización ---
+    // --- Computed options ---
     const regionOptions = useMemo(() => {
         const uniqueRegions = [...new Set(territorialEntities.map(item => item.region))];
         return uniqueRegions.sort((a, b) => a.localeCompare(b, "es"));
@@ -81,13 +79,11 @@ function CreateProject() {
         const uniqueInterventionTypes = [
             ...new Set(investmentTypologies.map(item => item.interventionType))
         ];
-
         return uniqueInterventionTypes.sort((a, b) => a.localeCompare(b, "es"));
     }, [investmentTypologies]);
 
     const projectTypologyOptions = useMemo(() => {
         if (!project.intervention_type) return [];
-
         const uniqueProjectTypologies = [
             ...new Set(
                 investmentTypologies
@@ -97,20 +93,26 @@ function CreateProject() {
                     .map(item => item.projectTypology)
             )
         ];
-
         return uniqueProjectTypologies.sort((a, b) => a.localeCompare(b, "es"));
     }, [investmentTypologies, project.intervention_type]);
 
+    // CAMBIO: construcción del nombre del proyecto usando municipio si existe, sino departamento
     const computedProjectName = useMemo(() => {
         const processPart = (project.process || "").trim();
         const objectDescPart = (project.object_desc || "").trim();
-        const municipalitiesPart = [...new Set(
+
+        const locationParts = [...new Set(
             localizations
-                .map(loc => (loc.municipality || "").trim())
+                .map(loc => {
+                    const mun = (loc.municipality || "").trim();
+                    if (mun) return mun;
+                    const dep = (loc.department || "").trim();
+                    return dep; // departamento se usa si no hay municipio
+                })
                 .filter(Boolean)
         )].join(", ");
 
-        return [processPart, objectDescPart, municipalitiesPart]
+        return [processPart, objectDescPart, locationParts]
             .filter(Boolean)
             .join(" ");
     }, [project.process, project.object_desc, localizations]);
@@ -122,16 +124,13 @@ function CreateProject() {
         });
     }, [computedProjectName]);
 
-    // Cargar opciones del CSV al montar el componente
+    // Carga de CSVs (sin cambios)
     useEffect(() => {
         const fetchProcessOptions = () => {
             try {
                 const csvText = processCsv;
-
-                // Parsear CSV (una sola columna, sin comas en los valores)
                 const lines = csvText.split(/\r?\n/).filter(line => line.trim() !== "");
                 if (lines.length > 0) {
-                    // La primera línea es el encabezado "PProceso"
                     const options = lines.slice(1).map(line => line.trim());
                     setProcessOptions(options);
                 } else {
@@ -144,7 +143,6 @@ function CreateProject() {
                 setLoadingProcess(false);
             }
         };
-
         fetchProcessOptions();
     }, []);
 
@@ -154,25 +152,21 @@ function CreateProject() {
                 const lines = territorialEntitiesCsv
                     .split(/\r?\n/)
                     .filter(line => line.trim() !== "");
-
                 if (lines.length <= 1) {
                     setTerritorialEntities([]);
                     return;
                 }
-
                 const options = lines
                     .slice(1)
                     .map(line => {
                         const [region, department, municipality] = line
                             .split(";")
                             .map(value => value.trim());
-
                         return { region, department, municipality };
                     })
                     .filter(
                         item => item.region && item.department && item.municipality
                     );
-
                 setTerritorialEntities(options);
             } catch (error) {
                 console.error("Error cargando entidades_territoriales.csv:", error);
@@ -181,7 +175,6 @@ function CreateProject() {
                 setLoadingTerritorialEntities(false);
             }
         };
-
         fetchTerritorialEntities();
     }, []);
 
@@ -191,25 +184,21 @@ function CreateProject() {
                 const lines = investmentTypologyCsv
                     .split(/\r?\n/)
                     .filter(line => line.trim() !== "");
-
                 if (lines.length <= 1) {
                     setInvestmentTypologies([]);
                     return;
                 }
-
                 const options = lines
                     .slice(1)
                     .map(line => {
                         const [interventionType, projectTypology] = line
                             .split(",")
                             .map(value => value.trim());
-
                         return { interventionType, projectTypology };
                     })
                     .filter(
                         item => item.interventionType && item.projectTypology
                     );
-
                 setInvestmentTypologies(options);
             } catch (error) {
                 console.error("Error cargando inversion_tipologia.csv:", error);
@@ -218,11 +207,10 @@ function CreateProject() {
                 setLoadingInvestmentTypologies(false);
             }
         };
-
         fetchInvestmentTypologies();
     }, []);
 
-    // Cargar proyecto y localizaciones si estamos en edición
+    // Cargar proyecto en edición
     useEffect(() => {
         if (id) {
             const fetchProject = async () => {
@@ -243,7 +231,6 @@ function CreateProject() {
 
     const handleChange = (e) => {
         const { name, value } = e.target;
-
         if (name === "intervention_type") {
             setProject(prev => ({
                 ...prev,
@@ -252,7 +239,6 @@ function CreateProject() {
             }));
             return;
         }
-
         setProject((prev) => ({
             ...prev,
             [name]: value
@@ -262,7 +248,6 @@ function CreateProject() {
     // --- Manejo de localizaciones ---
     const handleLocalizationChange = (e) => {
         const { name, value } = e.target;
-
         if (name === "region") {
             setNewLocalization({ region: value, department: "", municipality: "" });
             return;
@@ -275,13 +260,14 @@ function CreateProject() {
     };
 
     const handleAddLocalization = () => {
-        if (!newLocalization.region || !newLocalization.department || !newLocalization.municipality) return;
+        // CAMBIO: solo exigimos región y departamento, municipio es opcional
+        if (!newLocalization.region || !newLocalization.department) return;
 
         const exists = localizations.some(
             loc =>
                 loc.region === newLocalization.region &&
                 loc.department === newLocalization.department &&
-                loc.municipality === newLocalization.municipality
+                loc.municipality === (newLocalization.municipality || "") // municipio vacío también se compara
         );
         if (exists) return;
 
@@ -332,21 +318,19 @@ function CreateProject() {
 
             if (id) {
                 await api.put(`/projects/${id}`, projectPayload);
-                // Eliminar localizaciones anteriores y crear las nuevas
                 await api.delete(`/project_localizations/project/${id}`);
             } else {
                 const res = await api.post("/projects/", projectPayload);
                 projectId = res.data.id;
             }
 
-            // Crear todas las localizaciones
             await Promise.all(
                 localizations.map(loc =>
                     api.post("/project_localizations/", {
                         project_id: projectId,
                         region: loc.region,
                         department: loc.department,
-                        municipality: loc.municipality,
+                        municipality: loc.municipality || "", // se envía vacío si no tiene
                     })
                 )
             );
@@ -454,7 +438,7 @@ function CreateProject() {
                             )}
                         </div>
                         <div className="loc-field">
-                            <label>Municipio</label>
+                            <label>Municipio (opcional)</label> {/* CAMBIO: etiqueta opcional */}
                             {loadingTerritorialEntities ? (
                                 <input type="text" disabled value="Cargando..." />
                             ) : (
@@ -464,7 +448,8 @@ function CreateProject() {
                                     onChange={handleLocalizationChange}
                                     disabled={!newLocalization.region || !newLocalization.department}
                                 >
-                                    <option value="">Seleccione</option>
+                                    {/* CAMBIO: incluimos opción vacía */}
+                                    <option value="">Seleccione (opcional)</option>
                                     {municipalityOptions.map((opt, idx) => (
                                         <option key={idx} value={opt}>{opt}</option>
                                     ))}
@@ -475,7 +460,8 @@ function CreateProject() {
                             type="button"
                             className="btn-add-loc"
                             onClick={handleAddLocalization}
-                            disabled={!newLocalization.region || !newLocalization.department || !newLocalization.municipality}
+                            // CAMBIO: habilitar solo con región y departamento, municipio opcional
+                            disabled={!newLocalization.region || !newLocalization.department}
                         >
                             + Agregar
                         </button>
@@ -500,7 +486,7 @@ function CreateProject() {
                                             <td>{idx + 1}</td>
                                             <td>{loc.region}</td>
                                             <td>{loc.department}</td>
-                                            <td>{loc.municipality}</td>
+                                            <td>{loc.municipality || "—"}</td> {/* CAMBIO: guión si vacío */}
                                             <td>
                                                 <button
                                                     type="button"

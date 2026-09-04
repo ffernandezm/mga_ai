@@ -114,16 +114,6 @@ function ParticipantsGeneral({ projectId }) {
     const handleSubmit = async () => {
         if (!projectId) return showError("No hay proyecto seleccionado.");
 
-        if (!analysis.trim()) {
-            showError("El campo Análisis de los participantes es obligatorio.");
-            return;
-        }
-
-        if (participantsGeneral.length === 0) {
-            showError("Debe registrar al menos un participante en la tabla antes de guardar.");
-            return;
-        }
-
         const payload = {
             project_id: projectId,
             participants_analisis: analysis,
@@ -292,10 +282,10 @@ function ParticipantsGeneral({ projectId }) {
                             <table className="table table-striped table-bordered">
                                 <thead className="table-dark">
                                     <tr>
-                                        <th>Actor</th>
+                                        <th>Actor o entidad *</th>
                                         <th>Entidad</th>
-                                        <th>Intereses / Expectativas</th>
-                                        <th>Posición</th>
+                                        <th>Intereses / Expectativas *</th>
+                                        <th>Posición *</th>
                                         <th>Contribuciones / Conflictos</th>
                                         <th>Acciones</th>
                                     </tr>

@@ -423,6 +423,8 @@ def update_problem_tree(
                         db.delete(obj_causes)
                 db.delete(cause_to_delete)
 
+        from app.models.objective_cause_sync import sync_objective_causes
+        sync_objective_causes(db, project_id)
         db.commit()
         db.refresh(problem)
 

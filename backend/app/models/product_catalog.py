@@ -4,7 +4,7 @@ import logging
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
-from sqlalchemy import Column, Integer, String, Boolean, Text
+from sqlalchemy import Column, Integer, String, Boolean, Text, func
 from pydantic import BaseModel
 from typing import List, Optional
 
@@ -155,8 +155,41 @@ class ProductCatalogResponse(ProductCatalogBase):
     class Config:
         from_attributes = True
 
+
+class ProjectProgramResponse(BaseModel):
+    program_name: str
+    program_code: Optional[int] = None
+
 # Rutas de FastAPI
 router = APIRouter()
+
+
+@router.get("/program-for-project/{project_id}", response_model=ProjectProgramResponse)
+def get_program_for_project(project_id: int, db: Session = Depends(get_db)):
+    """Obtiene el programa del catálogo para el producto y sector elegidos en el proyecto."""
+    from app.models.project import Project
+
+    project = db.query(Project).filter(Project.id == project_id).first()
+    if not project:
+        raise HTTPException(status_code=404, detail="Proyecto no encontrado")
+    if not project.indicator_code:
+        raise HTTPException(status_code=422, detail="El proyecto no tiene un indicador de producto seleccionado")
+
+    try:
+        indicator_code = int(project.indicator_code)
+    except (TypeError, ValueError) as exc:
+        raise HTTPException(status_code=422, detail="El código de indicador del proyecto no es válido") from exc
+
+    query = db.query(ProductCatalog).filter(
+        ProductCatalog.indicator_code == indicator_code,
+        ProductCatalog.program_name.isnot(None),
+    )
+    if project.sector:
+        query = query.filter(func.lower(ProductCatalog.sector_name) == project.sector.strip().lower())
+    catalog_item = query.first()
+    if not catalog_item:
+        raise HTTPException(status_code=404, detail="No se encontró un programa para el sector e indicador seleccionados")
+    return ProjectProgramResponse(program_name=catalog_item.program_name, program_code=catalog_item.program_code)
 
 # Obtener todos los product catalogs
 @router.get("/", response_model=List[ProductCatalogResponse])

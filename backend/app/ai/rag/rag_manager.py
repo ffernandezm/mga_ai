@@ -242,6 +242,30 @@ class RAGManager:
             )
             return ""
 
+    def get_relevant_sources(self, query: str, section: Optional[str] = None) -> List[Dict]:
+        """Return user-safe retrieval metadata without exposing prompts or index internals."""
+        if not query or not self.config.enabled:
+            return []
+        try:
+            self._index_if_needed()
+            results = self.vector_store.similarity_search(
+                query=build_retrieval_query(query, section),
+                top_k=self.config.top_k,
+                min_similarity=self.config.min_similarity,
+            )
+            return [
+                {
+                    "document": item.get("metadata", {}).get("source_document", self.config.source_document_path.name),
+                    "page": item.get("metadata", {}).get("page"),
+                    "content": item.get("text", "")[:600],
+                    "similarity": round(float(item.get("score", 0.0)), 3),
+                }
+                for item in results
+            ]
+        except Exception:
+            logger.exception("RAG_TRACE_FAILED | No se pudieron recuperar fuentes para trazabilidad")
+            return []
+
     def rebuild_index(self) -> None:
         """Reconstruye índice forzando nueva lectura/chunking/embeddings."""
         with self._lock:

@@ -10,21 +10,24 @@ import logging
 import os
 from datetime import datetime
 from time import perf_counter
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Body
 from sqlalchemy import Column, Integer, String, Text, ForeignKey, DateTime
 from sqlalchemy.orm import Session
 from sqlalchemy.sql import func
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from app.core.database import Base, SessionLocal, engine
 from app.ai.llm_models.llm_manager import LLMManager
 from app.ai.context.context_manager import ContextManager, render_semantic_context
 from app.ai.context.module_dependencies import UnknownSectionError, normalize_section
 from app.section_validation.service import SectionValidationService
+from app.section_validation.catalog import get_section_field_catalog
 from app.utils.model_labels import get_column_label, get_table_label
 import json
+import re
+from app.ai.context.select_domains import get_suggestable_field, validate_suggested_value
 
 # Configurar logging
 logger = logging.getLogger(__name__)
@@ -70,6 +73,10 @@ class ChatHistory(Base):
     session_id = Column(String, nullable=False, index=True)
     sender = Column(String, nullable=False)  # "user" o "bot"
     message = Column(Text, nullable=False)
+    trace_payload = Column(Text, nullable=True)
+    suggested_changes_payload = Column(Text, nullable=True)
+    generation_status = Column(String, nullable=True)
+    error = Column(Text, nullable=True)
     timestamp = Column(DateTime(timezone=True), server_default=func.now())
 
 
@@ -90,13 +97,146 @@ class ChatMessageCreate(ChatMessageBase):
     pass
 
 
+class SuggestedChange(BaseModel):
+    field_key: str
+    field_label: str
+    field_type: str
+    current_value: str
+    suggested_value: str
+    confidence: str
+
+
 class ChatMessageResponse(ChatMessageBase):
     """Esquema para responder con un mensaje."""
     id: int
     timestamp: datetime
+    trace: Optional[Dict[str, Any]] = None
+    suggested_changes: List[SuggestedChange] = Field(default_factory=list)
+    generation_status: Optional[str] = None
+    error: Optional[str] = None
 
     class Config:
         from_attributes = True
+
+
+class ChatAnswerResponse(BaseModel):
+    answer: Optional[str] = None
+    trace: Dict[str, Any]
+    suggested_changes: List[SuggestedChange] = Field(default_factory=list)
+    generation_status: str
+    error: Optional[str] = None
+    error_type: Optional[str] = None
+
+
+def _json_dump(value: Any) -> Optional[str]:
+    if value is None:
+        return None
+    return json.dumps(value, ensure_ascii=False)
+
+
+def _json_load(raw_value: Optional[str], default: Any) -> Any:
+    if not raw_value:
+        return default
+    try:
+        return json.loads(raw_value)
+    except (TypeError, ValueError):
+        logger.warning("CHAT_HISTORY_INVALID_JSON | payload no se pudo decodificar")
+        return default
+
+
+def _to_chat_message_response(message: ChatHistory) -> ChatMessageResponse:
+    suggested_changes = _json_load(message.suggested_changes_payload, [])
+    return ChatMessageResponse(
+        id=message.id,
+        project_id=message.project_id,
+        tab=message.tab,
+        session_id=message.session_id,
+        sender=message.sender,
+        message=message.message,
+        timestamp=message.timestamp,
+        trace=_json_load(message.trace_payload, None),
+        suggested_changes=suggested_changes if isinstance(suggested_changes, list) else [],
+        generation_status=message.generation_status,
+        error=message.error,
+    )
+
+
+def _find_current_value(value: object, field_key: str) -> Optional[str]:
+    if isinstance(value, dict):
+        if field_key in value and isinstance(value[field_key], (str, int, float)):
+            return str(value[field_key])
+        for child in value.values():
+            found = _find_current_value(child, field_key)
+            if found is not None:
+                return found
+    if isinstance(value, list):
+        for child in value:
+            found = _find_current_value(child, field_key)
+            if found is not None:
+                return found
+    return None
+
+
+def _extract_suggested_changes(answer: str, semantic_context: Dict[str, Any]) -> List[SuggestedChange]:
+    """Accept suggestions only when the model returns an explicit JSON contract."""
+    match = re.search(r"```json\s*(\{.*?\})\s*```", answer or "", flags=re.DOTALL)
+    if not match:
+        return []
+    try:
+        candidates = json.loads(match.group(1)).get("suggested_changes", [])
+    except (TypeError, ValueError):
+        return []
+    changes = []
+    for candidate in candidates if isinstance(candidates, list) else []:
+        field_key = candidate.get("field_key") if isinstance(candidate, dict) else None
+        metadata = get_suggestable_field(field_key or "")
+        suggested_value = candidate.get("suggested_value") if isinstance(candidate, dict) else None
+        if not metadata or not isinstance(suggested_value, str) or not suggested_value.strip():
+            continue
+        # Selects are intentionally not staged in this iteration. Retain the
+        # domain check here so a future selectable field cannot bypass it.
+        if candidate.get("field_type") == "select" and not validate_suggested_value(field_key, suggested_value):
+            logger.warning("SUGGESTION_DOMAIN_REJECTED | field=%s", field_key)
+            continue
+        current_value = _find_current_value(semantic_context, field_key)
+        if current_value is None:
+            continue
+        changes.append(SuggestedChange(
+            field_key=field_key,
+            field_label=metadata["label_es"],
+            field_type=metadata["field_type"],
+            current_value=current_value,
+            suggested_value=suggested_value.strip(),
+            confidence="high",
+        ))
+    return changes
+
+
+def _render_missing_fields(validation, section: str) -> str:
+    def catalog_key(item_key: str) -> str:
+        parts = item_key.split(".")
+        if len(parts) == 3 and parts[0] == "participants":
+            return {
+                "actor": "participant_actor",
+                "entity": "participant_entity",
+            }.get(parts[2], parts[2])
+        return parts[0]
+
+    missing_by_key = {catalog_key(item.key): item for item in validation.missing_fields}
+    catalog = get_section_field_catalog(section)
+    catalog_keys = {field["field_key"] for field in catalog}
+    rows = []
+    for field in catalog:
+        missing = missing_by_key.get(field["field_key"])
+        status = "Faltante" if missing else "Completo"
+        recommendation = missing.message if missing else "Sin observaciones de completitud."
+        rows.append(f"| {field['label_es']} | {status} | {recommendation} |")
+    for item in validation.missing_fields:
+        if catalog_key(item.key) not in catalog_keys:
+            rows.append(f"| {item.label} | Faltante | Complete el campo obligatorio. |")
+    if not rows:
+        return "No hay campos catalogados para esta sección."
+    return "**Estado de campos de la sección**\n\n| Campo existente | Estado | Recomendación |\n|---|---|---|\n" + "\n".join(rows)
 
 
 # ==============================
@@ -120,7 +260,11 @@ def save_chat_message(
     tab: str,
     session_id: str,
     sender: str,
-    message: str
+    message: str,
+    trace: Optional[Dict[str, Any]] = None,
+    suggested_changes: Optional[List[SuggestedChange]] = None,
+    generation_status: Optional[str] = None,
+    error: Optional[str] = None,
 ) -> ChatHistory:
     """
     Guarda un mensaje en el historial de chat.
@@ -143,6 +287,13 @@ def save_chat_message(
             session_id=session_id,
             sender=sender,
             message=message,
+            trace_payload=_json_dump(trace),
+            suggested_changes_payload=_json_dump([
+                change.model_dump() if isinstance(change, SuggestedChange) else change
+                for change in (suggested_changes or [])
+            ]),
+            generation_status=generation_status,
+            error=error,
         )
         db.add(new_msg)
         db.commit()
@@ -803,27 +954,21 @@ context_manager = ContextManager()
 
 
 def ensure_chat_prerequisites(db: Session, project_id: int, section: str):
-    """Permite sección actual incompleta, pero bloquea dependencias indispensables."""
+    """Mantiene el chat disponible para orientar secciones aún incompletas."""
     try:
         validation = SectionValidationService(db).validate_section(project_id, section)
     except (UnknownSectionError, KeyError):
         return
-    if not validation.prerequisites_complete:
-        raise HTTPException(
-            status_code=409,
-            detail={
-                "message": "Completa las secciones requeridas antes de consultar al asistente.",
-                "section": section,
-                "incomplete_prerequisites": validation.incomplete_prerequisites,
-            },
-        )
+    return validation
 
 
-@router.post("/chat/{project_id}/{tab}", response_model=ChatMessageResponse)
+@router.post("/chat/{project_id}/{tab}", response_model=ChatAnswerResponse)
 def chat_with_ai(
     project_id: int,
     tab: str,
     question: str = Body(..., embed=True),
+    action: Optional[str] = Body(None, embed=True),
+    evaluation_session_id: Optional[int] = Body(None, embed=True),
     db: Session = Depends(get_db),
 ):
     """
@@ -841,6 +986,12 @@ def chat_with_ai(
     """
     total_start = perf_counter()
     try:
+        # Las pruebas y algunos consumidores internos invocan esta función sin
+        # pasar por la resolución de dependencias de FastAPI.
+        if not isinstance(action, str):
+            action = None
+        if not isinstance(evaluation_session_id, int):
+            evaluation_session_id = None
         logger.info(f"📨 Chat recibido: project={project_id}, tab={tab}")
 
         tab_validation_start = perf_counter()
@@ -881,7 +1032,35 @@ def chat_with_ai(
         logger.info(f"🔗 Session ID: {session_id[:8]}...")
 
         # Guardar pregunta del usuario
+        action_prompts = {
+            "ask": "",
+            "review": "Revisa críticamente la información registrada y enumera hallazgos concretos. ",
+            "improve": "Analiza y mejora TODA la sección MGA activa usando todos sus campos registrados actuales y las secciones relacionadas. El historial solo es contexto secundario y no limita el alcance, salvo que la pregunta nombre expresamente un campo. Si propones una mejora inequívoca para un campo simple, agrega al final un bloque ```json {\"suggested_changes\":[{\"field_key\":\"...\",\"suggested_value\":\"...\",\"field_type\":\"text o textarea\"}]} ```; no incluyas tablas ni selects. ",
+            "inconsistencies": "Detecta inconsistencias entre esta sección y su contexto relacionado. ",
+            "missing": "Indica qué información falta para completar esta sección. ",
+        }
+        if action and action not in action_prompts:
+            raise HTTPException(status_code=422, detail="Acción del asistente no reconocida")
+        llm_question = f"{action_prompts.get(action, '')}{question}".strip()
         user_message = save_chat_message(db, project_id, tab, session_id, "user", question)
+
+        if action == "missing":
+            validation = SectionValidationService(db).validate_section(project_id, canonical_section, False)
+            get_relevant_sources = getattr(llm_manager.rag_manager, "get_relevant_sources", None)
+            sources = get_relevant_sources(question, canonical_section) if callable(get_relevant_sources) else []
+            answer = _render_missing_fields(validation, canonical_section)
+            trace = {
+                "active_section": canonical_section,
+                "project_context_used": True,
+                "rag_used": bool(sources),
+                "sources": sources,
+                "field_catalog_used": True,
+            }
+            save_chat_message(
+                db, project_id, tab, session_id, "bot", answer,
+                trace=trace, generation_status="generated",
+            )
+            return ChatAnswerResponse(answer=answer, trace=trace, generation_status="generated")
 
         # 🆕 Recuperar historial de chat anterior para contexto
         logger.info(f"📜 Recuperando historial de chat para contexto...")
@@ -956,17 +1135,67 @@ def chat_with_ai(
         # Llamar modelo LLM con historial y el contexto semántico de la sección
         logger.info(f"🤖 Invocando LLM para section={canonical_section} (tab persistido={tab})")
         llm_start = perf_counter()
-        answer = llm_manager.ask(
-            question=question,
-            tab=canonical_section,
-            context=section_context,  # contexto MGA (proyecto); RAG se agrega/separa dentro de LLMManager
-            chat_history=chat_history if chat_history else None,  # Pasar historial si existe
-            session_id=session_id
-        )
+        try:
+            answer = llm_manager.ask(
+                question=llm_question,
+                tab=canonical_section,
+                context=section_context,
+                chat_history=chat_history if chat_history else None,
+                session_id=session_id,
+            )
+        except Exception as generation_error:
+            get_relevant_sources = getattr(llm_manager.rag_manager, "get_relevant_sources", None)
+            sources = get_relevant_sources(question, canonical_section) if callable(get_relevant_sources) else []
+            logger.exception("CHAT_GENERATION_FAILED | project=%s tab=%s action=%s", project_id, tab, action)
+            return ChatAnswerResponse(
+                trace={"active_section": canonical_section, "project_context_used": bool(section_context), "rag_used": bool(sources), "sources": sources},
+                generation_status="error",
+                error="No fue posible generar una respuesta del asistente. Intente nuevamente.",
+                error_type=getattr(generation_error, "error_type", "unknown_error"),
+            )
         llm_ms = (perf_counter() - llm_start) * 1000
 
         # Guardar respuesta del bot
-        bot_message = save_chat_message(db, project_id, tab, session_id, "bot", answer)
+        get_relevant_sources = getattr(llm_manager.rag_manager, "get_relevant_sources", None)
+        sources = get_relevant_sources(question, canonical_section) if callable(get_relevant_sources) else []
+        trace = {
+            "active_section": canonical_section,
+            "project_context_used": bool(section_context),
+            "rag_used": bool(sources),
+            "sources": sources,
+        }
+        if not isinstance(answer, str) or not answer.strip():
+            logger.error("CHAT_EMPTY_ANSWER | project=%s tab=%s action=%s rag_used=%s", project_id, tab, action, bool(sources))
+            return ChatAnswerResponse(
+                trace=trace,
+                generation_status="error",
+                error="El asistente no pudo generar una respuesta. Intente nuevamente.",
+                error_type="empty_response",
+            )
+        suggested_changes = _extract_suggested_changes(answer, semantic_context) if action == "improve" else []
+        bot_message = save_chat_message(
+            db,
+            project_id,
+            tab,
+            session_id,
+            "bot",
+            answer,
+            trace=trace,
+            suggested_changes=suggested_changes,
+            generation_status="generated",
+        )
+        if evaluation_session_id:
+            from app.models.evaluation_telemetry import EvaluationEvent
+            db.add(EvaluationEvent(
+                evaluation_session_id=evaluation_session_id,
+                section=canonical_section,
+                event_type="llm_query",
+                task=action,
+                llm_duration_ms=round(llm_ms),
+                rag_enabled=bool(sources),
+                payload={"response_received": bool(answer)},
+            ))
+            db.commit()
         logger.info(f"✅ Respuesta guardada (id={bot_message.id}, con historial de {len(chat_history)} msgs)")
         total_ms = (perf_counter() - total_start) * 1000
         logger.info(
@@ -986,7 +1215,7 @@ def chat_with_ai(
             len(section_context or ""),
         )
 
-        return bot_message
+        return ChatAnswerResponse(answer=answer, trace=trace, suggested_changes=suggested_changes, generation_status="generated")
         
     except HTTPException:
         raise
@@ -1031,7 +1260,7 @@ def get_chat_history(
         )
         
         logger.info(f"✅ Se recuperaron {len(messages)} mensajes")
-        return messages
+        return [_to_chat_message_response(message) for message in messages]
         
     except Exception as e:
         logger.error(f"❌ Error obteniendo historial: {str(e)}")

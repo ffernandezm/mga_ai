@@ -31,3 +31,4 @@ from .indirect_effects import IndirectEffect
 from .product_catalog import ProductCatalog
 from .pnd_details import PndDetail
 from .project_localization import ProjectLocalization
+from .evaluation_telemetry import EvaluationEvent, EvaluationSession

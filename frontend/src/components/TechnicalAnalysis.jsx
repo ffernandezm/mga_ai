@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import api from "../services/api";
 import { useNotification } from "../context/NotificationContext";
 
-function TechnicalAnalysis({ projectId }) {
+function TechnicalAnalysis({ projectId, suggestionApplication }) {
 
     const navigate = useNavigate();
     const { showSuccess, showError, showConfirmation } = useNotification();
@@ -51,17 +51,17 @@ function TechnicalAnalysis({ projectId }) {
         fetchTechnicalAnalysis();
     }, [projectId]);
 
+    useEffect(() => {
+        const change = suggestionApplication?.changes?.find((item) => item.field_key === "analysis");
+        if (change) setAnalysis(change.suggested_value);
+    }, [suggestionApplication?.id]);
+
 
     // ==========================
     // SAVE
     // ==========================
 
     const handleSubmit = async () => {
-
-        if (!analysis.trim()) {
-            showError("El análisis no puede estar vacío");
-            return;
-        }
 
         const payload = {
             project_id: projectId,
@@ -138,17 +138,21 @@ function TechnicalAnalysis({ projectId }) {
         <div className="container mt-4">
 
             <h2>Análisis Técnico</h2>
+            <p className="text-muted small"><span className="text-danger">*</span> Campo obligatorio</p>
 
             {loading ? (
                 <p>Cargando...</p>
             ) : (
                 <>
+                    <label className="form-label" htmlFor="technical-analysis">Análisis técnico <span className="text-danger">*</span></label>
                     <textarea
+                        id="technical-analysis"
                         className="form-control mb-4"
                         rows="10"
                         value={analysis}
                         onChange={(e) => setAnalysis(e.target.value)}
                         placeholder="Escribe aquí el análisis técnico del proyecto..."
+                        aria-label="Análisis técnico, campo obligatorio"
                     />
 
                     <div>

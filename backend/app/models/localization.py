@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import relationship, Session
 from sqlalchemy import Column, Integer, Text, ForeignKey, Boolean, Float
-from pydantic import BaseModel
+from pydantic import BaseModel, model_validator
 from typing import List, Optional
 
 from app.core.database import Base, SessionLocal
@@ -18,7 +18,8 @@ def get_db():
     finally:
         db.close()
 
-FIELD_LABELS = {"region": "Región",
+FIELD_LABELS = {"administrative_level": "Nivel territorial",
+                "region": "Región",
                 "department": "Departamento",
                 "city": "Ciudad",
                 "type_group": "Tipo de Grupo",
@@ -43,6 +44,7 @@ class Localization(Base):
 
     id = Column(Integer, primary_key=True)
 
+    administrative_level = Column(Text, nullable=True, default="municipal", info={"label": FIELD_LABELS["administrative_level"]})
     region = Column(Text, nullable=True, info={"label": FIELD_LABELS["region"]})
     department = Column(Text, nullable=True, info={"label": FIELD_LABELS["department"]})
     city = Column(Text, nullable=True, info={"label": FIELD_LABELS["city"]})
@@ -73,15 +75,26 @@ class Localization(Base):
 
 class LocalizationBase(BaseModel):
 
-    region: str
+    administrative_level: str = "municipal"
+    region: str = ""
     department: str
-    city: str
-    type_group: str
-    group: str
-    entity: str
-    georeferencing: bool
+    city: str = ""
+    type_group: str = ""
+    group: str = ""
+    entity: str = ""
+    georeferencing: bool = False
     latitude: Optional[float] = None
     longitude: Optional[float] = None
+
+    @model_validator(mode="after")
+    def validate_territorial_level(self):
+        if self.administrative_level not in {"departmental", "municipal"}:
+            raise ValueError("El nivel territorial debe ser departamental o municipal")
+        if not self.department.strip():
+            raise ValueError("El departamento es obligatorio")
+        if self.administrative_level == "municipal" and not self.city.strip():
+            raise ValueError("El municipio es obligatorio para el nivel municipal")
+        return self
 
 
 class LocalizationCreate(LocalizationBase):

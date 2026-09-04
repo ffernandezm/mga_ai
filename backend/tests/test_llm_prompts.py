@@ -8,6 +8,7 @@ incompleto (sin inventar datos), y la utilidad de medición de tokens.
 from __future__ import annotations
 
 import pytest
+from langchain_core.runnables import Runnable
 
 from app.ai.context.context_manager import ContextManager, render_semantic_context
 from app.ai.llm_models.llm_manager import LLMManager
@@ -263,3 +264,62 @@ def test_measure_prompt_tokens_history_bounded_regardless_of_length(manager):
     # El historial usado en el prompt está acotado por max_chat_history_messages,
     # independientemente de cuántos mensajes existan en la conversación.
     assert report_long.history_tokens == report_short.history_tokens
+
+
+# ---------------------------------------------------------------------------
+# Reintento ante respuesta vacía transitoria del proveedor
+# ---------------------------------------------------------------------------
+
+class _FlakyModel(Runnable):
+    """Simula un proveedor que falla la primera vez y responde bien la segunda."""
+
+    def __init__(self, first_response=""):
+        self.calls = 0
+        self.first_response = first_response
+
+    def invoke(self, input, config=None, **kwargs):
+        self.calls += 1
+        if self.calls == 1:
+            return self.first_response
+        return "Respuesta real del proveedor"
+
+
+def test_ask_retries_once_on_empty_provider_response(manager):
+    flaky = _FlakyModel(first_response="")
+    manager.model = flaky
+
+    answer = manager.ask(question="¿Cuál es el problema?", tab="problems", context="Datos de proyecto")
+
+    assert answer == "Respuesta real del proveedor"
+    assert flaky.calls == 2
+
+
+def test_ask_retries_once_on_transient_provider_exception(manager):
+    class _RaisingThenOkModel(Runnable):
+        def __init__(self):
+            self.calls = 0
+
+        def invoke(self, input, config=None, **kwargs):
+            self.calls += 1
+            if self.calls == 1:
+                raise TimeoutError("timeout transitorio del proveedor")
+            return "Respuesta real tras reintento"
+
+    flaky = _RaisingThenOkModel()
+    manager.model = flaky
+
+    answer = manager.ask(question="¿Cuál es el problema?", tab="problems", context="Datos de proyecto")
+
+    assert answer == "Respuesta real tras reintento"
+    assert flaky.calls == 2
+
+
+def test_ask_raises_after_exhausting_retries_on_empty_response(manager):
+    class _AlwaysEmptyModel(Runnable):
+        def invoke(self, input, config=None, **kwargs):
+            return ""
+
+    manager.model = _AlwaysEmptyModel()
+
+    answer = manager.ask(question="¿Cuál es el problema?", tab="problems", context="Datos de proyecto")
+    assert answer == ""

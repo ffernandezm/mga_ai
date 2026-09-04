@@ -307,9 +307,8 @@ def test_objectives_loaded_correctly(manager, db_session, two_projects):
     assert objectives["general_objective"] == "Objetivo general A"
     assert objectives["specific_objectives"][0]["objective"] == "Objetivo especifico A"
     assert objectives["indicators"][0]["indicator"] == "Indicador A"
-    # general_problem no debe duplicarse si coincide con problem_tree.central_problem;
-    # aqui son distintos, por lo que sí debe incluirse.
-    assert objectives["general_problem"] == "Problema general A"
+    assert objectives["central_problem"] == "Problema central A"
+    assert "general_problem" not in objectives
 
 
 # ---------------------------------------------------------------------------
@@ -343,12 +342,11 @@ def test_alternatives_current_contains_all_alternatives(manager, db_session, two
     assert active_flags["Alternativa inactiva A"] is False
 
 
-def test_requirements_uses_selected_alternative(manager, db_session, two_projects):
+def test_requirements_uses_available_alternatives_without_inferred_selection(manager, db_session, two_projects):
     project_a, _ = two_projects
     context = manager.build_context(db=db_session, project_id=project_a, section="requirements")
-    selected = context["required"]["selected_alternative"]
-    assert selected["name"] == "Alternativa seleccionada A"
-    assert selected["active"] is True
+    available = context["required"]["selected_alternative"]
+    assert {item["name"] for item in available["alternatives"]} == {"Alternativa seleccionada A", "Alternativa inactiva A"}
 
 
 # ---------------------------------------------------------------------------
@@ -368,35 +366,30 @@ def _seed_project_with_alternative_states(db, active_flags):
     return project.id
 
 
-def test_selected_alternative_zero_active(manager, db_session):
+def test_available_alternatives_ignore_active_flag(manager, db_session):
     from app.ai.context.context_loaders import load_selected_alternative
 
     project_id = _seed_project_with_alternative_states(db_session, [False, False])
     result = load_selected_alternative(db_session, project_id)
-    assert result == {}
+    assert len(result["alternatives"]) == 2
 
 
-def test_selected_alternative_one_active(manager, db_session):
+def test_available_alternatives_include_one_active(manager, db_session):
     from app.ai.context.context_loaders import load_selected_alternative
 
     project_id = _seed_project_with_alternative_states(db_session, [False, True])
     result = load_selected_alternative(db_session, project_id)
-    assert result["name"] == "Alternativa 2"
-    assert result["active"] is True
-    assert "conflict" not in result
+    assert len(result["alternatives"]) == 2
 
 
-def test_selected_alternative_multiple_active_reports_conflict(manager, db_session):
+def test_available_alternatives_allow_multiple_active(manager, db_session):
     from app.ai.context.context_loaders import load_selected_alternative
 
     project_id = _seed_project_with_alternative_states(db_session, [True, True])
     result = load_selected_alternative(db_session, project_id)
-    assert result["conflict"] is True
-    assert result["reason"] == "multiple_active_alternatives"
-    assert len(result["candidates"]) == 2
-    # No debe elegir una en silencio ni lanzar excepción.
+    assert len(result["alternatives"]) == 2
     context = manager.build_context(db=db_session, project_id=project_id, section="requirements")
-    assert context["required"]["selected_alternative"]["conflict"] is True
+    assert len(context["required"]["selected_alternative"]["alternatives"]) == 2
 
 
 # ---------------------------------------------------------------------------

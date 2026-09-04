@@ -91,20 +91,21 @@ router = APIRouter()
 # Crear un objetivo para un proyecto
 @router.post("/{project_id}/", response_model=ObjectivesResponse)
 def create_objective(project_id: int, objective: ObjectivesCreate, db: Session = Depends(get_db)):
-    # Import local para evitar circular imports
     from app.models.problems import Problems
-    
-    db_objective = Objectives(project_id=project_id, **objective.dict())
+
+    db_problem = db.query(Problems).filter(Problems.project_id == project_id).first()
+    db_objective = Objectives(
+        project_id=project_id,
+        general_problem=db_problem.central_problem if db_problem else "",
+        general_objective=objective.general_objective or "",
+    )
     db.add(db_objective)
     db.commit()
     db.refresh(db_objective)
     
-    # Sincronizar general_problem con central_problem de Problems
-    if objective.general_problem:
-        db_problem = db.query(Problems).filter(Problems.project_id == project_id).first()
-        if db_problem:
-            db_problem.central_problem = objective.general_problem
-            db.commit()
+    from app.models.objective_cause_sync import sync_objective_causes
+    sync_objective_causes(db, project_id)
+    db.commit()
     
     return db_objective
 
@@ -112,6 +113,10 @@ def create_objective(project_id: int, objective: ObjectivesCreate, db: Session =
 # Listar todos los objetivos de un proyecto
 @router.get("/{project_id}/", response_model=List[ObjectivesResponse])
 def get_objectives_by_project(project_id: int, db: Session = Depends(get_db)):
+    from app.models.objective_cause_sync import sync_objective_causes
+
+    sync_objective_causes(db, project_id)
+    db.commit()
     return db.query(Objectives).filter(Objectives.project_id == project_id).all()
 
 
@@ -135,15 +140,15 @@ def update_objective(project_id: int, objective_id: int, objective: ObjectivesUp
     if not db_objective:
         raise HTTPException(status_code=404, detail="Objective not found for this project")
 
-    for key, value in objective.dict(exclude_unset=True).items():
-        setattr(db_objective, key, value)
+    values = objective.dict(exclude_unset=True)
+    if "general_objective" in values:
+        db_objective.general_objective = values["general_objective"]
+    db_problem = db.query(Problems).filter(Problems.project_id == project_id).first()
+    if db_problem:
+        db_objective.general_problem = db_problem.central_problem or ""
 
-    # Sincronizar general_problem con central_problem de Problems
-    if "general_problem" in objective.dict(exclude_unset=True):
-        db_problem = db.query(Problems).filter(Problems.project_id == project_id).first()
-        if db_problem:
-            db_problem.central_problem = objective.general_problem
-            db.commit()
+    from app.models.objective_cause_sync import sync_objective_causes
+    sync_objective_causes(db, project_id)
 
     db.commit()
     db.refresh(db_objective)

@@ -81,11 +81,20 @@ export function useLLMChat(projectId: string | number, tab?: string) {
                 // Obtener respuesta del bot
                 const response = await chatService.sendMessage(projectId, tab, message);
 
+                const hasGeneratedAnswer = response.generation_status === "generated"
+                    && typeof response.answer === "string"
+                    && response.answer.trim() !== "";
+                const botText = hasGeneratedAnswer
+                    ? response.answer
+                    : response.generation_status === "error"
+                        ? (response.error || "El asistente no pudo generar una respuesta.")
+                        : "";
+
                 // Agregar respuesta del bot
                 setMessages((prev) => [
                     ...prev,
                     {
-                        text: response.message,
+                        text: botText,
                         sender: 'bot',
                         timestamp: new Date(),
                     },

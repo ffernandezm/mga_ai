@@ -60,6 +60,7 @@ function LocalizationGeneral({ projectId }) {
     }, {});
 
     const emptyLocalization = {
+        administrative_level: "municipal",
         region: "",
         department: "",
         city: "",
@@ -112,7 +113,7 @@ function LocalizationGeneral({ projectId }) {
 
         try {
             const res = await api.get(`/localization_general/project/${projectId}`);
-            const data = res.data;
+            const data = res;
 
             setGeneralId(data.id);
 
@@ -172,7 +173,7 @@ function LocalizationGeneral({ projectId }) {
 
         const res = await api.post("/localization/", payload);
 
-        setLocalizations(prev => [...prev, res.data]);
+        setLocalizations(prev => [...prev, res]);
         setCreating(false);
         setNewLoc(emptyLocalization);
     };
@@ -194,7 +195,7 @@ function LocalizationGeneral({ projectId }) {
         const res = await api.put(`/localization/${editingId}`, payload);
 
         setLocalizations(prev =>
-            prev.map(l => l.id === editingId ? res.data : l)
+            prev.map(l => l.id === editingId ? res : l)
         );
 
         setEditingId(null);
@@ -266,9 +267,9 @@ function LocalizationGeneral({ projectId }) {
                                 <thead className="table-dark">
                                     <tr>
                                         <th>ID</th>
-                                        <th>Región</th>
-                                        <th>Departamento</th>
-                                        <th>Ciudad</th>
+                                        <th>Nivel y región</th>
+                                        <th>Departamento *</th>
+                                        <th>Municipio *</th>
                                         <th>Tipo Grupo</th>
                                         <th>Grupo</th>
                                         <th>Entidad</th>
@@ -287,6 +288,11 @@ function LocalizationGeneral({ projectId }) {
                                             {editingId === loc.id ? (
                                                 <>
                                                     <td>
+                                                        <select className="form-control form-control-sm mb-1" value={editedLoc.administrative_level || "municipal"}
+                                                            onChange={(e) => setEditedLoc({ ...editedLoc, administrative_level: e.target.value, city: e.target.value === "departmental" ? "" : editedLoc.city })}>
+                                                            <option value="departmental">Departamental</option>
+                                                            <option value="municipal">Municipal</option>
+                                                        </select>
                                                         <select className="form-control" value={editedLoc.region || ""}
                                                             onChange={(e) => setEditedLoc({ ...editedLoc, region: e.target.value, department: "", city: "" })}>
                                                             <option value="">Seleccione región</option>
@@ -302,6 +308,7 @@ function LocalizationGeneral({ projectId }) {
                                                     </td>
                                                     <td>
                                                         <select className="form-control" value={editedLoc.city || ""}
+                                                            disabled={(editedLoc.administrative_level || "municipal") === "departmental"}
                                                             onChange={(e) => setEditedLoc({ ...editedLoc, city: e.target.value })}>
                                                             <option value="">Seleccione ciudad</option>
                                                             {(locOptions.cities[editedLoc.department] || []).map(c => <option key={c} value={c}>{c}</option>)}
@@ -372,7 +379,7 @@ function LocalizationGeneral({ projectId }) {
                                                 </>
                                             ) : (
                                                 <>
-                                                    <td>{loc.region}</td>
+                                                    <td>{(loc.administrative_level || "municipal") === "departmental" ? "Departamental" : "Municipal"}: {loc.region}</td>
                                                     <td>{loc.department}</td>
                                                     <td>{loc.city}</td>
                                                     <td>{loc.type_group}</td>
@@ -407,6 +414,11 @@ function LocalizationGeneral({ projectId }) {
                                         <tr>
                                             <td>Nuevo</td>
                                             <td>
+                                                <select className="form-control form-control-sm mb-1" value={newLoc.administrative_level}
+                                                    onChange={(e) => setNewLoc({ ...newLoc, administrative_level: e.target.value, city: e.target.value === "departmental" ? "" : newLoc.city })}>
+                                                    <option value="departmental">Departamental</option>
+                                                    <option value="municipal">Municipal</option>
+                                                </select>
                                                 <select className="form-control" value={newLoc.region}
                                                     onChange={(e) => setNewLoc({ ...newLoc, region: e.target.value, department: "", city: "" })}>
                                                     <option value="">Seleccione región</option>
@@ -422,6 +434,7 @@ function LocalizationGeneral({ projectId }) {
                                             </td>
                                             <td>
                                                 <select className="form-control" value={newLoc.city}
+                                                    disabled={newLoc.administrative_level === "departmental"}
                                                     onChange={(e) => setNewLoc({ ...newLoc, city: e.target.value })}>
                                                     <option value="">Seleccione ciudad</option>
                                                     {(locOptions.cities[newLoc.department] || []).map(c => <option key={c} value={c}>{c}</option>)}
