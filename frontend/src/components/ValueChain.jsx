@@ -20,9 +20,9 @@ const ValueChain = ({ projectId }) => {
         if (projectId) {
             const fetchProjectSector = async () => {
                 try {
-                    const res = await api.get(`/projects/${projectId}`);
+                    const data = await api.get(`/projects/${projectId}`);
                     // Asumiendo que el proyecto tiene un campo 'sector'
-                    setProjectSector(res.data.sector);
+                    setProjectSector(data.sector);
                 } catch (error) {
                     console.error("Error al obtener el sector del proyecto:", error);
                 }
@@ -113,16 +113,16 @@ const ValueChain = ({ projectId }) => {
     const fetchData = async () => {
         try {
             setLoading(true);
-            const resObjectives = await api.get(`/value_chain_objectives/`);
-            const projectObjectives = resObjectives.data.filter(obj => obj.project_id === parseInt(projectId));
+            const objectivesData = await api.get(`/value_chain_objectives/`);
+            const projectObjectives = objectivesData.filter(obj => obj.project_id === parseInt(projectId));
 
             const fullData = await Promise.all(projectObjectives.map(async (obj) => {
-                const resProducts = await api.get(`/products/`);
-                const products = resProducts.data.filter(p => p.value_chain_objective_id === obj.id);
+                const productsData = await api.get(`/products/`);
+                const products = productsData.filter(p => p.value_chain_objective_id === obj.id);
 
                 const productsWithActivities = await Promise.all(products.map(async (prod) => {
-                    const resActs = await api.get(`/activities/`);
-                    const activities = resActs.data.filter(a => a.product_id === prod.id);
+                    const activitiesData = await api.get(`/activities/`);
+                    const activities = activitiesData.filter(a => a.product_id === prod.id);
                     return { ...prod, activities };
                 }));
 

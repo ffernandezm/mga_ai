@@ -63,18 +63,18 @@ function DevelopmentPlan({ projectId }) {
     // ---------- FETCH ----------
     const fetchDevelopmentPlan = async () => {
         try {
-            const res = await api.get(`/development_plans/${projectId}`);
-            if (res.data) {
-                setPlanId(res.data.id);
+            const data = await api.get(`/development_plans/${projectId}`);
+            if (data) {
+                setPlanId(data.id);
 
                 // Reemplazamos los nulls por strings vacíos para evitar warnings de React
                 const sanitizedData = {};
-                for (const key in res.data) {
+                for (const key in data) {
                     if (key === 'pnds') {
                         // Nos aseguramos de que sea un array
-                        sanitizedData[key] = res.data[key] || [];
+                        sanitizedData[key] = data[key] || [];
                     } else {
-                        sanitizedData[key] = res.data[key] === null ? "" : res.data[key];
+                        sanitizedData[key] = data[key] === null ? "" : data[key];
                     }
                 }
                 // Aplicar valor por defecto si el campo está vacío
@@ -93,8 +93,8 @@ function DevelopmentPlan({ projectId }) {
 
     const syncProgramFromProject = async () => {
         try {
-            const res = await api.get(`/projects/${projectId}`);
-            const resolvedProgram = programByIndicatorCode.get(String(res.data?.indicator_code ?? "").trim());
+            const data = await api.get(`/projects/${projectId}`);
+            const resolvedProgram = programByIndicatorCode.get(String(data?.indicator_code ?? "").trim());
 
             if (!resolvedProgram) {
                 return;
@@ -178,8 +178,8 @@ function DevelopmentPlan({ projectId }) {
                 await api.put(`/development_plans/${projectId}`, payload);
             } else {
                 // Crear (POST)
-                const res = await api.post(`/development_plans/`, payload);
-                setPlanId(res.data.id);
+                const data = await api.post(`/development_plans/`, payload);
+                setPlanId(data.id);
             }
             showSuccess("Plan de desarrollo guardado exitosamente");
         } catch (err) {

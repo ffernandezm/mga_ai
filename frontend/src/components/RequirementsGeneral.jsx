@@ -100,13 +100,13 @@ function RequirementsGeneral({ projectId }) {
     // ---------- FETCH ----------
     const fetchRequirementsGeneral = async () => {
         try {
-            const res = await api.get(`/requirements_general/${projectId}`);
-            const data = Array.isArray(res.data) ? res.data[0] : res.data;
+            const data = await api.get(`/requirements_general/${projectId}`);
+            const firstData = Array.isArray(data) ? data[0] : data;
 
-            if (data) {
-                setRequirementsGeneralId(data.id);
-                setRequirementsAnalysis(data.requirements_analysis || data.analysis || "");
-                setRequirements(data.requirements || []);
+            if (firstData) {
+                setRequirementsGeneralId(firstData.id);
+                setRequirementsAnalysis(firstData.requirements_analysis || firstData.analysis || "");
+                setRequirements(firstData.requirements || []);
             }
         } catch (error) {
             if (error.response?.status !== 404) {
@@ -131,8 +131,8 @@ function RequirementsGeneral({ projectId }) {
         const payload = buildRequirementPayload(editedRequirement, editedRequirement.requirements_general_id);
 
         try {
-            const res = await api.put(`/requirements/${editingRequirementId}`, payload);
-            setRequirements(requirements.map(r => r.id === editingRequirementId ? res.data : r));
+            const data = await api.put(`/requirements/${editingRequirementId}`, payload);
+            setRequirements(requirements.map(r => r.id === editingRequirementId ? data : r));
             setEditingRequirementId(null);
             setEditedRequirement({});
             showSuccess("Necesidad actualizada exitosamente");
@@ -174,8 +174,8 @@ function RequirementsGeneral({ projectId }) {
         const payload = buildRequirementPayload(newRequirement);
 
         try {
-            const res = await api.post(`/requirements/`, payload);
-            setRequirements([...requirements, res.data]);
+            const data = await api.post(`/requirements/`, payload);
+            setRequirements([...requirements, data]);
             setNewRequirement({
                 good_service_name: "",
                 good_service_description: "",
@@ -207,8 +207,8 @@ function RequirementsGeneral({ projectId }) {
                 await api.put(`/requirements_general/${requirementsGeneralId}`, payload);
             } else {
                 // Crear (POST)
-                const res = await api.post(`/requirements_general/`, payload);
-                setRequirementsGeneralId(res.data.id);
+                const data = await api.post(`/requirements_general/`, payload);
+                setRequirementsGeneralId(data.id);
             }
             showSuccess("Necesidades generales guardadas exitosamente");
         } catch (error) {

@@ -25,11 +25,9 @@ function TechnicalAnalysis({ projectId, suggestionApplication }) {
 
             setLoading(true);
 
-            const res = await api.get(
+            const data = await api.get(
                 `/technical_analysis/project/${projectId}`
             );
-
-            const data = res.data;
 
             setTechnicalAnalysisId(data.id);
             setAnalysis(data.analysis || "");
@@ -79,12 +77,12 @@ function TechnicalAnalysis({ projectId, suggestionApplication }) {
 
             } else {
 
-                const res = await api.post(
+                const data = await api.post(
                     `/technical_analysis/`,
                     payload
                 );
 
-                setTechnicalAnalysisId(res.data.id);
+                setTechnicalAnalysisId(data.id);
             }
 
             showSuccess("Análisis técnico guardado");

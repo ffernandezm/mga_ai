@@ -21,8 +21,7 @@ function EditInterventionPopulation() {
     useEffect(() => {
         const fetchPopulation = async () => {
             try {
-                const response = await api.get(`/intervention_population/${InterventionPopulationId}`);
-                const intervention_population = response.data;
+                const intervention_population = await api.get(`/intervention_population/${InterventionPopulationId}`);
                 if (intervention_population) {
                     setFormData({
                         region: intervention_population.region || "",

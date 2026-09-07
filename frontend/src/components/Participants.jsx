@@ -87,8 +87,7 @@ function ParticipantsGeneral({ projectId }) {
 
     const fetchParticipantsGeneral = async () => {
         try {
-            const response = await api.get(`/participants_general/${projectId}`);
-            const data = response.data;
+            const data = await api.get(`/participants_general/${projectId}`);
 
             if (data.length > 0) {
                 const general = data[0];
@@ -124,8 +123,8 @@ function ParticipantsGeneral({ projectId }) {
             if (generalId) {
                 await api.put(`/participants_general/${generalId}`, payload);
             } else {
-                const res = await api.post(`/participants_general`, payload);
-                setGeneralId(res.data.id);
+                const data = await api.post(`/participants_general`, payload);
+                setGeneralId(data.id);
             }
             showSuccess("Participantes actualizados correctamente.");
             fetchParticipantsGeneral();
@@ -218,8 +217,8 @@ function ParticipantsGeneral({ projectId }) {
 
         try {
             const payload = { ...newParticipant, participants_general_id: generalId };
-            const res = await api.post("/participants/", payload);
-            setParticipantsGeneral((prev) => [...prev, res.data]);
+            const data = await api.post("/participants/", payload);
+            setParticipantsGeneral((prev) => [...prev, data]);
             setCreating(false);
             setNewParticipant({ ...emptyParticipant });
             showSuccess("Participante creado correctamente.");

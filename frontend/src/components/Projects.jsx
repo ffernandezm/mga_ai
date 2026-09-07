@@ -7,8 +7,8 @@ const ProjectList = () => {
 
   const fetchProjects = async () => {
     try {
-      const response = await api.get('/projects');
-      setProjects(response.data.projects);
+      const data = await api.get('/projects');
+      setProjects(data.projects);
     } catch (error) {
       console.error("Error fetching Projects", error);
     }

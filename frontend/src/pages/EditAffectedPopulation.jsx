@@ -21,8 +21,7 @@ function EditAffectedPopulation() {
     useEffect(() => {
         const fetchPopulation = async () => {
             try {
-                const response = await api.get(`/affected_population/${AffectedPopulationId}`);
-                const affected_population = response.data;
+                const affected_population = await api.get(`/affected_population/${AffectedPopulationId}`);
                 if (affected_population) {
                     setFormData({
                         region: affected_population.region || "",

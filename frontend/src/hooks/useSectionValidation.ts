@@ -55,12 +55,12 @@ export const useSectionValidation = (sectionKey, endpoint, requiredFields = []) 
             };
 
             // Guardar en backend
-            const response = await api.post(`${endpoint}/${projectId}`, payloadWithValidation);
+            const savedData = await api.post(`${endpoint}/${projectId}`, payloadWithValidation);
 
             // Marcar sección como completada en el estado local
             await markSectionAsComplete(sectionKey);
 
-            return response.data;
+            return savedData;
         } catch (err) {
             // Si hay error, marcar como incompleta
             await updateSectionCompletion(sectionKey, false);

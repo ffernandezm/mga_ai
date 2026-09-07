@@ -80,8 +80,8 @@ function Formulation() {
     useEffect(() => {
         const fetchProject = async () => {
             try {
-                const response = await api.get(`/projects/${id}`);
-                setProject(response.data);
+                const data = await api.get(`/projects/${id}`);
+                setProject(data);
             } catch (err) {
                 setError(err.message);
             } finally {
@@ -131,15 +131,15 @@ function Formulation() {
     };
 
     const loadValidation = async () => {
-        const response = await api.get(`/projects/${id}/sections/validation`);
-        const states = Object.fromEntries(response.data.map((item) => [MGA_VALIDATION_SECTION_TO_TAB[item.section], item]));
+        const data = await api.get(`/projects/${id}/sections/validation`);
+        const states = Object.fromEntries(data.map((item) => [MGA_VALIDATION_SECTION_TO_TAB[item.section], item]));
         setSectionStates(states);
-        await Promise.all(response.data.map((item) => recordEvaluationEvent("validation_run", MGA_VALIDATION_SECTION_TO_TAB[item.section], {
+        await Promise.all(data.map((item) => recordEvaluationEvent("validation_run", MGA_VALIDATION_SECTION_TO_TAB[item.section], {
             errors_count: item.missing_fields.length + item.blocking_rules.length,
             warnings_count: item.warnings.length,
             completed: item.complete,
         })));
-        return { sections: response.data, states };
+        return { sections: data, states };
     };
 
     useEffect(() => {
@@ -178,8 +178,8 @@ function Formulation() {
 
     const handleReview = async () => {
         try {
-            const response = await api.get(`/projects/${id}/formulation/review`);
-            setReview(response.data);
+            const data = await api.get(`/projects/${id}/formulation/review`);
+            setReview(data);
         } catch (reviewError) {
             console.error("No se pudo revisar la formulación", reviewError);
         }
@@ -188,11 +188,11 @@ function Formulation() {
     const startEvaluation = async () => {
         if (!participantId.trim()) return;
         try {
-            const response = await api.post("/evaluation/sessions", {
+            const data = await api.post("/evaluation/sessions", {
                 participant_id: participantId.trim(), project_id: Number(id), task: "formulación MGA",
             });
-            setEvaluationSession(response.data);
-            localStorage.setItem("mga_evaluation_session_id", String(response.data.id));
+            setEvaluationSession(data);
+            localStorage.setItem("mga_evaluation_session_id", String(data.id));
         } catch (evaluationError) {
             console.error("No se pudo iniciar la sesión de evaluación", evaluationError);
         }

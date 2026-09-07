@@ -320,8 +320,8 @@ function CreateProject() {
                 await api.put(`/projects/${id}`, projectPayload);
                 await api.delete(`/project_localizations/project/${id}`);
             } else {
-                const res = await api.post("/projects/", projectPayload);
-                projectId = res.data.id;
+                const data = await api.post("/projects/", projectPayload);
+                projectId = data.id;
             }
 
             await Promise.all(

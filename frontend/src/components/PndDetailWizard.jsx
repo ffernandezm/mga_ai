@@ -25,8 +25,8 @@ function PndDetailWizard({ isOpen, onClose, onSelect }) {
         setLoading(true);
         setError(null);
         try {
-            const response = await api.get("/pnd_details/");
-            setData(response.data);
+            const data = await api.get("/pnd_details/");
+            setData(data);
         } catch (err) {
             console.error("Error cargando detalle PND:", err);
             setError("No se pudo cargar el detalle PND. Intente nuevamente.");

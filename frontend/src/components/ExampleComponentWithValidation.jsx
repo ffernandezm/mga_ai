@@ -41,8 +41,8 @@ function ExampleComponentWithValidation({ projectId }) {
     useEffect(() => {
         const loadParticipants = async () => {
             try {
-                const response = await api.get(`/participants/${projectId}`);
-                setParticipants(response.data?.participants || []);
+                const data = await api.get(`/participants/${projectId}`);
+                setParticipants(data?.participants || []);
             } catch (err) {
                 console.error('Error cargando participantes:', err);
                 // No es error crítico si no hay datos

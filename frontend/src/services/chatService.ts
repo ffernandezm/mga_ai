@@ -6,17 +6,7 @@
 import apiService from './api';
 import { ChatMessage, ChatResponse, ChatSession, LLMResponse, ChatHistoryItem } from '../types';
 
-type AxiosLike<T> = T | { data: T };
-
-const unwrap = <T>(response: AxiosLike<T>): T => {
-    if (response && typeof response === 'object' && 'data' in response) {
-        return response.data;
-    }
-    return response;
-};
-
-const normalizeChatResponse = (response: AxiosLike<ChatResponse>): ChatResponse => {
-    const payload = unwrap(response);
+const normalizeChatResponse = (payload: ChatResponse): ChatResponse => {
     return {
         answer: payload?.answer ?? null,
         trace: payload?.trace ?? null,
@@ -36,10 +26,10 @@ class ChatService {
         tab: string
     ): Promise<ChatHistoryItem[]> {
         try {
-            const response = await apiService.get<ChatHistoryItem[] | { data: ChatHistoryItem[] }>(
+            const response = await apiService.get<ChatHistoryItem[]>(
                 `/chat_history/${projectId}/${tab}`
             );
-            return unwrap(response) || [];
+            return response || [];
         } catch (error) {
             console.warn('No hay historial disponible');
             return [];
@@ -55,7 +45,7 @@ class ChatService {
         question: string,
         requestFields?: Record<string, any>
     ): Promise<ChatResponse> {
-        const response = await apiService.post<ChatResponse | { data: ChatResponse }>(
+        const response = await apiService.post<ChatResponse>(
             `/chat_history/chat/${projectId}/${tab}`,
             {
                 question,

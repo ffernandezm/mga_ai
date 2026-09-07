@@ -15,8 +15,8 @@ function ProjectForm() {
         if (id) {
             const fetchProject = async () => {
                 try {
-                    const response = await api.get(`/projects/${id}`);
-                    setProject(response.data);
+                    const data = await api.get(`/projects/${id}`);
+                    setProject(data);
                 } catch (error) {
                     console.error("Error fetching project:", error);
                 }

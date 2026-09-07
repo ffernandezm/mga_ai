@@ -52,8 +52,8 @@ function EditParticipant() {
     useEffect(() => {
         const fetchParticipant = async () => {
             try {
-                const response = await api.get(`/participants/${projectId}`);
-                const participant = response.data.find(p => p.id === parseInt(participantId));
+                const participants = await api.get(`/participants/${projectId}`);
+                const participant = participants.find(p => p.id === parseInt(participantId));
                 if (participant) setFormData(participant);
             } catch (error) {
                 console.error("Error al obtener participante:", error);
