@@ -27,8 +27,8 @@ function ProductCatalogWizard({ isOpen, onClose, onSelect }) {
         setError(null);
         try {
             const params = sectorCode ? { sector_code: sectorCode } : {};
-            const response = await api.get("/product_catalogs/", { params });
-            setCatalogData(response.data);
+            const data = await api.get("/product_catalogs/", { params });
+            setCatalogData(data);
         } catch (err) {
             console.error("Error cargando catálogo de productos:", err);
             setError("No se pudo cargar el catálogo. Intente nuevamente.");
@@ -244,8 +244,8 @@ function ProductCatalogWizard({ isOpen, onClose, onSelect }) {
                                                     key={row.id}
                                                     onClick={() => handleRowClick(row)}
                                                     className={`wizard-row-selectable${selectedRow?.id === row.id
-                                                            ? " wizard-row-selected"
-                                                            : ""
+                                                        ? " wizard-row-selected"
+                                                        : ""
                                                         }`}
                                                 >
                                                     <td>{row.product_name}</td>

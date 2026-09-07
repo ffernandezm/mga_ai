@@ -92,8 +92,7 @@ function buildFilename(projectName) {
 
 async function getResource(url, fallbackValue = null) {
     try {
-        const response = await api.get(url);
-        return response.data;
+        return await api.get(url);
     } catch (error) {
         if (error.response?.status === 404) {
             return fallbackValue;

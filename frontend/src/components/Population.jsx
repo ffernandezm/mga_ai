@@ -77,8 +77,7 @@ function Population({ projectId }) {
 
     const fetchPopulation = async () => {
         try {
-            const response = await api.get(`/population/${projectId}`);
-            const data = response.data;
+            const data = await api.get(`/population/${projectId}`);
             if (data) {
                 setAnalysis(data.population_json?.analysis || "");
                 setPopulationId(data.id);
@@ -151,8 +150,8 @@ function Population({ projectId }) {
             if (populationId) {
                 await api.put(`/population/${populationId}`, payload);
             } else {
-                const res = await api.post(`/population`, payload);
-                setPopulationId(res.data.id);
+                const data = await api.post(`/population`, payload);
+                setPopulationId(data.id);
             }
             showSuccess("Población actualizada correctamente.");
             fetchPopulation();
@@ -353,9 +352,9 @@ function Population({ projectId }) {
     const saveNewAffected = async () => {
         try {
             const payload = { ...newAffected, population_id: populationId };
-            const res = await api.post("/affected_population/", payload);
+            const data = await api.post("/affected_population/", payload);
             // el backend debe devolver el objeto creado con id
-            setAffectedPopulation(prev => [...prev, res.data]);
+            setAffectedPopulation(prev => [...prev, data]);
             setCreatingAffected(false);
             setNewAffected({
                 region: "",
@@ -374,8 +373,8 @@ function Population({ projectId }) {
     const saveNewIntervention = async () => {
         try {
             const payload = { ...newIntervention, population_id: populationId };
-            const res = await api.post("/intervention_population/", payload);
-            setInterventionPopulation(prev => [...prev, res.data]);
+            const data = await api.post("/intervention_population/", payload);
+            setInterventionPopulation(prev => [...prev, data]);
             setCreatingIntervention(false);
             setNewIntervention({
                 region: "",

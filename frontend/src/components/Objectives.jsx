@@ -77,8 +77,7 @@ function Objectives({ projectId }) {
 
     const fetchObjectives = async () => {
         try {
-            const res = await api.get(`/objectives/${projectId}`);
-            const data = res.data;
+            const data = await api.get(`/objectives/${projectId}`);
 
             if (data && data.length > 0) {
                 const obj = data[0];
@@ -103,9 +102,9 @@ function Objectives({ projectId }) {
         const fetchCentralProblem = async () => {
             if (!projectId) return;
             try {
-                const res = await api.get(`/problems/${projectId}`);
-                if (res.data && res.data.central_problem) {
-                    setGeneralProblem(res.data.central_problem);
+                const data = await api.get(`/problems/${projectId}`);
+                if (data && data.central_problem) {
+                    setGeneralProblem(data.central_problem);
                 }
             } catch (error) {
                 console.error("Error al obtener el problema central:", error);
@@ -127,8 +126,8 @@ function Objectives({ projectId }) {
             if (objectiveId) {
                 await api.put(`/objectives/${projectId}/${objectiveId}`, payload);
             } else {
-                const res = await api.post(`/objectives`, payload);
-                setObjectiveId(res.data.id);
+                const data = await api.post(`/objectives/${projectId}/`, payload);
+                setObjectiveId(data.id);
             }
             showSuccess("Objetivo guardado correctamente.");
             fetchObjectives();
@@ -196,16 +195,16 @@ function Objectives({ projectId }) {
     // ---------- CREACIÓN INLINE ----------
     const saveNewCause = async () => {
         const payload = { ...newCause, objective_id: objectiveId };
-        const res = await api.post("/objectives_causes/", payload);
-        setObjectivesCauses(prev => [...prev, res.data]);
+        const data = await api.post("/objectives_causes/", payload);
+        setObjectivesCauses(prev => [...prev, data]);
         setCreatingCause(false);
         setNewCause({ type: "", cause_related: "", specifics_objectives: "" });
     };
 
     const saveNewIndicator = async () => {
         const payload = { ...newIndicator, objective_id: objectiveId };
-        const res = await api.post("/objectives_indicator/", payload);
-        setObjectivesIndicators(prev => [...prev, res.data]);
+        const data = await api.post("/objectives_indicator/", payload);
+        setObjectivesIndicators(prev => [...prev, data]);
         setCreatingIndicator(false);
         setNewIndicator({
             indicator: "",

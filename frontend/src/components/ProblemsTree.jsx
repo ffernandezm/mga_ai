@@ -30,9 +30,9 @@ function ProblemsTree({ projectId, projectName, ProjectDescription, suggestionAp
         const fetchProblemTree = async () => {
             if (!projectId) return;
             try {
-                const response = await api.get(`/problems/${projectId}`);
-                if (response.data) {
-                    const { central_problem, direct_effects = [], direct_causes = [] } = response.data;
+                const data = await api.get(`/problems/${projectId}`);
+                if (data) {
+                    const { central_problem, direct_effects = [], direct_causes = [] } = data;
 
                     const mappedEffects = direct_effects.map(effect => ({
                         id: effect.id,
@@ -56,11 +56,11 @@ function ProblemsTree({ projectId, projectName, ProjectDescription, suggestionAp
                     setCauses(mappedCauses);
                     setEffects(mappedEffects);
 
-                    if (response.data.current_description) {
-                        setCurrentDescription(response.data.current_description);
+                    if (data.current_description) {
+                        setCurrentDescription(data.current_description);
                     }
-                    if (response.data.magnitude_problem) {
-                        setMagnitudeProblem(response.data.magnitude_problem);
+                    if (data.magnitude_problem) {
+                        setMagnitudeProblem(data.magnitude_problem);
                     }
                 }
             } catch (error) {
@@ -218,8 +218,8 @@ function ProblemsTree({ projectId, projectName, ProjectDescription, suggestionAp
         const jsonData = generateJson();
 
         try {
-            const response = await api.put(`/problems/${projectId}`, jsonData);
-            console.log("Árbol de problemas actualizado correctamente", response.data);
+            const data = await api.put(`/problems/${projectId}`, jsonData);
+            console.log("Árbol de problemas actualizado correctamente", data);
             setRefreshTrigger(prev => prev + 1);
             showSuccessMessage("Árbol de problemas actualizado correctamente");
         } catch (error) {

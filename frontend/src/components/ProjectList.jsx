@@ -14,8 +14,8 @@ function ProjectList() {
     useEffect(() => {
         const fetchProjects = async () => {
             try {
-                const response = await api.get("/projects/");
-                setProjects(response.data);
+                const data = await api.get("/projects/");
+                setProjects(data);
             } catch (error) {
                 console.error("Error fetching projects:", error);
             }

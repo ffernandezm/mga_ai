@@ -59,8 +59,7 @@ function AlternativesGeneral({ projectId }) {
     /* ================= OBTENER GENERAL ================= */
     const fetchAlternativesGeneral = async () => {
         try {
-            const res = await api.get(`/alternatives_general/${projectId}`);
-            const data = res.data;
+            const data = await api.get(`/alternatives_general/${projectId}`);
 
             setAlternativesGeneral(data);
             setSolutionAlternatives(data.solution_alternatives);
@@ -154,7 +153,7 @@ function AlternativesGeneral({ projectId }) {
 
         try {
             if (updatedAlt.isNew) {
-                const res = await api.post("/alternatives/", {
+                const data = await api.post("/alternatives/", {
                     name: updatedAlt.name,
                     active: updatedAlt.active,
                     state: updatedAlt.state,
@@ -162,7 +161,7 @@ function AlternativesGeneral({ projectId }) {
                 });
 
                 alternatives[index] = {
-                    ...res.data,
+                    ...data,
                     isEditing: false,
                     isNew: false
                 };
@@ -219,8 +218,8 @@ function AlternativesGeneral({ projectId }) {
                 await api.put(`/alternatives_general/${projectId}`, payload);
                 showSuccess("Actualizado correctamente.");
             } else {
-                const res = await api.post("/alternatives_general/", payload);
-                setAlternativesGeneral(res.data);
+                const data = await api.post("/alternatives_general/", payload);
+                setAlternativesGeneral(data);
                 showSuccess("Creado correctamente.");
             }
         } catch (err) {
