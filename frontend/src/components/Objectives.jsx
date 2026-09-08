@@ -80,6 +80,7 @@ function Objectives({ projectId }) {
             console.group("🔍 [Objectives] Cargando objetivos y relaciones con causas");
 
             console.log("📌 Project ID:", projectId);
+            console.log("🌐 API base URL:", api.getClient().defaults.baseURL);
 
             console.log(
                 "🌐 Consultando endpoint:",
