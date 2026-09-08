@@ -3,6 +3,7 @@ import csv
 import os
 from sqlalchemy.orm import Session, relationship
 from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy.exc import SQLAlchemyError
 from pydantic import BaseModel, field_validator
 from typing import List, Optional
 
@@ -361,8 +362,15 @@ def delete_project(project_id: int, db: Session = Depends(get_db)):
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
 
-    db.delete(project)
-    db.commit()
+    try:
+        db.delete(project)
+        db.commit()
+    except SQLAlchemyError as exc:
+        db.rollback()
+        raise HTTPException(
+            status_code=409,
+            detail="Project could not be deleted because dependent data remains",
+        ) from exc
     return {"message": "Project deleted successfully"}
 
 

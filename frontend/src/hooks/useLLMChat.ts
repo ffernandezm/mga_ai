@@ -4,7 +4,7 @@
  */
 
 import { useState, useCallback, useEffect } from 'react';
-import chatService from '../services/chatService';
+import chatService, { getChatUserMessage } from '../services/chatService';
 import { ChatMessage, MessageType } from '../types';
 import { ErrorHandler, ApiError } from '../services/errorHandler';
 
@@ -60,7 +60,7 @@ export function useLLMChat(projectId: string | number, tab?: string) {
     // Enviar mensaje
     const sendMessage = useCallback(
         async (message: string) => {
-            if (!message.trim() || !projectId || !tab) return;
+            if (!message.trim() || !projectId || !tab || loading) return;
 
             try {
                 setError(null);
@@ -87,7 +87,7 @@ export function useLLMChat(projectId: string | number, tab?: string) {
                 const botText = hasGeneratedAnswer
                     ? response.answer
                     : response.generation_status === "error"
-                        ? (response.error || "El asistente no pudo generar una respuesta.")
+                        ? getChatUserMessage(response)
                         : "";
 
                 // Agregar respuesta del bot
@@ -101,7 +101,7 @@ export function useLLMChat(projectId: string | number, tab?: string) {
                 ]);
             } catch (err) {
                 const apiError = ErrorHandler.normalize(err);
-                const errorMsg = ErrorHandler.getUserMessage(apiError);
+                const errorMsg = getChatUserMessage(apiError);
                 setError(errorMsg);
                 ErrorHandler.log(apiError, 'useLLMChat.sendMessage');
 
@@ -118,7 +118,7 @@ export function useLLMChat(projectId: string | number, tab?: string) {
                 setLoading(false);
             }
         },
-        [projectId, tab]
+        [projectId, tab, loading]
     );
 
     // Limpiar historial

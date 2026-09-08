@@ -61,6 +61,7 @@ export interface ChatResponse {
     generation_status: 'generated' | 'error';
     error: string | null;
     error_type?: string | null;
+    retry_after_seconds?: number | null;
 }
 
 export interface ApiConfig {

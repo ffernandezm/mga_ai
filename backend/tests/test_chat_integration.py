@@ -387,6 +387,27 @@ def test_endpoint_llm_failure_returns_controlled_error(db_session, monkeypatch):
     assert response.answer is None
 
 
+def test_endpoint_rate_limit_returns_specific_contract(db_session, monkeypatch):
+    project_a = _seed_project(db_session, "A")
+
+    class _RateLimitFailure(RuntimeError):
+        error_type = "rate_limit"
+        retry_after_seconds = 27
+
+    def _raise_rate_limit(*args, **kwargs):
+        raise _RateLimitFailure("429 Too Many Requests")
+
+    monkeypatch.setattr(chat_history_module.llm_manager, "ask", _raise_rate_limit)
+
+    response = chat_history_module.chat_with_ai(project_id=project_a, tab="problems", question="q", db=db_session)
+
+    assert response.answer is None
+    assert response.generation_status == "error"
+    assert response.error_type == "rate_limit"
+    assert response.retry_after_seconds == 27
+    assert "límite de uso" in response.error
+
+
 def test_chat_history_preserves_trace_sources_per_bot_message(db_session, monkeypatch):
     project_a = _seed_project(db_session, "A")
     sources = [{"document": "Documento_conceptual_2023.pdf", "page": 12, "content": "Fragmento relevante", "similarity": 0.913}]

@@ -68,7 +68,7 @@ class ChatHistory(Base):
     __tablename__ = "chat_history"
 
     id = Column(Integer, primary_key=True, index=True)
-    project_id = Column(Integer, ForeignKey("projects.id"), nullable=False)
+    project_id = Column(Integer, ForeignKey("projects.id", ondelete="CASCADE"), nullable=False)
     tab = Column(String, nullable=False)  # problems, participants, population, etc
     session_id = Column(String, nullable=False, index=True)
     sender = Column(String, nullable=False)  # "user" o "bot"
@@ -126,6 +126,21 @@ class ChatAnswerResponse(BaseModel):
     generation_status: str
     error: Optional[str] = None
     error_type: Optional[str] = None
+    retry_after_seconds: Optional[int] = None
+
+
+_HIDDEN_SUGGESTION_FIELDS = {"administrative_level", "territorial_level", "region"}
+_VISIBLE_FIELD_LABELS = {
+    "central_problem": "Problema central",
+    "general_objective": "Objetivo general",
+    "specifics_objectives": "Objetivo específico",
+    "cause_related": "Causa relacionada",
+    "department": "Departamento",
+    "municipality": "Municipio",
+    "city": "Municipio",
+    "latitude": "Latitud",
+    "longitude": "Longitud",
+}
 
 
 def _json_dump(value: Any) -> Optional[str]:
@@ -210,6 +225,96 @@ def _extract_suggested_changes(answer: str, semantic_context: Dict[str, Any]) ->
             confidence="high",
         ))
     return changes
+
+
+def _structured_suggestions(answer: str) -> tuple[Optional[object], Optional[tuple[int, int]]]:
+    """Find a JSON object/array returned by the model without exposing it."""
+    fenced = re.search(r"```(?:json)?\s*(.*?)```", answer or "", flags=re.DOTALL | re.IGNORECASE)
+    if fenced:
+        try:
+            return json.loads(fenced.group(1).strip()), fenced.span()
+        except (TypeError, ValueError):
+            return None, fenced.span()
+
+    decoder = json.JSONDecoder()
+    for match in re.finditer(r"[\[{]", answer or ""):
+        try:
+            value, end = decoder.raw_decode((answer or "")[match.start():])
+        except (TypeError, ValueError):
+            continue
+        if isinstance(value, dict) and "suggested_changes" in value:
+            return value, (match.start(), match.start() + end)
+        if isinstance(value, list) and value and all(isinstance(item, dict) for item in value):
+            if any("field_key" in item or "suggested_value" in item for item in value):
+                return value, (match.start(), match.start() + end)
+    return None, None
+
+
+def _suggestion_label(field_key: object) -> Optional[str]:
+    key = str(field_key or "").strip()
+    normalized = re.sub(r"[\s-]+", "_", key).lower()
+    if normalized in _HIDDEN_SUGGESTION_FIELDS or normalized in {"region", "nivel"}:
+        return None
+    if normalized in _VISIBLE_FIELD_LABELS:
+        return _VISIBLE_FIELD_LABELS[normalized]
+    metadata = get_suggestable_field(normalized)
+    if metadata:
+        return metadata["label_es"]
+    label = get_column_label("localization", normalized)
+    if label == normalized.replace("_", " ").title() and normalized not in {"department", "city"}:
+        return None
+    return label
+
+
+def _render_structured_suggestions(items: object) -> Optional[str]:
+    if isinstance(items, dict):
+        items = items.get("suggested_changes")
+    if not isinstance(items, list):
+        return None
+
+    rows = []
+    for item in items:
+        if not isinstance(item, dict):
+            return None
+        label = _suggestion_label(item.get("field_key"))
+        value = item.get("suggested_value")
+        if not label or not isinstance(value, str) or not value.strip():
+            continue
+        lowered_value = value.lower()
+        if label in {"Latitud", "Longitud"} and ("pendiente" in lowered_value or "precisa" in lowered_value):
+            value = "Las coordenadas no están registradas. Si dispone de ellas, puede ingresarlas manualmente."
+        rows.append(f"| {label} | {value.strip()} |")
+    if not rows:
+        return None
+    return "Estas son algunas recomendaciones para completar la información:\n\n| Campo | Sugerencia |\n|---|---|\n" + "\n".join(rows)
+
+
+def _sanitize_visible_answer(answer: str) -> str:
+    """Keep answer user-facing even when the provider leaks its internal contract."""
+    text = (answer or "").strip()
+    structured, span = _structured_suggestions(text)
+    if structured is not None and span:
+        rendered = _render_structured_suggestions(structured)
+        prefix = text[:span[0]].strip()
+        suffix = text[span[1]:].strip()
+        if rendered:
+            return "\n\n".join(part for part in (prefix, rendered, suffix) if part).strip()
+        if not prefix and not suffix:
+            return "No fue posible presentar la recomendación en un formato adecuado. Intenta reformular la consulta."
+        text = "\n\n".join(part for part in (prefix, suffix) if part).strip()
+
+    if re.match(r"^[\[{]", text) and re.search(r"field_key|field_type|suggested_changes|suggested_value", text, re.I):
+        return "No fue posible presentar la recomendación en un formato adecuado. Intenta reformular la consulta."
+
+    technical_terms = {
+        "field_key": "campo",
+        "field_type": "tipo de campo",
+        "suggested_value": "sugerencia",
+        "suggested_changes": "recomendaciones",
+    }
+    for internal, visible in technical_terms.items():
+        text = re.sub(rf"\b{re.escape(internal)}\b", visible, text, flags=re.IGNORECASE)
+    return text or "No fue posible presentar la respuesta en un formato adecuado. Intenta reformular la consulta."
 
 
 def _render_missing_fields(validation, section: str) -> str:
@@ -1035,7 +1140,7 @@ def chat_with_ai(
         action_prompts = {
             "ask": "",
             "review": "Revisa críticamente la información registrada y enumera hallazgos concretos. ",
-            "improve": "Analiza y mejora TODA la sección MGA activa usando todos sus campos registrados actuales y las secciones relacionadas. El historial solo es contexto secundario y no limita el alcance, salvo que la pregunta nombre expresamente un campo. Si propones una mejora inequívoca para un campo simple, agrega al final un bloque ```json {\"suggested_changes\":[{\"field_key\":\"...\",\"suggested_value\":\"...\",\"field_type\":\"text o textarea\"}]} ```; no incluyas tablas ni selects. ",
+            "improve": "Analiza y mejora TODA la sección MGA activa usando todos sus campos registrados actuales y las secciones relacionadas. El historial solo es contexto secundario y no limita el alcance, salvo que la pregunta nombre expresamente un campo. Tu respuesta visible está dirigida a formuladores de proyectos, no a desarrolladores: responde únicamente en español claro, no muestres JSON, código, nombres de variables, field_key, field_type, schemas ni estructuras internas. Si necesitas presentar varios campos o recomendaciones, usa una tabla Markdown con etiquetas funcionales en español. No sugieras Nivel ni Región en Localización. No inventes coordenadas ni datos geográficos; si faltan, indícalo con lenguaje natural. ",
             "inconsistencies": "Detecta inconsistencias entre esta sección y su contexto relacionado. ",
             "missing": "Indica qué información falta para completar esta sección. ",
         }
@@ -1147,11 +1252,20 @@ def chat_with_ai(
             get_relevant_sources = getattr(llm_manager.rag_manager, "get_relevant_sources", None)
             sources = get_relevant_sources(question, canonical_section) if callable(get_relevant_sources) else []
             logger.exception("CHAT_GENERATION_FAILED | project=%s tab=%s action=%s", project_id, tab, action)
+            error_type = getattr(generation_error, "error_type", "unknown_error")
+            retry_after_seconds = getattr(generation_error, "retry_after_seconds", None)
+            if error_type == "rate_limit":
+                error_message = "El servicio de IA alcanzó temporalmente su límite de uso."
+            elif error_type == "timeout":
+                error_message = "La respuesta está tardando más de lo esperado. Intente nuevamente."
+            else:
+                error_message = "El proveedor de IA no pudo generar una respuesta. Intente nuevamente."
             return ChatAnswerResponse(
                 trace={"active_section": canonical_section, "project_context_used": bool(section_context), "rag_used": bool(sources), "sources": sources},
                 generation_status="error",
-                error="No fue posible generar una respuesta del asistente. Intente nuevamente.",
-                error_type=getattr(generation_error, "error_type", "unknown_error"),
+                error=error_message,
+                error_type=error_type,
+                retry_after_seconds=retry_after_seconds,
             )
         llm_ms = (perf_counter() - llm_start) * 1000
 
@@ -1172,6 +1286,7 @@ def chat_with_ai(
                 error="El asistente no pudo generar una respuesta. Intente nuevamente.",
                 error_type="empty_response",
             )
+        visible_answer = _sanitize_visible_answer(answer)
         suggested_changes = _extract_suggested_changes(answer, semantic_context) if action == "improve" else []
         bot_message = save_chat_message(
             db,
@@ -1179,7 +1294,7 @@ def chat_with_ai(
             tab,
             session_id,
             "bot",
-            answer,
+            visible_answer,
             trace=trace,
             suggested_changes=suggested_changes,
             generation_status="generated",
@@ -1193,7 +1308,7 @@ def chat_with_ai(
                 task=action,
                 llm_duration_ms=round(llm_ms),
                 rag_enabled=bool(sources),
-                payload={"response_received": bool(answer)},
+                payload={"response_received": bool(visible_answer)},
             ))
             db.commit()
         logger.info(f"✅ Respuesta guardada (id={bot_message.id}, con historial de {len(chat_history)} msgs)")
@@ -1215,7 +1330,7 @@ def chat_with_ai(
             len(section_context or ""),
         )
 
-        return ChatAnswerResponse(answer=answer, trace=trace, suggested_changes=suggested_changes, generation_status="generated")
+        return ChatAnswerResponse(answer=visible_answer, trace=trace, suggested_changes=suggested_changes, generation_status="generated")
         
     except HTTPException:
         raise

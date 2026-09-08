@@ -6,6 +6,8 @@
 import apiService from './api';
 import { ChatMessage, ChatResponse, ChatSession, LLMResponse, ChatHistoryItem } from '../types';
 
+export const CHAT_TIMEOUT_MS = 90000;
+
 const normalizeChatResponse = (payload: ChatResponse): ChatResponse => {
     return {
         answer: payload?.answer ?? null,
@@ -14,7 +16,27 @@ const normalizeChatResponse = (payload: ChatResponse): ChatResponse => {
         generation_status: payload?.generation_status === 'error' ? 'error' : 'generated',
         error: payload?.error ?? null,
         error_type: payload?.error_type ?? null,
+        retry_after_seconds: payload?.retry_after_seconds ?? null,
     };
+};
+
+export const getChatUserMessage = (value: ChatResponse | any): string => {
+    const errorType = value?.error_type || value?.details?.error_type;
+    const retryAfter = value?.retry_after_seconds ?? value?.details?.retry_after_seconds;
+    if (errorType === 'rate_limit') {
+        const wait = Number.isFinite(Number(retryAfter)) ? ` Intenta nuevamente en aproximadamente ${retryAfter} segundos.` : ' Intenta nuevamente en unos segundos.';
+        return `El servicio de IA alcanzó temporalmente su límite de uso.${wait}`;
+    }
+    if (errorType === 'timeout' || value?.code === 'TIMEOUT_ERROR') {
+        return 'La respuesta está tardando más de lo esperado. Intenta nuevamente.';
+    }
+    if (errorType === 'empty_response') {
+        return 'El servicio de IA devolvió una respuesta vacía. Intenta nuevamente.';
+    }
+    if (errorType === 'network_error' || value?.code === 'NETWORK_ERROR') {
+        return 'No se pudo conectar con el servicio de IA. Verifica la conexión e intenta nuevamente.';
+    }
+    return value?.error || value?.message || 'El proveedor de IA no pudo generar una respuesta. Intenta nuevamente.';
 };
 
 class ChatService {
@@ -50,7 +72,8 @@ class ChatService {
             {
                 question,
                 ...requestFields,
-            }
+            },
+            { timeout: CHAT_TIMEOUT_MS }
         );
         return normalizeChatResponse(response);
     }

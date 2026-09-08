@@ -76,9 +76,9 @@ class Localization(Base):
 class LocalizationBase(BaseModel):
 
     administrative_level: str = "municipal"
-    region: str = ""
+    region: Optional[str] = None
     department: str
-    city: str = ""
+    city: Optional[str] = None
     type_group: str = ""
     group: str = ""
     entity: str = ""
@@ -92,8 +92,6 @@ class LocalizationBase(BaseModel):
             raise ValueError("El nivel territorial debe ser departamental o municipal")
         if not self.department.strip():
             raise ValueError("El departamento es obligatorio")
-        if self.administrative_level == "municipal" and not self.city.strip():
-            raise ValueError("El municipio es obligatorio para el nivel municipal")
         return self
 
 

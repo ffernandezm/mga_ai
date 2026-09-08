@@ -10,6 +10,7 @@ import json
 import logging
 import re
 import uuid
+import time
 from time import perf_counter
 from pathlib import Path
 from typing import Optional
@@ -96,6 +97,7 @@ class LLMManager:
                 model_name=model_name,
                 groq_api_key=api_key,
                 temperature=0.7,
+                max_retries=0,
             )
             
         elif self.llm_provider == "gemini":
@@ -187,6 +189,15 @@ class LLMManager:
             instruction_block = f"{general_template}\n\n{section_template}"
         else:
             instruction_block = section_template or general_template or "Responde de forma clara y concisa."
+
+        instruction_block = (
+            f"{instruction_block}\n\n"
+            "La respuesta visible está dirigida a formuladores de proyectos, no a desarrolladores. "
+            "Responde únicamente en español claro. No muestres JSON, código, nombres de variables, "
+            "field_key, field_type, schemas ni estructuras internas. Si presentas varios campos o "
+            "recomendaciones, usa una tabla Markdown con etiquetas funcionales en español. No inventes "
+            "coordenadas ni datos geográficos."
+        )
 
         template_text = (
             f"{instruction_block}\n\n"
@@ -307,6 +318,45 @@ class LLMManager:
             return "parser_error"
         return "unknown_error"
 
+    @staticmethod
+    def _retry_after_seconds(error: Exception) -> Optional[int]:
+        """Extract a bounded provider retry hint without trusting free text blindly."""
+        candidates = [
+            getattr(error, "retry_after_seconds", None),
+            getattr(error, "retry_after", None),
+        ]
+        response = getattr(error, "response", None)
+        headers = getattr(response, "headers", None)
+        if headers:
+            candidates.extend([
+                headers.get("retry-after"),
+                headers.get("Retry-After"),
+            ])
+        response_json = getattr(response, "json", None)
+        if callable(response_json):
+            try:
+                payload = response_json()
+                if isinstance(payload, dict):
+                    detail = payload.get("error", payload)
+                    if isinstance(detail, dict):
+                        candidates.extend([
+                            detail.get("retry_after"),
+                            detail.get("retry_after_seconds"),
+                        ])
+            except Exception:
+                pass
+        message = str(error)
+        candidates.extend(re.findall(r"retry[_ -]?after(?:_seconds)?\s*[:=]\s*(\d+(?:\.\d+)?)", message, re.I))
+        candidates.extend(re.findall(r"(?:retry|try again)[^\d]{0,30}(\d+(?:\.\d+)?)\s*s", message, re.I))
+        for candidate in candidates:
+            try:
+                seconds = float(candidate)
+            except (TypeError, ValueError):
+                continue
+            if seconds >= 0:
+                return int(seconds + 0.999)
+        return None
+
 
     def ask(
         self,
@@ -365,9 +415,11 @@ class LLMManager:
             }
             prompt_chars = len(prompt.invoke(invoke_payload).to_string())
             history_chars = len(invoke_payload["chat_history"] or "")
+            estimated_input_tokens = count_tokens(prompt.invoke(invoke_payload).to_string())
             logger.info(
                 "LLM_REQUEST_START request_id=%s section=%s provider=%s model=%s "
-                "project_context_chars=%s rag_context_chars=%s history_chars=%s final_prompt_chars=%s",
+                "project_context_chars=%s rag_context_chars=%s history_chars=%s history_messages=%s "
+                "estimated_input_tokens=%s max_output_tokens=%s final_prompt_chars=%s",
                 request_id,
                 tab,
                 provider,
@@ -375,14 +427,18 @@ class LLMManager:
                 len(project_context or ""),
                 len(rag_context or ""),
                 history_chars,
+                len(chat_history or []),
+                estimated_input_tokens,
+                getattr(self.model, "max_tokens", None),
                 prompt_chars,
             )
-            # El proveedor a veces devuelve una respuesta vacía o falla de forma
-            # transitoria (timeout, hiccup puntual); un reintento acotado evita
-            # que ese blip aislado se traduzca en un error visible al usuario.
+            # El SDK no reintenta. Solo se permite un retry explícito para 429
+            # cuando el proveedor indica una espera corta y controlable.
             max_attempts = 2
             response = ""
             invoke_error = None
+            retry_after_seconds = None
+            retry_count = 0
             llm_start = perf_counter()
             for attempt in range(1, max_attempts + 1):
                 try:
@@ -402,6 +458,7 @@ class LLMManager:
                         getattr(attempt_error, "status_code", None),
                         (perf_counter() - llm_start) * 1000,
                     )
+                    retry_after_seconds = self._retry_after_seconds(attempt_error)
                 if isinstance(response, str) and response.strip():
                     logger.info(
                         "LLM_SUCCESS request_id=%s section=%s attempt=%s duration_ms=%.1f answer_length=%s",
@@ -421,17 +478,30 @@ class LLMManager:
                         prompt_chars,
                         (perf_counter() - llm_start) * 1000,
                     )
-                if attempt < max_attempts:
+                if attempt >= max_attempts:
+                    break
+                if invoke_error and self._classify_provider_error(invoke_error) == "rate_limit":
+                    if retry_after_seconds is None or retry_after_seconds > 10:
+                        break
+                    retry_count += 1
                     logger.warning(
-                        "LLM_RETRY | tab=%s session=%s intento=%s motivo=%s",
-                        tab, session_id, attempt,
-                        invoke_error or "respuesta vacia del proveedor",
+                        "LLM_RETRY | tab=%s session=%s intento=%s retry_after_seconds=%s",
+                        tab, session_id, attempt, retry_after_seconds,
                     )
+                    time.sleep(retry_after_seconds)
+                    continue
+                retry_count += 1
+                logger.warning(
+                    "LLM_RETRY | tab=%s session=%s intento=%s motivo=%s",
+                    tab, session_id, attempt, invoke_error or "respuesta vacia del proveedor",
+                )
             if invoke_error is not None:
                 error_type = self._classify_provider_error(invoke_error)
                 generation_error = RuntimeError("El proveedor LLM no pudo generar una respuesta")
                 generation_error.error_type = error_type
                 generation_error.request_id = request_id
+                generation_error.retry_after_seconds = retry_after_seconds
+                generation_error.retry_count = retry_count
                 raise generation_error from invoke_error
             llm_ms = (perf_counter() - llm_start) * 1000
             total_ms = (perf_counter() - total_start) * 1000

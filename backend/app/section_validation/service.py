@@ -360,8 +360,6 @@ class SectionValidationService:
             missing.append(_missing("localizations", "Localización de la alternativa", "localization"))
         for localization in localizations:
             fields = [("department", "Departamento")]
-            if (localization.administrative_level or "municipal") == "municipal":
-                fields.append(("city", "Municipio o ciudad"))
             for key, label in fields:
                 if not _has_text(getattr(localization, key)):
                     missing.append(_missing(f"localization.{localization.id}.{key}", label, f"localization.{localization.id}.{key}"))

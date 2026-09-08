@@ -4,6 +4,9 @@ from app.models.localization import LocalizationCreate
 from app.models.objectives import Objectives
 from app.models.objectives_indicators import ObjectivesIndicatorCreate, create_objective_indicators
 from app.models.project import Project
+from app.models.localization import Localization
+from app.models.localization_general import LocalizationGeneral
+from app.section_validation.service import SectionValidationService
 
 
 def test_departmental_localization_does_not_require_municipality():
@@ -11,13 +14,29 @@ def test_departmental_localization_does_not_require_municipality():
     assert data.department == "Cauca"
 
 
-def test_municipal_localization_requires_municipality():
-    try:
-        LocalizationCreate(administrative_level="municipal", department="Cauca", city="", localization_general_id=1)
-    except ValidationError as exc:
-        assert "municipio" in str(exc).lower()
-    else:
-        raise AssertionError("El nivel municipal debe exigir municipio")
+def test_municipal_localization_allows_empty_municipality():
+    data = LocalizationCreate(administrative_level="municipal", department="Cauca", city="", localization_general_id=1)
+    assert data.department == "Cauca"
+
+
+def test_localization_accepts_null_municipality():
+    data = LocalizationCreate(administrative_level="municipal", department="Cauca", city=None, localization_general_id=1)
+    assert data.city is None
+
+
+def test_empty_municipality_is_not_missing_for_localization(db_session):
+    project = Project(name="Proyecto localizacion")
+    db_session.add(project)
+    db_session.flush()
+    general = LocalizationGeneral(project_id=project.id)
+    db_session.add(general)
+    db_session.flush()
+    db_session.add(Localization(localization_general_id=general.id, department="Cauca", city=""))
+    db_session.commit()
+
+    validation = SectionValidationService(db_session).validate_section(project.id, "localization", False)
+
+    assert not any("municipio" in item.label.lower() for item in validation.missing_fields)
 
 
 def test_indicator_accepts_the_frontend_contract(db_session):

@@ -80,3 +80,33 @@ def test_structured_change_accepts_only_mapped_simple_field():
     assert len(changes) == 1
     assert changes[0].field_key == "general_objective"
     assert changes[0].field_type == "textarea"
+
+
+def test_visible_answer_converts_suggestions_to_spanish_markdown_table():
+    answer = '''```json
+{"suggested_changes":[
+  {"field_key":"department","field_type":"text","suggested_value":"Cauca"},
+  {"field_key":"municipality","field_type":"text","suggested_value":"Popayán"},
+  {"field_key":"latitude","field_type":"text","suggested_value":"(pendiente - coordenadas precisas de Popayán)"},
+  {"field_key":"region","field_type":"text","suggested_value":"Occidente"},
+  {"field_key":"administrative_level","field_type":"text","suggested_value":"municipal"}
+]}
+```'''
+
+    visible = chat_history_module._sanitize_visible_answer(answer)
+
+    assert "| Campo | Sugerencia |" in visible
+    assert "| Departamento | Cauca |" in visible
+    assert "| Municipio | Popayán |" in visible
+    assert "Las coordenadas no están registradas" in visible
+    assert "suggested_changes" not in visible
+    assert "field_key" not in visible
+    assert "Occidente" not in visible
+    assert "Nivel" not in visible
+
+
+def test_visible_answer_hides_unparseable_technical_json():
+    visible = chat_history_module._sanitize_visible_answer('{"field_key":')
+
+    assert "field_key" not in visible
+    assert "No fue posible presentar" in visible
