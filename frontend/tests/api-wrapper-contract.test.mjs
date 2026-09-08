@@ -19,6 +19,18 @@ test("api wrapper contract returns the Axios payload directly", async () => {
     assert.doesNotMatch(source, /return response;\s*\/\/ wrapper payload/);
 });
 
+test("production API fallback uses the Nginx proxy instead of localhost", async () => {
+    const apiSource = await readSource("src/services/api.ts");
+    const constantsSource = await readSource("src/utils/constants.ts");
+    const objectivesSource = await readSource("src/components/Objectives.jsx");
+    const productionFallback = /import\.meta\.env\.DEV \? 'http:\/\/localhost:8000' : '\/api'/;
+
+    assert.match(apiSource, productionFallback);
+    assert.match(apiSource, /baseURL:\s*[\s\S]*defaultApiBaseUrl/);
+    assert.match(constantsSource, productionFallback);
+    assert.match(objectivesSource, /api\.getClient\(\)\.defaults\.baseURL/);
+});
+
 test("Objectives consumes direct objective and problem payloads", async () => {
     const source = await readSource("src/components/Objectives.jsx");
 

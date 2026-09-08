@@ -11,6 +11,8 @@ import axios, { AxiosInstance, AxiosRequestConfig, AxiosError } from 'axios';
 import { ApiResponse, ApiConfig, ErrorResponse } from '../types';
 import { ApiError, ErrorHandler } from './errorHandler';
 
+const defaultApiBaseUrl = import.meta.env.DEV ? 'http://localhost:8000' : '/api';
+
 class ApiService {
     private client: AxiosInstance;
     private config: ApiConfig;
@@ -44,7 +46,7 @@ class ApiService {
             baseURL:
                 config?.baseURL ||
                 (import.meta.env.VITE_API_URL as string | undefined) ||
-                'http://localhost:8000',
+                defaultApiBaseUrl,
             timeout: config?.timeout || 30000,
             headers: {
                 'Content-Type': 'application/json',
