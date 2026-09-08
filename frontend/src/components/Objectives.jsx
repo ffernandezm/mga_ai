@@ -77,19 +77,98 @@ function Objectives({ projectId }) {
 
     const fetchObjectives = async () => {
         try {
+            console.group("🔍 [Objectives] Cargando objetivos y relaciones con causas");
+
+            console.log("📌 Project ID:", projectId);
+
+            console.log(
+                "🌐 Consultando endpoint:",
+                `/objectives/${projectId}`
+            );
+
             const data = await api.get(`/objectives/${projectId}`);
+
+            console.log("📥 Respuesta completa del endpoint:", data);
+            console.log(
+                "📊 Tipo de respuesta:",
+                Array.isArray(data) ? "Array" : typeof data
+            );
+            console.log(
+                "📊 Cantidad de objetivos recibidos:",
+                Array.isArray(data) ? data.length : 0
+            );
 
             if (data && data.length > 0) {
                 const obj = data[0];
+
+                console.log("🎯 Primer objetivo seleccionado:", obj);
+                console.log("🆔 ID del objetivo:", obj.id);
+
+                console.log(
+                    "🔗 Propiedad objectives_causes recibida:",
+                    obj.objectives_causes
+                );
+
+                console.log(
+                    "🔢 Cantidad de relaciones con causas:",
+                    obj.objectives_causes?.length || 0
+                );
+
+                if (obj.objectives_causes?.length) {
+                    console.table(
+                        obj.objectives_causes.map((cause) => ({
+                            id: cause.id,
+                            type: cause.type,
+                            cause_related: cause.cause_related,
+                            specifics_objectives: cause.specifics_objectives,
+                            objective_id: cause.objective_id,
+                        }))
+                    );
+                } else {
+                    console.warn(
+                        "⚠️ No se recibieron registros en objectives_causes"
+                    );
+                }
+
+                console.log(
+                    "📈 Propiedad objectives_indicators:",
+                    obj.objectives_indicators
+                );
+
                 setObjectives(data);
                 setObjectiveId(obj.id);
                 setGeneralObjective(obj.general_objective || "");
                 setGeneralProblem(obj.general_problem || "");
+
+                console.log(
+                    "💾 Guardando causes en el estado objectivesCauses:",
+                    obj.objectives_causes || []
+                );
+
                 setObjectivesCauses(obj.objectives_causes || []);
-                setObjectivesIndicators(obj.objectives_indicators || []);
+
+                setObjectivesIndicators(
+                    obj.objectives_indicators || []
+                );
+            } else {
+                console.warn(
+                    "⚠️ El endpoint no devolvió objetivos para el proyecto:",
+                    projectId
+                );
             }
+
+            console.groupEnd();
+
         } catch (error) {
-            console.error("Error al obtener objetivos:", error);
+            console.error(
+                "❌ Error al obtener objetivos y relaciones con causas:",
+                error
+            );
+
+            console.error(
+                "📌 Project ID que produjo el error:",
+                projectId
+            );
         }
     };
 
@@ -121,7 +200,6 @@ function Objectives({ projectId }) {
             objectives_causes: objectivesCauses,
             objectives_indicators: objectivesIndicators,
         };
-
         try {
             if (objectiveId) {
                 await api.put(`/objectives/${projectId}/${objectiveId}`, payload);
@@ -447,7 +525,7 @@ function Objectives({ projectId }) {
                                                         value={editedCause.specifics_objectives || ""}
                                                         onChange={e => setEditedCause({ ...editedCause, specifics_objectives: e.target.value })}
                                                     />
-                                                ) : c.specifics_objectives}
+                                                ) : (c.specifics_objectives ?? "")}
                                             </td>
                                             <td>
                                                 {editingCauseId === c.id ? (

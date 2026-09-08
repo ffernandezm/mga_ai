@@ -30,6 +30,51 @@ test("Objectives consumes direct objective and problem payloads", async () => {
     assert.doesNotMatch(source, /\b(?:res|response|result)\.data\b/);
 });
 
+test("Objectives renders direct and indirect causes without specific objectives", async () => {
+    const objective = {
+        general_problem: "Problema prueba",
+        general_objective: "",
+        id: 3,
+        project_id: 3,
+        objectives_causes: [
+            {
+                type: "directa",
+                cause_related: "Causa directa prueba",
+                specifics_objectives: null,
+                cause_id: 6,
+                id: 13,
+                objective_id: 3,
+            },
+            {
+                type: "indirecta",
+                cause_related: "Causa indirecta prueba",
+                specifics_objectives: null,
+                cause_id: 8,
+                id: 14,
+                objective_id: 3,
+            },
+        ],
+        objectives_indicators: [],
+    };
+    const source = await readSource("src/components/Objectives.jsx");
+    const renderedCauses = objective.objectives_causes.map((cause) => ({
+        key: cause.id,
+        type: cause.type,
+        label: cause.cause_related,
+        specificObjective: cause.specifics_objectives ?? "",
+    }));
+
+    assert.deepEqual(renderedCauses.map((cause) => cause.label), [
+        "Causa directa prueba",
+        "Causa indirecta prueba",
+    ]);
+    assert.deepEqual(renderedCauses.map((cause) => cause.specificObjective), ["", ""]);
+    assert.match(source, /objectivesCauses\.map\(c =>/);
+    assert.match(source, /c\.cause_related/);
+    assert.match(source, /c\.specifics_objectives \?\? ""/);
+    assert.match(source, /<tr key=\{c\.id\}>/);
+});
+
 test("ProblemsTree consumes direct problem, causes, effects, and update payloads", async () => {
     const source = await readSource("src/components/ProblemsTree.jsx");
 
