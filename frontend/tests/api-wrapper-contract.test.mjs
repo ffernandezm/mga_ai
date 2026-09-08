@@ -21,6 +21,57 @@ test("api wrapper contract returns the Axios payload directly", async () => {
     assert.doesNotMatch(source, /return response;\s*\/\/ wrapper payload/);
 });
 
+test("chat uses an isolated long timeout and does not duplicate Axios retries", async () => {
+    const apiSource = await readSource("src/services/api.ts");
+    const chatSource = await readSource("src/services/chatService.ts");
+    const chatbotSource = await readSource("src/components/Chatbot.jsx");
+    const hookSource = await readSource("src/hooks/useLLMChat.ts");
+
+    assert.match(chatSource, /CHAT_TIMEOUT_MS\s*=\s*90000/);
+    assert.match(chatSource, /timeout:\s*CHAT_TIMEOUT_MS/);
+    assert.match(apiSource, /!isChatRequest/);
+    assert.match(apiSource, /\/chat_history\/chat\//);
+    assert.match(chatbotSource, /disabled=\{isThinking\}/);
+    assert.match(hookSource, /!projectId \|\| !tab \|\| loading/);
+});
+
+test("chat error contract exposes rate limit and timeout messages", async () => {
+    const serviceSource = await readSource("src/services/chatService.ts");
+    const backendSource = await readSource("../backend/app/models/chat_history.py");
+
+    assert.match(serviceSource, /retry_after_seconds/);
+    assert.match(serviceSource, /límite de uso/);
+    assert.match(serviceSource, /respuesta está tardando/);
+    assert.match(backendSource, /retry_after_seconds: Optional\[int\]/);
+    assert.match(backendSource, /error_type == "rate_limit"/);
+});
+
+test("localization table hides historical level and region and keeps municipality optional", async () => {
+    const source = await readSource("src/components/LocalizationGeneral.jsx");
+    const backendSource = await readSource("../backend/app/models/localization.py");
+    const catalogSource = await readSource("../backend/app/section_validation/catalog.py");
+
+    assert.doesNotMatch(source, /<th>Nivel/);
+    assert.doesNotMatch(source, /<th>Regi[oó]n/);
+    assert.doesNotMatch(source, /Municipio \*<\/th>/);
+    assert.match(source, /<th>Municipio<\/th>/);
+    assert.match(source, /loc\.city \|\| "—"/);
+    assert.match(backendSource, /city: Optional\[str\] = None/);
+    assert.match(catalogSource, /"field_key": "city"[\s\S]*?"required": False/);
+});
+
+test("chat UI removes review and suggestion controls while retaining history metadata", async () => {
+    const source = await readSource("src/components/Chatbot.jsx");
+
+    assert.doesNotMatch(source, /label: "Revisar"/);
+    assert.doesNotMatch(source, />Comparar<\/button>/);
+    assert.doesNotMatch(source, />Usar sugerencia<\/button>/);
+    assert.doesNotMatch(source, />Descartar<\/button>/);
+    assert.doesNotMatch(source, /suggestion-modal/);
+    assert.match(source, /suggestedChanges: message\.suggested_changes \|\| \[\]/);
+    assert.match(source, /summary>Ver fuentes<\/summary>/);
+});
+
 test("production API fallback uses the Nginx proxy instead of localhost", async () => {
     const apiSource = await readSource("src/services/api.ts");
     const constantsSource = await readSource("src/utils/constants.ts");

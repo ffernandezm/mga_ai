@@ -219,6 +219,13 @@ def test_no_invention_policy_present_in_general_or_section_prompt(manager, secti
     assert "no inventes" in general
 
 
+def test_improve_prompt_requires_user_facing_spanish_without_json(manager):
+    prompt = manager.get_prompt_template("objectives").template.lower()
+    assert "formuladores de proyectos" in prompt
+    assert "no muestres json" in prompt
+    assert "tabla markdown" in prompt
+
+
 # ---------------------------------------------------------------------------
 # Medición de tokens
 # ---------------------------------------------------------------------------
@@ -323,3 +330,49 @@ def test_ask_raises_after_exhausting_retries_on_empty_response(manager):
 
     answer = manager.ask(question="¿Cuál es el problema?", tab="problems", context="Datos de proyecto")
     assert answer == ""
+
+
+class _RateLimitError(Exception):
+    status_code = 429
+
+    def __init__(self, retry_after_seconds):
+        self.retry_after_seconds = retry_after_seconds
+        super().__init__("429 Too Many Requests")
+
+
+def test_rate_limit_short_retry_recovers_once(manager, monkeypatch):
+    class _RateLimitThenOk(Runnable):
+        def __init__(self):
+            self.calls = 0
+
+        def invoke(self, input, config=None, **kwargs):
+            self.calls += 1
+            if self.calls == 1:
+                raise _RateLimitError(5)
+            return "Respuesta tras rate limit"
+
+    model = _RateLimitThenOk()
+    sleeps = []
+    monkeypatch.setattr("app.ai.llm_models.llm_manager.time.sleep", sleeps.append)
+    manager.model = model
+
+    assert manager.ask(question="q", tab="problems") == "Respuesta tras rate limit"
+    assert model.calls == 2
+    assert sleeps == [5]
+
+
+def test_rate_limit_long_retry_fails_without_waiting(manager, monkeypatch):
+    class _AlwaysRateLimited(Runnable):
+        def invoke(self, input, config=None, **kwargs):
+            raise _RateLimitError(30)
+
+    sleeps = []
+    monkeypatch.setattr("app.ai.llm_models.llm_manager.time.sleep", sleeps.append)
+    manager.model = _AlwaysRateLimited()
+
+    with pytest.raises(RuntimeError) as error:
+        manager.ask(question="q", tab="problems")
+
+    assert error.value.error_type == "rate_limit"
+    assert error.value.retry_after_seconds == 30
+    assert sleeps == []

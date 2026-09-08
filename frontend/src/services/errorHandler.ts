@@ -62,11 +62,16 @@ export const ErrorHandler = {
             return error;
         }
 
+        if (error?.code === 'ECONNABORTED' || error?.code === 'ETIMEDOUT') {
+            return new TimeoutError('La respuesta está tardando más de lo esperado. Intenta nuevamente.');
+        }
+
         if (error?.response) {
             // Error de Axios
             const { status, data } = error.response;
-            const message = data?.message || data?.error || error.message;
-            return new ApiError(message, 'API_ERROR', status, data?.details);
+            const message = data?.message || data?.error || data?.detail || error.message;
+            const code = data?.error_type ? `CHAT_${data.error_type.toUpperCase()}` : 'API_ERROR';
+            return new ApiError(message, code, status, data);
         }
 
         if (error?.request) {
@@ -94,6 +99,10 @@ export const ErrorHandler = {
             FORBIDDEN: 'No tienes permiso para realizar esta acción.',
             SERVER_ERROR: 'Error en el servidor. Intenta más tarde.',
             API_ERROR: 'Error al procesar la solicitud. Intenta de nuevo.',
+            CHAT_RATE_LIMIT: 'El servicio de IA alcanzó temporalmente su límite de uso. Intenta nuevamente en unos segundos.',
+            CHAT_TIMEOUT: 'La respuesta está tardando más de lo esperado. Intenta nuevamente.',
+            CHAT_EMPTY_RESPONSE: 'El servicio de IA devolvió una respuesta vacía. Intenta nuevamente.',
+            CHAT_PROVIDER_ERROR: 'El proveedor de IA no pudo generar una respuesta. Intenta nuevamente.',
         };
 
         return messages[error.code] || messages.API_ERROR || error.message;

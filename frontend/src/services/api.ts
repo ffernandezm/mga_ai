@@ -95,10 +95,12 @@ class ApiService {
             (response) => response,
             async (error: AxiosError) => {
                 const originalRequest = error.config as any;
+                const isChatRequest = String(originalRequest?.url || '').includes('/chat_history/chat/');
 
                 // Retry logic para errores de timeout
                 if (
                     error.code === 'ECONNABORTED' &&
+                    !isChatRequest &&
                     this.retryCount < this.maxRetries
                 ) {
                     this.retryCount++;

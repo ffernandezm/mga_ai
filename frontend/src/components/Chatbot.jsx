@@ -1,13 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import api from "../services/api";
 import chatService from "../services/chatService";
+import { getChatUserMessage } from "../services/chatService";
 import "../styles/Chatbot.css";
 import MessageRenderer from "./MessageRender"; // Componente para renderizar mensajes
 import { useNotification } from "../context/NotificationContext";
 
 const CHAT_ACTIONS = [
-    { key: "ask", label: "Preguntar", question: "" },
-    { key: "review", label: "Revisar", question: "Revisa la información de esta sección." },
+    // { key: "ask", label: "Preguntar", question: "" },
     { key: "improve", label: "Mejorar", question: "Propón una mejora del contenido de esta sección." },
     { key: "inconsistencies", label: "Detectar inconsistencias", question: "Detecta inconsistencias en esta sección." },
     { key: "missing", label: "¿Qué me falta?", question: "¿Qué información falta en esta sección?" },
@@ -33,7 +33,6 @@ const Chatbot = ({ projectId, activeTab, evaluationSessionId, onApplySuggestedCh
     const [messages, setMessages] = useState([]);
     const [input, setInput] = useState("");
     const [isThinking, setIsThinking] = useState(false);
-    const [suggestionModal, setSuggestionModal] = useState(null);
     const localStateVersionRef = useRef(0);
 
     // 🔹 Cargar historial al iniciar
@@ -112,7 +111,7 @@ const Chatbot = ({ projectId, activeTab, evaluationSessionId, onApplySuggestedCh
             const botResponse = hasGeneratedAnswer
                 ? response.answer
                 : response?.generation_status === "error"
-                    ? (response.error || "El asistente no pudo generar una respuesta.")
+                    ? getChatUserMessage(response)
                     : "";
 
             if (localStateVersionRef.current !== requestVersion) return;
@@ -131,10 +130,11 @@ const Chatbot = ({ projectId, activeTab, evaluationSessionId, onApplySuggestedCh
             )));
         } catch (error) {
             console.error("Error consultando IA:", error);
+            const errorMessage = getChatUserMessage(error);
             if (localStateVersionRef.current !== requestVersion) return;
             setMessages((prev) => prev.map((msg) => (
                 msg.id === pendingId
-                    ? { ...msg, text: "Error al obtener respuesta.", generationStatus: "error", loading: false, error: "Error al obtener respuesta." }
+                    ? { ...msg, text: errorMessage, generationStatus: "error", loading: false, error: errorMessage }
                     : msg
             )));
         } finally {
@@ -142,47 +142,6 @@ const Chatbot = ({ projectId, activeTab, evaluationSessionId, onApplySuggestedCh
                 setIsThinking(false);
             }
         }
-    };
-
-    const recordSuggestionDecision = async (eventType) => {
-        if (!evaluationSessionId) return;
-        try {
-            await api.post(`/evaluation/sessions/${evaluationSessionId}/events`, {
-                section: activeTab,
-                event_type: eventType,
-                payload: { source: "chat" },
-            });
-        } catch (error) {
-            console.warn("No se pudo registrar la decisión de sugerencia", error);
-        }
-    };
-
-    const copySuggestion = async (text) => {
-        await navigator.clipboard?.writeText(text);
-    };
-
-    const useSuggestion = async (text, changes = []) => {
-        if (changes.length) {
-            setSuggestionModal({ changes, selected: new Set(changes.map((change) => change.field_key)) });
-            return;
-        }
-        const confirmed = await showConfirmation({
-            title: "Confirmar sugerencia",
-            message: "La propuesta se copiará para que usted decida dónde aplicarla. No se actualizará ningún dato automáticamente.",
-            confirmText: "Confirmar",
-        });
-        if (!confirmed) return;
-        await copySuggestion(text);
-        await recordSuggestionDecision("suggestion_accepted");
-    };
-
-    const confirmSuggestedChanges = async () => {
-        const selectedChanges = suggestionModal.changes.filter((change) => suggestionModal.selected.has(change.field_key));
-        if (selectedChanges.length) {
-            onApplySuggestedChanges?.(selectedChanges);
-            await recordSuggestionDecision("suggestion_accepted");
-        }
-        setSuggestionModal(null);
     };
 
     const handleDeleteChat = async () => {
@@ -228,14 +187,6 @@ const Chatbot = ({ projectId, activeTab, evaluationSessionId, onApplySuggestedCh
                         ) : (
                             <MessageRenderer text={msg.text} />
                         )}
-                        {msg.sender === "bot" && index > 0 && !msg.loading && (
-                            <div className="chat-suggestion-actions">
-                                <button title="Copiar respuesta" onClick={() => copySuggestion(msg.text)}>Copiar</button>
-                                <button title="Ver comparación" onClick={() => window.alert(`Propuesta del asistente:\n\n${msg.text}`)}>Comparar</button>
-                                <button title="Usar propuesta estructurada o copiar manualmente" onClick={() => useSuggestion(msg.text, msg.suggestedChanges)}>Usar sugerencia</button>
-                                <button title="Descartar sugerencia" onClick={() => recordSuggestionDecision("suggestion_rejected")}>Descartar</button>
-                            </div>
-                        )}
                         {hasSources && !msg.loading && (
                             <details className="chat-trace">
                                 <summary>Ver fuentes</summary>
@@ -260,20 +211,6 @@ const Chatbot = ({ projectId, activeTab, evaluationSessionId, onApplySuggestedCh
                 />
                 <button onClick={() => handleSend()} disabled={isThinking}>➤</button>
             </div>
-            {suggestionModal && <div className="suggestion-modal-backdrop" role="presentation">
-                <section className="suggestion-modal" role="dialog" aria-modal="true" aria-label="Usar sugerencias">
-                    <h3>Usar sugerencias</h3>
-                    {suggestionModal.changes.map((change) => <label key={change.field_key} className="suggestion-change">
-                        <input type="checkbox" checked={suggestionModal.selected.has(change.field_key)} onChange={() => setSuggestionModal((current) => {
-                            const selected = new Set(current.selected);
-                            selected.has(change.field_key) ? selected.delete(change.field_key) : selected.add(change.field_key);
-                            return { ...current, selected };
-                        })} />
-                        <strong>{change.field_label}</strong><span>Valor actual: {change.current_value}</span><span>Valor propuesto: {change.suggested_value}</span>
-                    </label>)}
-                    <div><button onClick={() => setSuggestionModal(null)}>Cancelar</button><button onClick={confirmSuggestedChanges}>Usar sugerencia</button></div>
-                </section>
-            </div>}
         </div>
     );
 };

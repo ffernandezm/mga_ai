@@ -65,7 +65,7 @@ class EvaluationSession(Base):
 
     id = Column(Integer, primary_key=True)
     participant_id = Column(String(128), nullable=False, index=True)
-    project_id = Column(Integer, ForeignKey("projects.id"), nullable=False, index=True)
+    project_id = Column(Integer, ForeignKey("projects.id", ondelete="SET NULL"), nullable=True, index=True)
     started_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     ended_at = Column(DateTime(timezone=True), nullable=True)
     task = Column(String(160), nullable=True)
@@ -109,7 +109,7 @@ class EvaluationEventCreate(BaseModel):
 class EvaluationSessionResponse(BaseModel):
     id: int
     participant_id: str
-    project_id: int
+    project_id: Optional[int]
     started_at: datetime
     ended_at: Optional[datetime]
     task: Optional[str]
