@@ -19,6 +19,22 @@ class ApiService {
     private retryCount = 0;
     private maxRetries = 3;
 
+    private assertNotHtmlApiResponse<T>(url: string, response: { data: T; headers?: Record<string, unknown> }): T {
+        const contentType = String(response.headers?.['content-type'] || '');
+        const payload = response.data;
+        const looksLikeHtml =
+            typeof payload === 'string' &&
+            (contentType.includes('text/html') || /^\s*<!doctype html>/i.test(payload));
+
+        if (looksLikeHtml && this.config.baseURL === '/api' && url.startsWith('/')) {
+            throw new Error(
+                `Expected API JSON response but received HTML for ${url}. Check proxy/routing configuration.`
+            );
+        }
+
+        return payload;
+    }
+
     private sectionForFormUrl(url: string): string | null {
         const entries: Array<[string, string]> = [
             ["development_plans", "development_plans"], ["problems", "problems"], ["direct_causes", "problems"], ["direct_effects", "problems"],
@@ -117,7 +133,7 @@ class ApiService {
     ): Promise<T> {
         try {
             const response = await this.client.get<T>(url, config);
-            return response.data;
+            return this.assertNotHtmlApiResponse(url, response);
         } catch (error) {
             const apiError = ErrorHandler.normalize(error);
             ErrorHandler.log(apiError, `GET ${url}`);
@@ -136,7 +152,7 @@ class ApiService {
         try {
             const response = await this.client.post<T>(url, data, config);
             void this.recordFieldSaved(url);
-            return response.data;
+            return this.assertNotHtmlApiResponse(url, response);
         } catch (error) {
             const apiError = ErrorHandler.normalize(error);
             ErrorHandler.log(apiError, `POST ${url}`);
@@ -155,7 +171,7 @@ class ApiService {
         try {
             const response = await this.client.put<T>(url, data, config);
             void this.recordFieldSaved(url);
-            return response.data;
+            return this.assertNotHtmlApiResponse(url, response);
         } catch (error) {
             const apiError = ErrorHandler.normalize(error);
             ErrorHandler.log(apiError, `PUT ${url}`);
@@ -173,7 +189,7 @@ class ApiService {
     ): Promise<T> {
         try {
             const response = await this.client.patch<T>(url, data, config);
-            return response.data;
+            return this.assertNotHtmlApiResponse(url, response);
         } catch (error) {
             const apiError = ErrorHandler.normalize(error);
             ErrorHandler.log(apiError, `PATCH ${url}`);
@@ -190,7 +206,7 @@ class ApiService {
     ): Promise<T> {
         try {
             const response = await this.client.delete<T>(url, config);
-            return response.data;
+            return this.assertNotHtmlApiResponse(url, response);
         } catch (error) {
             const apiError = ErrorHandler.normalize(error);
             ErrorHandler.log(apiError, `DELETE ${url}`);

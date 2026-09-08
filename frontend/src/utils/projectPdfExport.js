@@ -379,7 +379,7 @@ async function fetchProjectExportData(projectId) {
         getResource(`/problems/${projectId}`),
         getResource(`/participants_general/${projectId}`, []),
         getResource(`/population/${projectId}`),
-        getResource(`/objectives/${projectId}`, []),
+        getResource(`/objectives/${projectId}/`, []),
         getResource(`/alternatives_general/${projectId}`),
         getResource(`/requirements_general/${projectId}`, []),
         getResource(`/technical_analysis/project/${projectId}`),
