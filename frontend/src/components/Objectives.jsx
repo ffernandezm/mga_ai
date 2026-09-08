@@ -87,7 +87,7 @@ function Objectives({ projectId }) {
                 `/objectives/${projectId}`
             );
 
-            const data = await api.get(`/objectives/${projectId}`);
+            const data = await api.get(`/objectives/${projectId}/`);
 
             console.log("📥 Respuesta completa del endpoint:", data);
             console.log(

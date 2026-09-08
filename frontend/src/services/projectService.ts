@@ -95,11 +95,11 @@ class ProjectService {
     // ========== OBJETIVOS ==========
 
     async getObjectives(projectId: string | number): Promise<Objective[]> {
-        return apiService.get<Objective[]>(`/objectives/${projectId}`);
+        return apiService.get<Objective[]>(`/objectives/${projectId}/`);
     }
 
-    async createObjective(data: Objective): Promise<Objective> {
-        return apiService.post<Objective>('/objectives', data);
+    async createObjective(projectId: string | number, data: Objective): Promise<Objective> {
+        return apiService.post<Objective>(`/objectives/${projectId}/`, data);
     }
 
     async updateObjective(projectId: string | number, id: string | number, data: Partial<Objective>): Promise<Objective> {

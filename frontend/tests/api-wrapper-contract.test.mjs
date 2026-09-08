@@ -15,7 +15,9 @@ test("api wrapper contract returns the Axios payload directly", async () => {
     const runtimeEntryPoint = await readSource("src/services/api.js");
     const source = await readSource("src/services/api.ts");
     assert.equal(runtimeEntryPoint.trim(), "export { default } from './api.ts';");
-    assert.match(source, /return response\.data;/);
+    assert.match(source, /assertNotHtmlApiResponse\(url, response\)/);
+    assert.match(source, /contentType\.includes\('text\/html'\)/);
+    assert.match(source, /Expected API JSON response but received HTML/);
     assert.doesNotMatch(source, /return response;\s*\/\/ wrapper payload/);
 });
 
@@ -31,14 +33,15 @@ test("production API fallback uses the Nginx proxy instead of localhost", async 
     assert.match(objectivesSource, /api\.getClient\(\)\.defaults\.baseURL/);
 });
 
-test("Objectives consumes direct objective and problem payloads", async () => {
+test("Objectives consumes canonical objective and problem payloads", async () => {
     const source = await readSource("src/components/Objectives.jsx");
 
-    assert.match(source, /const data = await api\.get\(`\/objectives\/\$\{projectId\}`\);/);
+    assert.match(source, /const data = await api\.get\(`\/objectives\/\$\{projectId\}\/`\);/);
     assert.match(source, /const data = await api\.get\(`\/problems\/\$\{projectId\}`\);/);
     assert.match(source, /setGeneralProblem\(data\.central_problem\)/);
     assert.match(source, /setObjectivesCauses\(obj\.objectives_causes \|\| \[\]\)/);
     assert.match(source, /api\.post\(`\/objectives\/\$\{projectId\}\/`, payload\)/);
+    assert.doesNotMatch(source, /api\.get\(`\/objectives\/\$\{projectId\}`\)/);
     assert.doesNotMatch(source, /\b(?:res|response|result)\.data\b/);
 });
 
@@ -132,4 +135,31 @@ test("no wrapper consumer uses the old response.data shape", async () => {
     }
 
     assert.deepEqual(violations, []);
+});
+
+test("frontend objectives routes use canonical FastAPI paths without relying on redirects", async () => {
+    const objectivesSource = await readSource("src/components/Objectives.jsx");
+    const projectServiceSource = await readSource("src/services/projectService.ts");
+    const pdfExportSource = await readSource("src/utils/projectPdfExport.js");
+
+    const canonicalObjectiveCalls = [
+        { source: objectivesSource, method: "GET", frontend: "/objectives/${projectId}/", backend: "GET /objectives/{project_id}/" },
+        { source: objectivesSource, method: "POST", frontend: "/objectives/${projectId}/", backend: "POST /objectives/{project_id}/" },
+        { source: objectivesSource, method: "PUT", frontend: "/objectives/${projectId}/${objectiveId}", backend: "PUT /objectives/{project_id}/{objective_id}" },
+        { source: objectivesSource, method: "POST", frontend: "/objectives_causes/", backend: "POST /objectives_causes/" },
+        { source: objectivesSource, method: "POST", frontend: "/objectives_indicator/", backend: "POST /objectives_indicator/" },
+        { source: projectServiceSource, method: "GET", frontend: "/objectives/${projectId}/", backend: "GET /objectives/{project_id}/" },
+        { source: pdfExportSource, method: "GET", frontend: "/objectives/${projectId}/", backend: "GET /objectives/{project_id}/" },
+    ];
+
+    for (const contract of canonicalObjectiveCalls) {
+        assert.ok(
+            contract.source.includes(contract.frontend),
+            `${contract.method} frontend ${contract.frontend} must match backend ${contract.backend}`
+        );
+    }
+
+    assert.doesNotMatch(objectivesSource, /api\.get\(`\/objectives\/\$\{projectId\}`\)/);
+    assert.doesNotMatch(projectServiceSource, /apiService\.get<[^\n]*`\/objectives\/\$\{projectId\}`\)/);
+    assert.doesNotMatch(pdfExportSource, /getResource\(`\/objectives\/\$\{projectId\}`\)/);
 });
