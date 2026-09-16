@@ -20,6 +20,8 @@ import api from "../services/api";
 import { MGASection, MGA_SECTION_METADATA, MGA_VALIDATION_SECTION_TO_TAB } from "../utils/constants";
 import "./Formulation.css";
 
+const EVALUATION_SESSION_STORAGE_KEY = "mga_evaluation_session_id";
+
 function Formulation() {
     const { id } = useParams();
     const navigate = useNavigate();
@@ -38,6 +40,11 @@ function Formulation() {
 
     const applySuggestedChanges = (changes) => {
         setSuggestionApplication({ id: Date.now(), changes });
+    };
+
+    const loadNextParticipantId = async () => {
+        const nextIdentifier = await api.get("/evaluation/sessions/next-participant-id");
+        setParticipantId(nextIdentifier.participant_id);
     };
 
     const sectionOrder = Object.values(MGASection);
@@ -92,22 +99,26 @@ function Formulation() {
     }, [id]);
 
     useEffect(() => {
-        const restoreEvaluationSession = async () => {
-            const storedId = localStorage.getItem("mga_evaluation_session_id");
-            if (!storedId) return;
+        const loadEvaluationIdentifier = async () => {
+            const storedId = localStorage.getItem(EVALUATION_SESSION_STORAGE_KEY);
             try {
-                const session = await api.get(`/evaluation/sessions/${storedId}`);
-                if (session.project_id === Number(id) && !session.ended_at) {
-                    setEvaluationSession(session);
-                    setParticipantId(session.participant_id);
-                } else {
-                    localStorage.removeItem("mga_evaluation_session_id");
+                if (storedId) {
+                    const session = await api.get(`/evaluation/sessions/${storedId}`);
+                    if (session.project_id === Number(id) && !session.ended_at) {
+                        setEvaluationSession(session);
+                        setParticipantId(session.participant_id);
+                        return;
+                    }
+                    localStorage.removeItem(EVALUATION_SESSION_STORAGE_KEY);
                 }
-            } catch {
-                localStorage.removeItem("mga_evaluation_session_id");
+
+                await loadNextParticipantId();
+            } catch (evaluationIdentifierError) {
+                console.error("No se pudo cargar el ID evaluador", evaluationIdentifierError);
+                if (storedId) localStorage.removeItem(EVALUATION_SESSION_STORAGE_KEY);
             }
         };
-        void restoreEvaluationSession();
+        void loadEvaluationIdentifier();
     }, [id]);
 
     useEffect(() => {
@@ -192,7 +203,7 @@ function Formulation() {
                 participant_id: participantId.trim(), project_id: Number(id), task: "formulación MGA",
             });
             setEvaluationSession(data);
-            localStorage.setItem("mga_evaluation_session_id", String(data.id));
+            localStorage.setItem(EVALUATION_SESSION_STORAGE_KEY, String(data.id));
         } catch (evaluationError) {
             console.error("No se pudo iniciar la sesión de evaluación", evaluationError);
         }
@@ -203,8 +214,9 @@ function Formulation() {
         try {
             await recordEvaluationEvent("task_completed", activeTab, { completed: true });
             await api.post(`/evaluation/sessions/${evaluationSession.id}/finish`, { completed: true });
-            localStorage.removeItem("mga_evaluation_session_id");
+            localStorage.removeItem(EVALUATION_SESSION_STORAGE_KEY);
             setEvaluationSession(null);
+            await loadNextParticipantId();
         } catch (evaluationError) {
             console.error("No se pudo finalizar la sesión de evaluación", evaluationError);
         }
@@ -274,7 +286,7 @@ function Formulation() {
                                 <button className="btn btn-outline-danger btn-sm" onClick={finishEvaluation}>Finalizar evaluación</button>
                             ) : (
                                 <span className="d-inline-flex gap-1">
-                                    <input className="form-control form-control-sm" aria-label="Identificador anónimo del participante" placeholder="ID evaluador" value={participantId} onChange={(event) => setParticipantId(event.target.value)} />
+                                    <input className="form-control form-control-sm" aria-label="Identificador anónimo del participante" placeholder="ID evaluador" value={participantId} readOnly aria-readonly="true" />
                                     <button className="btn btn-outline-secondary btn-sm" onClick={startEvaluation} disabled={!participantId.trim()}>Iniciar evaluación</button>
                                 </span>
                             )}
