@@ -10,15 +10,15 @@ function Home() {
       <article className="home-hero-card">
         <p className="home-badge">MGA WEB + IA Generativa</p>
         <h1>
-          Prototipo de apoyo inteligente para la formulacion de proyectos de
-          inversion publica
+          Prototipo de apoyo inteligente para la formulación de proyectos de
+          inversión pública
         </h1>
 
         <p className="home-lead">
-          Esta herramienta esta basada en <strong>MGA Web</strong> del
-          <strong> Departamento Nacional de Planeacion de Colombia</strong> y
+          Esta herramienta está basada en <strong>MGA Web</strong> del
+          <strong> Departamento Nacional de Planeación de Colombia</strong> y
           fue concebida como un prototipo para fortalecer el proceso de registro
-          y analisis de informacion de proyectos.
+          y análisis de información de proyectos.
         </p>
 
         <div className="home-feature-grid">
@@ -26,7 +26,7 @@ function Home() {
             <h2>Base metodologica oficial</h2>
             <p>
               Conserva la estructura y el enfoque de MGA Web para mantener
-              consistencia tecnica durante la formulacion.
+              consistencia técnica durante la formulación.
             </p>
           </div>
 
@@ -42,7 +42,7 @@ function Home() {
             <h2>Apoyo durante el registro</h2>
             <p>
               El chatbot orienta la captura de datos y ayuda a mejorar claridad,
-              calidad y coherencia de la informacion diligenciada.
+              calidad y coherencia de la información diligenciada.
             </p>
           </div>
         </div>

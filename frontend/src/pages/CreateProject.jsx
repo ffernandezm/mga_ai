@@ -219,8 +219,8 @@ function CreateProject() {
                         api.get(`/projects/${id}`),
                         api.get(`/project_localizations/project/${id}`)
                     ]);
-                    setProject(projectRes.data);
-                    setLocalizations(locRes.data);
+                    setProject(projectRes ?? {});
+                    setLocalizations(locRes ?? []);
                 } catch (error) {
                     console.error("Error fetching project:", error);
                 }

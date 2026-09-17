@@ -5,6 +5,7 @@ from __future__ import annotations
 import csv
 import io
 import os
+import re
 import subprocess
 from datetime import datetime
 from typing import Any, Dict, List, Optional
@@ -129,6 +130,16 @@ def _session_or_404(db: Session, evaluation_session_id: int) -> EvaluationSessio
     return session
 
 
+def next_participant_id(db: Session) -> str:
+    participant_ids = db.query(EvaluationSession.participant_id).all()
+    last_number = 0
+    for (participant_id,) in participant_ids:
+        match = re.fullmatch(r"P(\d+)", participant_id or "")
+        if match:
+            last_number = max(last_number, int(match.group(1)))
+    return f"P{last_number + 1:03d}"
+
+
 @router.get("/configuration")
 def get_experimental_configuration():
     return experimental_configuration()
@@ -146,6 +157,11 @@ def start_evaluation_session(data: EvaluationSessionCreate, db: Session = Depend
     db.commit()
     db.refresh(record)
     return record
+
+
+@router.get("/sessions/next-participant-id")
+def get_next_participant_id(db: Session = Depends(get_db)):
+    return {"participant_id": next_participant_id(db)}
 
 
 @router.post("/sessions/{evaluation_session_id}/events", status_code=201)

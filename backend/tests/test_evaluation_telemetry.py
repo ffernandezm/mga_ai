@@ -6,6 +6,7 @@ from app.models.evaluation_telemetry import (
     EvaluationSessionFinish,
     finish_evaluation_session,
     list_evaluation_sessions,
+    next_participant_id,
     record_evaluation_event,
     start_evaluation_session,
 )
@@ -23,3 +24,13 @@ def test_evaluation_session_records_query_and_completion(db_session):
     assert records[0]["participant_id"] == "P01"
     assert records[0]["llm_queries"] == 1
     assert records[0]["completed"] is True
+
+
+def test_next_participant_id_uses_padded_sequence(db_session):
+    project = Project(name="Evaluación secuencial")
+    db_session.add(project)
+    db_session.commit()
+    start_evaluation_session(EvaluationSessionCreate(participant_id="P001", project_id=project.id, task="flujo"), db_session)
+    start_evaluation_session(EvaluationSessionCreate(participant_id="P009", project_id=project.id, task="flujo"), db_session)
+
+    assert next_participant_id(db_session) == "P010"

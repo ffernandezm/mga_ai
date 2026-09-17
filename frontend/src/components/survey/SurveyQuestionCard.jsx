@@ -17,10 +17,6 @@ export default function SurveyQuestionCard({
             </div>
 
             <ScoreSelector value={value} onChange={onChange} />
-            <div className="survey-label-row">
-                <small>Muy bajo</small>
-                <small>Excelente</small>
-            </div>
         </article>
 
     );
