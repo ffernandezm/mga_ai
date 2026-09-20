@@ -20,7 +20,6 @@ from langchain_groq import ChatGroq
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts import PromptTemplate
-from langchain_core.output_parsers import StrOutputParser
 
 from app.core.database import SessionLocal
 from app.ai.rag import RAGManager
@@ -79,6 +78,7 @@ class LLMManager:
         self.max_chat_history_messages = max(int(os.getenv("LLM_MAX_CHAT_HISTORY_MESSAGES", "6")), 1)
         self.max_project_context_chars = max(int(os.getenv("LLM_MAX_PROJECT_CONTEXT_CHARS", "12000")), 1000)
         self.model = self._initialize_llm()
+        self.last_response_metadata = {}
         logger.info(f"✅ LLMManager inicializado con provider: {self.llm_provider}")
 
     def _initialize_llm(self):
@@ -194,9 +194,19 @@ class LLMManager:
             f"{instruction_block}\n\n"
             "La respuesta visible está dirigida a formuladores de proyectos, no a desarrolladores. "
             "Responde únicamente en español claro. No muestres JSON, código, nombres de variables, "
-            "field_key, field_type, schemas ni estructuras internas. Si presentas varios campos o "
-            "recomendaciones, usa una tabla Markdown con etiquetas funcionales en español. No inventes "
-            "coordenadas ni datos geográficos."
+            "field_key, field_type, schemas ni estructuras internas. No uses tablas por defecto: para "
+            "definiciones, explicaciones, recomendaciones, validaciones simples o respuestas conceptuales "
+            "usa párrafos cortos o viñetas. Usa una tabla solo si el usuario la solicita, si compara varios "
+            "elementos bajo los mismos criterios, si representa una matriz o si mejora claramente la comprensión; "
+            "en esos casos puede usar una tabla Markdown. "
+            "Distingue siempre entre DATO REGISTRADO (presente en el proyecto), DATO DERIVADO (calculado a partir "
+            "de datos registrados) y PROPUESTA (valor sugerido); nunca presentes una propuesta como registrada. "
+            "Comprueba las operaciones aritméticas y muestra brevemente el cálculo cuando sea relevante. No presentes "
+            "una inferencia como regla MGA ni uses lenguaje jurídico como 'viola la normativa' si solo hay un "
+            "lineamiento metodológico; en ese caso indica que no se ajusta al lineamiento metodológico descrito por "
+            "la MGA. Si el RAG no respalda una afirmación categórica, preséntala como recomendación o solicita "
+            "verificación. Los nombres de campos de la sección activa son una guía; si una correspondencia es clara "
+            "puedes señalar un error tipográfico, y si es ambigua pide aclaración. No inventes coordenadas ni datos geográficos."
         )
 
         template_text = (
@@ -383,6 +393,7 @@ class LLMManager:
         request_id = uuid.uuid4().hex
         provider = self.llm_provider
         model_name = os.getenv("GROQ_MODEL", "") if provider == "groq" else os.getenv("OPENAI_MODEL", "")
+        self.last_response_metadata = {}
         try:
             if self._is_invoke_skipped():
                 logger.info(f"LLM invoke omitido por SKIP_LLM_INVOKE para tab={tab}, session={session_id}")
@@ -406,7 +417,7 @@ class LLMManager:
             project_context, rag_context = self._prepare_contexts_for_prompt(context, rag_context)
 
             # Crear cadena LLM
-            chain = prompt | self.model | StrOutputParser()
+            chain = prompt | self.model
             invoke_payload = {
                 "project_context": project_context,
                 "rag_context": rag_context,
@@ -436,13 +447,19 @@ class LLMManager:
             # cuando el proveedor indica una espera corta y controlable.
             max_attempts = 2
             response = ""
+            response_metadata = {}
             invoke_error = None
             retry_after_seconds = None
             retry_count = 0
             llm_start = perf_counter()
             for attempt in range(1, max_attempts + 1):
                 try:
-                    response = chain.invoke(invoke_payload)
+                    raw_response = chain.invoke(invoke_payload)
+                    if isinstance(raw_response, str):
+                        response = raw_response
+                    else:
+                        response = getattr(raw_response, "content", "") or ""
+                        response_metadata = self._extract_response_metadata(raw_response)
                     invoke_error = None
                 except Exception as attempt_error:
                     invoke_error = attempt_error
@@ -460,6 +477,7 @@ class LLMManager:
                     )
                     retry_after_seconds = self._retry_after_seconds(attempt_error)
                 if isinstance(response, str) and response.strip():
+                    self.last_response_metadata = response_metadata
                     logger.info(
                         "LLM_SUCCESS request_id=%s section=%s attempt=%s duration_ms=%.1f answer_length=%s",
                         request_id,
@@ -533,6 +551,30 @@ class LLMManager:
             if not hasattr(e, "request_id"):
                 e.request_id = request_id
             raise e
+
+    @staticmethod
+    def _extract_response_metadata(response) -> dict:
+        """Conserva solo metadatos de uso/finalización entregados por el SDK."""
+        response_metadata = getattr(response, "response_metadata", {}) or {}
+        usage_metadata = getattr(response, "usage_metadata", {}) or {}
+        token_usage = response_metadata.get("token_usage", {}) if isinstance(response_metadata, dict) else {}
+        metadata = {}
+
+        finish_reason = None
+        if isinstance(response_metadata, dict):
+            finish_reason = response_metadata.get("finish_reason") or response_metadata.get("finishReason")
+        if finish_reason is not None:
+            metadata["finish_reason"] = finish_reason
+
+        for name in ("input_tokens", "output_tokens", "total_tokens"):
+            value = usage_metadata.get(name) if isinstance(usage_metadata, dict) else None
+            if value is None and isinstance(token_usage, dict):
+                value = token_usage.get(name)
+                if value is None:
+                    value = token_usage.get({"input_tokens": "prompt_tokens", "output_tokens": "completion_tokens"}.get(name, name))
+            if value is not None:
+                metadata[name] = value
+        return metadata
 
     def measure_prompt_tokens(
         self,

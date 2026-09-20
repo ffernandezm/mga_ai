@@ -402,6 +402,11 @@ def test_build_retrieval_query_is_noop_for_unknown_section():
     assert build_retrieval_query(question, None) == question
 
 
+def test_concrete_retrieval_query_is_not_contaminated_by_section_terms():
+    question = "¿Cuál será el precio del dólar en diciembre de 2027?"
+    assert build_retrieval_query(question, "problems") == question
+
+
 @pytest.mark.parametrize("section", list(SECTION_QUERY_TERMS))
 def test_every_canonical_section_has_retrieval_terms(section):
     assert SECTION_QUERY_TERMS[section].strip()

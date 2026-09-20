@@ -4,21 +4,26 @@
  */
 
 import apiService from './api';
-import { ChatMessage, ChatResponse, ChatSession, LLMResponse, ChatHistoryItem } from '../types';
+import { ChatResponse, LLMResponse, ChatHistoryItem } from '../types';
 
 export const CHAT_TIMEOUT_MS = 90000;
 
 const normalizeChatResponse = (payload: ChatResponse): ChatResponse => {
+    const generationStatus = payload?.generation_status;
     return {
         answer: payload?.answer ?? null,
         trace: payload?.trace ?? null,
         suggested_changes: payload?.suggested_changes ?? [],
-        generation_status: payload?.generation_status === 'error' ? 'error' : 'generated',
+        generation_status: generationStatus === 'error' || generationStatus === 'truncated'
+            ? generationStatus
+            : 'generated',
         error: payload?.error ?? null,
         error_type: payload?.error_type ?? null,
         retry_after_seconds: payload?.retry_after_seconds ?? null,
     };
 };
+
+const getChatTab = (tab: string): string => tab === 'value_chain' ? 'value_chains' : tab;
 
 export const getChatUserMessage = (value: ChatResponse | any): string => {
     const errorType = value?.error_type || value?.details?.error_type;
@@ -49,7 +54,7 @@ class ChatService {
     ): Promise<ChatHistoryItem[]> {
         try {
             const response = await apiService.get<ChatHistoryItem[]>(
-                `/chat_history/${projectId}/${tab}`
+                `/chat_history/${projectId}/${getChatTab(tab)}`
             );
             return response || [];
         } catch (error) {
@@ -68,7 +73,7 @@ class ChatService {
         requestFields?: Record<string, any>
     ): Promise<ChatResponse> {
         const response = await apiService.post<ChatResponse>(
-            `/chat_history/chat/${projectId}/${tab}`,
+            `/chat_history/chat/${projectId}/${getChatTab(tab)}`,
             {
                 question,
                 ...requestFields,
@@ -190,7 +195,7 @@ class ChatService {
      * Limpiar historial de chat
      */
     async clearHistory(projectId: string | number, tab: string): Promise<void> {
-        await apiService.delete(`/chat_history/${projectId}/${tab}`);
+        await apiService.delete(`/chat_history/${projectId}/${getChatTab(tab)}`);
     }
 }
 

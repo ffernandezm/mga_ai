@@ -344,6 +344,14 @@ def _render_missing_fields(validation, section: str) -> str:
     return "**Estado de campos de la sección**\n\n| Campo existente | Estado | Recomendación |\n|---|---|---|\n" + "\n".join(rows)
 
 
+def _render_field_catalog_for_prompt(section: str) -> str:
+    fields = get_section_field_catalog(section)
+    if not fields:
+        return ""
+    names = ", ".join(field["field_key"] for field in fields)
+    return f"\nCAMPOS DE LA SECCIÓN ACTIVA (referencia): {names}\n"
+
+
 # ==============================
 # 🔹 DEPENDENCIA DB
 # ==============================
@@ -1140,7 +1148,7 @@ def chat_with_ai(
         action_prompts = {
             "ask": "",
             "review": "Revisa críticamente la información registrada y enumera hallazgos concretos. ",
-            "improve": "Analiza y mejora TODA la sección MGA activa usando todos sus campos registrados actuales y las secciones relacionadas. El historial solo es contexto secundario y no limita el alcance, salvo que la pregunta nombre expresamente un campo. Tu respuesta visible está dirigida a formuladores de proyectos, no a desarrolladores: responde únicamente en español claro, no muestres JSON, código, nombres de variables, field_key, field_type, schemas ni estructuras internas. Si necesitas presentar varios campos o recomendaciones, usa una tabla Markdown con etiquetas funcionales en español. No sugieras Nivel ni Región en Localización. No inventes coordenadas ni datos geográficos; si faltan, indícalo con lenguaje natural. ",
+            "improve": "Analiza y mejora TODA la sección MGA activa usando todos sus campos registrados actuales y las secciones relacionadas. El historial solo es contexto secundario y no limita el alcance, salvo que la pregunta nombre expresamente un campo. Tu respuesta visible está dirigida a formuladores de proyectos, no a desarrolladores: responde únicamente en español claro, no muestres JSON, código, nombres de variables, field_key, field_type ni schemas. No uses tablas Markdown por defecto; usa párrafos o viñetas y reserva una tabla para comparaciones, matrices o cuando mejore claramente la comprensión. No sugieras Nivel ni Región en Localización. No inventes coordenadas ni datos geográficos; si faltan, indícalo con lenguaje natural. ",
             "inconsistencies": "Detecta inconsistencias entre esta sección y su contexto relacionado. ",
             "missing": "Indica qué información falta para completar esta sección. ",
         }
@@ -1236,6 +1244,7 @@ def chat_with_ai(
         format_ms = 0.0
 
         logger.info(f"✅ Contexto de la sección {canonical_section} preparado ({len(section_context)} chars)")
+        section_context += _render_field_catalog_for_prompt(canonical_section)
 
         # Llamar modelo LLM con historial y el contexto semántico de la sección
         logger.info(f"🤖 Invocando LLM para section={canonical_section} (tab persistido={tab})")
@@ -1260,8 +1269,20 @@ def chat_with_ai(
                 error_message = "La respuesta está tardando más de lo esperado. Intente nuevamente."
             else:
                 error_message = "El proveedor de IA no pudo generar una respuesta. Intente nuevamente."
+            error_trace = {
+                "active_section": canonical_section,
+                "project_context_used": bool(section_context),
+                "rag_attempted": True,
+                "rag_evidence_found": bool(sources),
+                "rag_used": bool(sources),
+                "sources": sources,
+            }
+            save_chat_message(
+                db, project_id, tab, session_id, "bot", error_message,
+                trace=error_trace, generation_status="error", error=error_message,
+            )
             return ChatAnswerResponse(
-                trace={"active_section": canonical_section, "project_context_used": bool(section_context), "rag_used": bool(sources), "sources": sources},
+                trace=error_trace,
                 generation_status="error",
                 error=error_message,
                 error_type=error_type,
@@ -1275,11 +1296,18 @@ def chat_with_ai(
         trace = {
             "active_section": canonical_section,
             "project_context_used": bool(section_context),
+            "rag_attempted": True,
+            "rag_evidence_found": bool(sources),
             "rag_used": bool(sources),
             "sources": sources,
         }
         if not isinstance(answer, str) or not answer.strip():
             logger.error("CHAT_EMPTY_ANSWER | project=%s tab=%s action=%s rag_used=%s", project_id, tab, action, bool(sources))
+            error_message = "El asistente no pudo generar una respuesta. Intente nuevamente."
+            save_chat_message(
+                db, project_id, tab, session_id, "bot", error_message,
+                trace=trace, generation_status="error", error=error_message,
+            )
             return ChatAnswerResponse(
                 trace=trace,
                 generation_status="error",
@@ -1287,6 +1315,18 @@ def chat_with_ai(
                 error_type="empty_response",
             )
         visible_answer = _sanitize_visible_answer(answer)
+        response_metadata = getattr(llm_manager, "last_response_metadata", {}) or {}
+        finish_reason = str(response_metadata.get("finish_reason", "")).lower()
+        generation_status = "truncated" if finish_reason in {"length", "max_tokens", "max_completion_tokens"} else "generated"
+        for key in ("provider", "model", "finish_reason", "input_tokens", "output_tokens", "total_tokens"):
+            if key == "provider":
+                trace[key] = llm_manager.llm_provider
+            elif key == "model":
+                model_name = os.getenv("GROQ_MODEL", "") if llm_manager.llm_provider == "groq" else os.getenv("OPENAI_MODEL", "")
+                if model_name:
+                    trace[key] = model_name
+            elif key in response_metadata:
+                trace[key] = response_metadata[key]
         suggested_changes = _extract_suggested_changes(answer, semantic_context) if action == "improve" else []
         bot_message = save_chat_message(
             db,
@@ -1297,7 +1337,7 @@ def chat_with_ai(
             visible_answer,
             trace=trace,
             suggested_changes=suggested_changes,
-            generation_status="generated",
+            generation_status=generation_status,
         )
         if evaluation_session_id:
             from app.models.evaluation_telemetry import EvaluationEvent
@@ -1330,7 +1370,7 @@ def chat_with_ai(
             len(section_context or ""),
         )
 
-        return ChatAnswerResponse(answer=visible_answer, trace=trace, suggested_changes=suggested_changes, generation_status="generated")
+        return ChatAnswerResponse(answer=visible_answer, trace=trace, suggested_changes=suggested_changes, generation_status=generation_status)
         
     except HTTPException:
         raise

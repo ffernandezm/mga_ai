@@ -58,7 +58,7 @@ export interface ChatResponse {
         suggested_value: string;
         confidence: string;
     }>;
-    generation_status: 'generated' | 'error';
+    generation_status: 'generated' | 'truncated' | 'error';
     error: string | null;
     error_type?: string | null;
     retry_after_seconds?: number | null;
