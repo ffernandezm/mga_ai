@@ -10,7 +10,8 @@ from __future__ import annotations
 from types import SimpleNamespace
 
 import pytest
-from langchain_core.runnables import Runnable
+from langchain_core.messages import AIMessage
+from langchain_core.runnables import Runnable, RunnableLambda
 
 import app.models.chat_history as chat_history_module
 from app.ai.context.context_manager import ContextManager
@@ -427,3 +428,55 @@ def test_chat_history_preserves_trace_sources_per_bot_message(db_session, monkey
     assert len(bot_messages) == 1
     assert bot_messages[0].trace["sources"] == sources
     assert bot_messages[0].generation_status == "generated"
+
+
+def test_value_chains_history_is_retrievable_under_canonical_tab(db_session):
+    project = _seed_project(db_session, "A")
+    chat_history_module.save_chat_message(
+        db_session, project, "value_chains", "session-value", "user", "Pregunta guardada",
+    )
+    chat_history_module.save_chat_message(
+        db_session, project, "value_chains", "session-value", "bot", "Respuesta guardada",
+        generation_status="generated",
+    )
+
+    history = chat_history_module.get_chat_history(project, "value_chains", db_session)
+
+    assert [message.message for message in history] == ["Pregunta guardada", "Respuesta guardada"]
+
+
+def test_llm_failure_persists_controlled_bot_message(db_session, monkeypatch):
+    project = _seed_project(db_session, "A")
+
+    def _raise(**kwargs):
+        raise RuntimeError("fallo")
+
+    monkeypatch.setattr(chat_history_module.llm_manager, "ask", _raise)
+
+    response = chat_history_module.chat_with_ai(project, "problems", "q", db=db_session)
+    history = chat_history_module.get_chat_history(project, "problems", db_session)
+    bot_messages = [message for message in history if message.sender == "bot"]
+
+    assert response.generation_status == "error"
+    assert len(bot_messages) == 1
+    assert bot_messages[0].generation_status == "error"
+    assert bot_messages[0].error
+
+
+def test_llm_finish_reason_length_is_exposed_as_metadata():
+    manager = _make_test_llm_manager(rag_text="")
+    manager.model = RunnableLambda(lambda _: AIMessage(
+        content="Respuesta incompleta",
+        response_metadata={"finish_reason": "length"},
+        usage_metadata={"input_tokens": 4, "output_tokens": 8, "total_tokens": 12},
+    ))
+
+    answer = manager.ask("q", tab="problems")
+
+    assert answer == "Respuesta incompleta"
+    assert manager.last_response_metadata == {
+        "finish_reason": "length",
+        "input_tokens": 4,
+        "output_tokens": 8,
+        "total_tokens": 12,
+    }

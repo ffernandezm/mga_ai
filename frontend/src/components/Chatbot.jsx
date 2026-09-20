@@ -105,7 +105,7 @@ const Chatbot = ({ projectId, activeTab, evaluationSessionId, onApplySuggestedCh
             });
             console.log("RESPUESTA DEL CHATBOT", response);
 
-            const hasGeneratedAnswer = response?.generation_status === "generated"
+            const hasGeneratedAnswer = (response?.generation_status === "generated" || response?.generation_status === "truncated")
                 && typeof response.answer === "string"
                 && response.answer.trim() !== "";
             const botResponse = hasGeneratedAnswer

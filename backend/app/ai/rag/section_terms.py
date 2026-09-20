@@ -25,8 +25,12 @@ SECTION_QUERY_TERMS: dict[str, str] = {
 
 
 def build_retrieval_query(question: str, section: str | None = None) -> str:
-    """Antepone los términos de la sección a la pregunta, solo para retrieval."""
+    """Enriquece solo preguntas vagas; las consultas concretas no se contaminan."""
     terms = SECTION_QUERY_TERMS.get((section or "").strip().lower())
     if not terms:
         return question
-    return f"{terms} {question}"
+    normalized = " ".join((question or "").lower().split())
+    vague_markers = ("qué me falta", "que me falta", "esto está bien", "esto esta bien", "cómo puedo mejorarlo", "como puedo mejorarlo")
+    if any(marker in normalized for marker in vague_markers):
+        return f"{terms} {question}"
+    return question
