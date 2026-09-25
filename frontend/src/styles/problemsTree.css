@@ -276,6 +276,15 @@
         margin: 0 10px;
     }
 
+    .confirmation-popup-footer {
+        flex-wrap: wrap;
+    }
+
+    .confirmation-button {
+        flex: 1 1 120px;
+        min-width: 0;
+    }
+
     .success-message-overlay {
         right: 10px;
         left: 10px;
