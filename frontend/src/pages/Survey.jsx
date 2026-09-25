@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../services/api";
-import { surveyQuestions } from "../data/surveyQuestions";
+import { openSurveyQuestions, surveyQuestions } from "../data/surveyQuestions";
 import "./Survey.css";
 
 import SurveyQuestionCard from "../components/survey/SurveyQuestionCard";
@@ -12,7 +12,7 @@ function Survey() {
     const navigate = useNavigate();
 
     const [responses, setResponses] = useState({});
-    const [comment, setComment] = useState("");
+    const [openResponses, setOpenResponses] = useState({});
     const [submitting, setSubmitting] = useState(false);
     const [submitted, setSubmitted] = useState(false);
     const [scoreSummary, setScoreSummary] = useState(null);
@@ -24,6 +24,25 @@ function Survey() {
             [id]: Number(value),
         }));
     };
+
+    const handleOpenResponseChange = (id, value) => {
+        setOpenResponses((previous) => ({
+            ...previous,
+            [id]: value,
+        }));
+    };
+
+    const questionsByDimension = useMemo(() => {
+        return surveyQuestions.reduce((groups, question) => {
+            const group = groups.find(({ dimension }) => dimension === question.dimension);
+            if (group) {
+                group.questions.push(question);
+            } else {
+                groups.push({ dimension: question.dimension, questions: [question] });
+            }
+            return groups;
+        }, []);
+    }, []);
 
     const answeredCount = useMemo(() => Object.keys(responses).length, [responses]);
     const completion = useMemo(
@@ -42,23 +61,13 @@ function Survey() {
             return values.reduce((acc, n) => acc + n, 0) / values.length;
         };
 
-        const dimensions = {
-            usability: getAvg([1, 2, 3, 4]),
-            assistant: getAvg([5, 6, 7, 8, 9, 12]),
-            satisfaction: getAvg([10, 11]),
-        };
-
-        const weightedScore =
-            dimensions.usability * 0.35 + dimensions.assistant * 0.45 + dimensions.satisfaction * 0.2;
-
-        const globalIndex = Math.round(weightedScore * 10);
-        const recommendation = Number(responses[11]);
-
-        let npsGroup = "detractor";
-        if (recommendation >= 9) npsGroup = "promoter";
-        if (recommendation >= 7 && recommendation <= 8) npsGroup = "passive";
-
-        const npsScore = npsGroup === "promoter" ? 100 : npsGroup === "passive" ? 0 : -100;
+        const dimensions = Object.fromEntries(
+            questionsByDimension.map(({ dimension, questions }) => [
+                dimension,
+                Number(getAvg(questions.map(({ id }) => id)).toFixed(2)),
+            ])
+        );
+        const globalIndex = Math.round(getAvg(surveyQuestions.map(({ id }) => id)) * 10);
 
         let rating = "Por mejorar";
         if (globalIndex >= 90) rating = "Excelente";
@@ -70,18 +79,9 @@ function Survey() {
             answeredCount,
             totalQuestions: surveyQuestions.length,
             completion,
-            dimensions: {
-                usability: Number(dimensions.usability.toFixed(2)),
-                assistant: Number(dimensions.assistant.toFixed(2)),
-                satisfaction: Number(dimensions.satisfaction.toFixed(2)),
-            },
+            dimensions,
             globalIndex,
             rating,
-            nps: {
-                question11: recommendation,
-                group: npsGroup,
-                score: npsScore,
-            },
         };
     };
 
@@ -104,9 +104,9 @@ function Survey() {
             const payload = {
                 project_id: projectId,
                 is_completed: true,
-                survey_json: responses,
+                survey_json: { ...responses, ...openResponses },
                 score_summary: summary,
-                comment: comment.trim(),
+                comment: "",
             };
             await api.post(`/survey/${projectId}`, payload);
             setScoreSummary(summary);
@@ -128,9 +128,9 @@ function Survey() {
         const dataStr = JSON.stringify(
             {
                 project_id: projectId,
-                survey_json: responses,
+                survey_json: { ...responses, ...openResponses },
                 score_summary: calculateScoreSummary(),
-                comment: comment.trim(),
+                comment: "",
             },
             null,
             2
@@ -172,8 +172,8 @@ function Survey() {
                             <strong>{scoreSummary.rating}</strong>
                         </article>
                         <article className="survey-score-card">
-                            <span>NPS</span>
-                            <strong>{scoreSummary.nps.score}</strong>
+                            <span>Preguntas respondidas</span>
+                            <strong>{scoreSummary.answeredCount}/{scoreSummary.totalQuestions}</strong>
                         </article>
                     </div>
                 )}
@@ -205,28 +205,35 @@ function Survey() {
                 </header>
 
                 <SurveyProgress completion={completion} answered={answeredCount} total={surveyQuestions.length} />
-                <div className="survey-question-list">
-                    {surveyQuestions.map((question) => (
-                        <SurveyQuestionCard
-                            key={question.id}
-                            question={question}
-                            value={responses[question.id]}
-                            onChange={(value) =>
-                                handleChange(question.id, value)
-                            }
-                        />
-                    ))}
-                </div>
+                {questionsByDimension.map(({ dimension, questions }) => (
+                    <section className="survey-dimension" key={dimension}>
+                        <h2 className="survey-dimension-title">{dimension}</h2>
+                        <div className="survey-question-list">
+                            {questions.map((question) => (
+                                <SurveyQuestionCard
+                                    key={question.id}
+                                    question={question}
+                                    value={responses[question.id]}
+                                    onChange={(value) => handleChange(question.id, value)}
+                                />
+                            ))}
+                        </div>
+                    </section>
+                ))}
 
                 <section className="survey-comment-card">
-                    <label htmlFor="survey-comment">Comentario adicional (opcional)</label>
-                    <textarea
-                        id="survey-comment"
-                        rows={4}
-                        value={comment}
-                        onChange={(e) => setComment(e.target.value)}
-                        placeholder="Cuéntanos recomendaciones puntuales para mejorar la formulación, navegación o respuestas del asistente."
-                    />
+                    <h2 className="survey-dimension-title">Preguntas abiertas</h2>
+                    {openSurveyQuestions.map((question) => (
+                        <div className="survey-open-question" key={question.id}>
+                            <label htmlFor={`survey-question-${question.id}`}>{question.text}</label>
+                            <textarea
+                                id={`survey-question-${question.id}`}
+                                rows={4}
+                                value={openResponses[question.id] || ""}
+                                onChange={(event) => handleOpenResponseChange(question.id, event.target.value)}
+                            />
+                        </div>
+                    ))}
                 </section>
 
                 {error && (
