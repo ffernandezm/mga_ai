@@ -504,16 +504,16 @@ function ParticipantsGeneral({ projectId }) {
             </div>
 
             <button type="submit" className="btn btn-primary me-2" onClick={handleSubmit}>
-                {generalId ? "Actualizar Participantes" : "Crear Participantes"}
+                {generalId ? "Guardar/Actualizar" : "Crear Participantes"}
             </button>
 
-            <button
+            {/* <button
                 type="button"
                 className="btn btn-secondary"
                 onClick={() => navigate("/projects")}
             >
                 Regresar a Proyectos
-            </button>
+            </button> */}
         </div>
     );
 }

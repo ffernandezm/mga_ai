@@ -49,33 +49,44 @@ export const surveyQuestions = [
   {
     id: 10,
     dimension: "Calidad del asistente",
-    text: "Las recomendaciones del asistente fueron coherentes con la Metodología General Ajustada (MGA)."
+    text: "Las recomendaciones del asistente fueron coherentes con la información y las secciones previamente desarrolladas en el proyecto."
   },
 
   {
     id: 11,
+    dimension: "Eficacia percibida",
+    text: "MGA_IA contribuyó a mejorar la calidad del resultado obtenido durante la formulación."
+  },
+  {
+    id: 12,
+    dimension: "Eficacia percibida",
+    text: "MGA_IA ayudó a mantener coherencia entre las diferentes secciones del proyecto."
+  },
+
+  {
+    id: 13,
     dimension: "Eficiencia percibida",
     text: "MGA_IA puede reducir el tiempo necesario para formular las secciones evaluadas de un proyecto."
   },
 
   {
-    id: 12,
+    id: 14,
     dimension: "Confianza y control humano",
     text: "Confiaría en las recomendaciones de MGA_IA como apoyo para la formulación, siempre sujetas a revisión profesional."
   },
   {
-    id: 13,
+    id: 15,
     dimension: "Confianza y control humano",
     text: "El sistema deja claro que la decisión final sobre la información incorporada al proyecto corresponde al formulador."
   },
 
   {
-    id: 14,
+    id: 16,
     dimension: "Adopción",
     text: "Utilizaría MGA_IA como herramienta de apoyo en futuros procesos de formulación de proyectos."
   },
   {
-    id: 15,
+    id: 17,
     dimension: "Satisfacción",
     text: "En términos generales, estoy satisfecho con mi experiencia utilizando MGA_IA."
   }
@@ -83,11 +94,19 @@ export const surveyQuestions = [
 
 export const openSurveyQuestions = [
   {
-    id: 16,
+    id: 18,
     text: "¿Cuál fue el aspecto de MGA_IA que más le ayudó durante la formulación?"
   },
   {
-    id: 17,
+    id: 19,
+    text: "¿Encontró alguna función, respuesta o parte del sistema que dificultara su trabajo? Si es así, descríbala brevemente."
+  },
+  {
+    id: 20,
     text: "¿Qué cambio considera prioritario para mejorar MGA_IA?"
+  },
+  {
+    id: 21,
+    text: "¿Utilizaría MGA_IA en un proceso real de formulación? Explique brevemente por qué sí o por qué no."
   }
 ];

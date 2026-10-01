@@ -4,6 +4,22 @@ import api from "../services/api";
 import { useNotification } from "../context/NotificationContext";
 import productsCatalogCsv from "../data/products_catalog.csv?raw";
 
+const formatCurrencyCOP = (value) => {
+    const numericValue = Number(value) || 0;
+
+    return new Intl.NumberFormat("es-CO", {
+        style: "currency",
+        currency: "COP",
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+    }).format(numericValue);
+};
+
+const parseCurrencyCOP = (value) => {
+    const numericValue = value.replace(/[^\d]/g, "");
+    return numericValue === "" ? 0 : Number(numericValue);
+};
+
 const ValueChain = ({ projectId }) => {
     const { showSuccess, showError, showConfirmation } = useNotification();
     const [objectives, setObjectives] = useState([]);
@@ -367,19 +383,27 @@ const ValueChain = ({ projectId }) => {
                                             />
                                         </div>
                                         <div className="col-6">
-                                            <label className="small text-muted fw-bold mb-1">Costo Unitario</label>
+                                            <label className="small text-muted fw-bold mb-1">
+                                                Costo Unitario
+                                            </label>
+
                                             <input
-                                                type="number"
+                                                type="text"
+                                                inputMode="numeric"
                                                 className="form-control form-control-sm"
-                                                value={prod.cost || 0}
+                                                value={formatCurrencyCOP(prod.cost)}
                                                 onChange={(e) => {
-                                                    const newCost = parseFloat(e.target.value) || 0;
+                                                    const newCost = parseCurrencyCOP(e.target.value);
+
                                                     setObjectives(prev => prev.map(o => {
                                                         if (o.id !== obj.id) return o;
+
                                                         return {
                                                             ...o,
                                                             products: o.products.map(p =>
-                                                                p.id === prod.id ? { ...p, cost: newCost } : p
+                                                                p.id === prod.id
+                                                                    ? { ...p, cost: newCost }
+                                                                    : p
                                                             )
                                                         };
                                                     }));
@@ -443,11 +467,20 @@ const ValueChain = ({ projectId }) => {
                                                         </td>
                                                         <td>
                                                             <input
-                                                                type="number"
+                                                                type="text"
+                                                                inputMode="numeric"
                                                                 className="form-control form-control-sm border-0 bg-transparent"
-                                                                style={{ width: "90px" }}
-                                                                value={act.cost || 0}
-                                                                onChange={(e) => handleActivityChange(obj.id, prod.id, act.id, 'cost', e.target.value)}
+                                                                style={{ minWidth: "140px" }}
+                                                                value={formatCurrencyCOP(act.cost)}
+                                                                onChange={(e) =>
+                                                                    handleActivityChange(
+                                                                        obj.id,
+                                                                        prod.id,
+                                                                        act.id,
+                                                                        "cost",
+                                                                        parseCurrencyCOP(e.target.value)
+                                                                    )
+                                                                }
                                                             />
                                                         </td>
                                                         <td>

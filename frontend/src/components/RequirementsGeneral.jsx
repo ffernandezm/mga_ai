@@ -446,8 +446,8 @@ function RequirementsGeneral({ projectId }) {
 
             {/* BOTONES DE ACCIÓN */}
             <div>
-                <button className="btn btn-secondary me-2" onClick={() => navigate("/projects")}>Regresar</button>
-                <button className="btn btn-primary" onClick={handleSubmit}>Guardar Cambios</button>
+                {/* <button className="btn btn-secondary me-2" onClick={() => navigate("/projects")}>Regresar</button> */}
+                <button className="btn btn-primary" onClick={handleSubmit}>Guardar/Actualizar</button>
             </div>
         </div>
     );
