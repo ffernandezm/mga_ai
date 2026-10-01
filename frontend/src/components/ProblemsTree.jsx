@@ -310,15 +310,20 @@ function ProblemsTree({ projectId, projectName, ProjectDescription, suggestionAp
 
                 <div className="trunk">
                     <div className="problem-general-container">
-                        <label className="problem-general-label" htmlFor="central_problem">Problema central *</label>
-                        <input
+                        <label
+                            className="problem-general-label"
+                            htmlFor="central_problem"
+                        >
+                            Problema central *
+                        </label>
+
+                        <textarea
                             id="central_problem"
                             name="central_problem"
                             data-validation-path="problems.central_problem"
-                            type="text"
                             aria-required="true"
                             aria-invalid={isProblemEmpty}
-                            placeholder="Problema general"
+                            placeholder="Describa el problema central"
                             value={problem}
                             onChange={(e) => {
                                 setProblem(e.target.value);
@@ -327,8 +332,14 @@ function ProblemsTree({ projectId, projectName, ProjectDescription, suggestionAp
                                 }
                             }}
                             className={isProblemEmpty ? "error-input" : ""}
+                            rows={4}
                         />
-                        {isProblemEmpty && <small className="field-error" role="alert">Este campo es obligatorio.</small>}
+
+                        {isProblemEmpty && (
+                            <small className="field-error" role="alert">
+                                Este campo es obligatorio.
+                            </small>
+                        )}
                     </div>
                 </div>
 

@@ -13,6 +13,17 @@
     gap: 8px;
 }
 
+.problem-general-container textarea {
+    width: 100%;
+    min-height: 200px;
+    resize: vertical;
+    padding: 12px;
+    font-family: inherit;
+    font-size: inherit;
+    line-height: 1.5;
+    box-sizing: border-box;
+}
+
 .problem-general-label::after {
     content: " *";
     color: #dc3545;

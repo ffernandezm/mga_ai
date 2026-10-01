@@ -537,7 +537,7 @@ function Objectives({ projectId }) {
                                                 ) : (
                                                     <>
                                                         <button className="btn btn-sm btn-primary me-2" onClick={() => handleEditCause(c)}>Editar</button>
-                                                        <button className="btn btn-sm btn-danger" onClick={() => handleDelete(c.id, "cause")}>Eliminar</button>
+                                                        {/* <button className="btn btn-sm btn-danger" onClick={() => handleDelete(c.id, "cause")}>Eliminar</button> */}
                                                     </>
                                                 )}
                                             </td>
@@ -580,11 +580,11 @@ function Objectives({ projectId }) {
             </div>
 
             <div>
-                <button className="btn btn-secondary me-2" onClick={() => navigate("/projects")}>
+                {/* <button className="btn btn-secondary me-2" onClick={() => navigate("/projects")}>
                     Regresar
-                </button>
+                </button> */}
                 <button className="btn btn-primary" onClick={handleSubmit}>
-                    Guardar Cambios
+                    Guardar/Actualizar
                 </button>
             </div>
         </div>

@@ -1076,11 +1076,11 @@ function Population({ projectId }) {
             </div>
 
             <div className="mt-4">
-                <button className="btn btn-secondary me-2" onClick={() => navigate("/projects")}>
+                {/* <button className="btn btn-secondary me-2" onClick={() => navigate("/projects")}>
                     Regresar
-                </button>
+                </button> */}
                 <button className="btn btn-primary" onClick={handleSubmit}>
-                    Guardar Cambios
+                    Guardar/Actualizar
                 </button>
             </div>
         </div>
